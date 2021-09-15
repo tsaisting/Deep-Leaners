@@ -1,3 +1,6 @@
 # Deep-Leaners
 
-\\\asdkfjksajdlkgdklfagsd
+Sid 
+Sunny
+Chelsea
+Annie
