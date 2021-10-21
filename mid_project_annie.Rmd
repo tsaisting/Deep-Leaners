@@ -3,6 +3,12 @@ title: "Mid_project"
 author: "Annie"
 date: "10/21/2021"
 output: html_document
+<<<<<<< Updated upstream:mid_project_annie.Rmd
+=======
+author: "Team02 Deep Learners"
+date: "today"
+# date: "`r Sys.Date()`"
+>>>>>>> Stashed changes:mid-term project.Rmd
 ---
 
 ```{r setup, include=FALSE}
