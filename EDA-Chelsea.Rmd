@@ -111,5 +111,5 @@ ggplot(data=movies,,mapping=aes(x=duration,y=avg_vote)) +geom_col()
 cor.test(movies$avg_vote,as.numeric(movies$year))
 cor.test(movies$avg_vote,as.numeric(movies$duration))
 ggplot(movies,aes(x=duration,y=avg_vote))+ geom_point()
-
+# movies duration distribution
 ```
