@@ -1,0 +1,115 @@
+---
+title: "EDA"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r data_join}
+movies <- read.csv('movies.csv', header=TRUE)
+str(movies)
+# our dataset has 85855 observations of  22 variables.
+
+drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
+          'reviews_from_critics','production_company','description','writer')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
+# we cleaned the data: drop 'budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
+#'reviews_from_critics','production_company','description','writer' because they are not related.we dropped “NA” #values from the dataset to simplify our analysis.
+
+
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+
+```
+
+
+```{r Q1}
+library(dplyr)
+library(reshape)
+movie_genre <- movie_ratings[,c("genre", "avg_vote")]
+movie_genre <- movie_genre %>%
+  mutate(
+      Romance = grepl('Romance', genre),
+      Biography = grepl('Biography', genre),
+      Drama = grepl('Drama', genre),
+      Adventure = grepl('Adventure', genre),
+      History = grepl('History', genre),
+      Crime = grepl('Crime', genre),
+      Western = grepl('Western', genre),
+      Fantasy = grepl('Fantasy', genre),
+      Comedy = grepl('Comedy', genre),
+      Horror = grepl('Horror', genre),
+      Family = grepl('Family', genre),
+      Action = grepl('Action', genre),
+      Mystery = grepl('Mystery', genre),
+      Sci_Fi = grepl('Sci-Fi', genre),
+      Animation = grepl('Animation', genre),
+      Thriller = grepl('Thriller', genre),
+      Musical = grepl('Musical', genre),
+      Music = grepl('Music', genre),
+      War = grepl('War', genre),
+      Film_Noir = grepl('Film-Noir', genre),
+      Sport = grepl('Sport', genre),
+      Adult = grepl('Adult', genre),
+      Documentary = grepl('Documentary', genre),
+      Reality_TV = grepl('Reality-TV', genre),
+      News = grepl('News', genre)
+  )
+melt(movie_genre,id.vars = "genre", measure.vars = c("Romance",'Biography'), value.name = "avg_vote"
+)
+```
+
+
+```{r Q2}
+
+hist(movies$avg_vote)
+library(ggplot2)
+movie_director <- movie_ratings[,c("director", "avg_vote")]
+movie_director
+
+director_gourp <- aggregate(movie_director$avg_vote, by = list(director = movie_director$director),FUN=mean)
+director_num <- movie_director %>% count(director,sort = TRUE)
+director_vote <- merge(director_gourp,director_num,by='director')
+director_vote <- director_vote[order(-director_vote$n),]
+director_vote
+
+director_vote_30 <- subset(director_vote,n>29)
+director_vote_30$x <- as.numeric(director_vote_30$x)
+
+ggplot(data=director_vote_30,mapping=aes(x=director,y=x)) +geom_col()
+
+
+anova_fit = aov(x~director,data=director_vote_30 )
+anova_fit_summary = summary(anova_fit)
+anova_fit_summary
+```
+```{r decription of the data}
+# average vote distribution
+summary(movies$avg_vote)
+hist(movies$avg_vote)
+# A brief overview of the dataset: the minimum vote is 1.000,while the maximum vote is 9.900.
+# the mean of the vote is 5.902, the median is 6.100.
+
+# movies year distribution
+library(ggplot2)
+str(movies)
+ggplot(data=movies,,mapping=aes(x=year,y=avg_vote)) +geom_col()
+# movies duration distribution
+ggplot(data=movies,,mapping=aes(x=duration,y=avg_vote)) +geom_col()
+
+
+# correlation 
+cor.test(movies$avg_vote,as.numeric(movies$year))
+cor.test(movies$avg_vote,as.numeric(movies$duration))
+ggplot(movies,aes(x=duration,y=avg_vote))+ geom_point()
+
+```
