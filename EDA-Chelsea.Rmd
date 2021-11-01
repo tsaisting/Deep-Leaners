@@ -101,7 +101,7 @@ ggplot(director_vote_40,aes(x=reorder(director,rating),y=rating))+
 str(movies)
 summary(movies$avg_vote)
 movies<-movies[!movies$year=='TV Movie 2019',]
-hist(movies$avg_vote)
+hist(movies$avg_vote,col='blue2',border='pink',main="Rating distribution",xlab='Rating')
 # A brief overview of the dataset: the minimum vote is 1.000,while the maximum vote is 9.900.
 # the mean of the vote is 5.902, the median is 6.100.
 
@@ -112,7 +112,7 @@ years_num <- years_numbers %>% count(year,sort = TRUE)
 colnames(years_num)<-c('Year','Movie_numbers')
 xkablesummary(years_numbers)
 
-ggplot(years_num,aes(x=reorder(Year,Movie_numbers),y=Movie_numbers))+geom_col(stat='identity',fill='#f68060',alpha=.6, width=.4)+labs(title=('year and Movie_numbers'))+coord_flip()+ylab('Year')
+ggplot(years_num,aes(x=reorder(Year,Movie_numbers),y=Movie_numbers))+geom_col(stat='identity',fill='#f68060',alpha=.6, width=.4)+labs(title=(' Movie_numbers - Year'))+coord_flip()+xlab('Year')+theme(axis.text.x = element_text(size=10),axis.text.y = element_text(size = 4))
 
 
 
@@ -122,7 +122,7 @@ years_rating <- aggregate(movies$avg_vote, by = list(director = movies$year),FUN
 colnames(years_rating) <- c('Year','Rating')
 xkablesummary(years_rating)
 
-ggplot(data=years_rating,aes(x=reorder(Year,Rating),y=Rating)) +geom_col(stat='identify',width=0.9,fill='lightblue',binwidth=25)+coord_flip()+xlab('Year')+labs(title=('years and Rating'))
+ggplot(data=years_rating,aes(x=reorder(Year,Rating),y=Rating)) +geom_col(stat='identify',width=0.9,fill='lightblue',binwidth=25)+coord_flip()+xlab('Year')+ylab('Mean of Rating')+labs(title=( 'Mean of Rating - Year'))+theme(axis.text.x = element_text(size=10),axis.text.y = element_text(size = 4))
 
 
 
@@ -131,14 +131,14 @@ years_vote <- aggregate(movies$votes, by = list(director = movies$year),FUN=sum)
 colnames(years_vote) <- c('Year','Votes')
 xkablesummary(years_vote)
 
-ggplot(data=years_vote,aes(x=reorder(Year,Votes),y=Votes)) +geom_col(fill='purple4',alpha=1, width=2)+xlab('Year')+ylab('Votes')+coord_flip()+labs(title=('Year and votes'))
+ggplot(data=years_vote,aes(x=reorder(Year,Votes),y=Votes)) +geom_col(fill='purple4',alpha=1, width=2)+xlab('Year')+ylab('Sum of Votes')+coord_flip()+labs(title=('Sum of Votes - Year'))+theme(axis.text.x = element_text(size=10),axis.text.y = element_text(size = 4))
 
 # movies duration-year distribution
 years_duration <- aggregate(movies$duration, by = list(director = movies$year),FUN=mean)
 colnames(years_duration) <- c('Year','Duration')
 xkablesummary(years_duration)
 
-ggplot(data=years_duration,aes(x=reorder(Year,Duration),y=Duration)) +geom_col(fill='purple4',alpha=1, width=2)+xlab('Year')+ylab('Duration')+coord_flip()+labs(title=('Year and Duration'))
+ggplot(data=years_duration,aes(x=reorder(Year,Duration),y=Duration)) +geom_col(fill='pink',alpha=1, width=2)+xlab('Year')+ylab('Duration')+coord_flip()+labs(title=('Movie Duration - Year'))+theme(axis.text.x = element_text(size=10),axis.text.y = element_text(size = 4))
 
 
 
@@ -151,7 +151,7 @@ duration_rating <- movies1[,c('duration','avg_vote')]
 colnames(duration_rating)<-c("Duration","Rating")
 xkablesummary(duration_rating)
 
-ggplot(data=duration_rating,,mapping=aes(x=Duration,y=Rating)) +geom_col(fill='purple4',alpha=.6)+labs(title=('duration and rating'))
+ggplot(data=duration_rating,,mapping=aes(x=Duration,y=Rating)) +geom_col(fill='red2',alpha=.6)+labs(title=('Movie duration and Rating distribution'))+theme(axis.text.x = element_text(size=10),axis.text.y = element_text(size = 10))
 
 # correlation 
 #cor.test(movies$avg_vote,as.numeric(movies$year))
