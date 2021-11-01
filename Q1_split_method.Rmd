@@ -1,0 +1,110 @@
+---
+title: "EDA"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+```
+
+# Initial Dataset Creation
+
+```{r data_join, echo=F}
+
+movies <- read.csv('movies.csv', header=TRUE)
+drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
+          'reviews_from_critics','production_company','description','writer')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
+
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+
+```
+
+# Q1 Dataset Creation
+
+```{r Q1_dataset_creation, warning=F}
+
+genre_df1 <- movie_ratings[,c("genre", "avg_vote")]
+
+genre_df2 <- genre_df1 %>%
+  separate(genre, c("c1",'c2','c3'),sep =c(', '))
+
+df1 <- genre_df2[,c("c1", "avg_vote")] %>% drop_na()
+df2 <- genre_df2[,c("c2", "avg_vote")] %>% drop_na()
+df3 <- genre_df2[,c("c3", "avg_vote")] %>% drop_na()
+
+names(df1)[1] <- "genre"
+names(df2)[1] <- "genre"
+names(df3)[1] <- "genre"
+
+genre_df <- rbind(df1, df2, df3)
+
+```
+
+# Data Visualization
+
+```{r Q1_visualization, warning=F}
+
+theme_set(theme_bw())
+
+genre_grouped <- genre_df %>%
+  group_by(genre) %>%
+    summarize(
+      mean_vote = mean(avg_vote),
+      n=n()
+    )
+
+genre_grouped <- genre_grouped[order(genre_grouped$mean_vote), ]
+genre_grouped$genre <- factor(genre_grouped$genre, levels = genre_grouped$genre)
+
+ggplot(genre_grouped, aes(fill=mean_vote, y=mean_vote, x=genre)) +
+    geom_bar(width=.8, stat="identity") +
+        coord_flip() +
+            labs(title="Ordered Bar Chart",
+                subtitle="Mean avg_vote across film genres", 
+                caption="genre: avg_vote")
+
+```
+
+# Hypothesis Testing and P-value visualization
+
+```{r Q1_hypo_test, warning=F}
+
+genre_df_filtered <- genre_df %>%
+  group_by(genre) %>%
+    filter(n() >= 30) %>%
+      ungroup()
+
+pw_ttest <- pairwise.t.test(
+  x=genre_df_filtered$avg_vote, 
+  g=genre_df_filtered$genre,
+  p.adjust.method="bonferroni"
+)
+
+pw_ttest_pvals <- data.frame(pw_ttest$p.value)
+pw_ttest_pvals$genre1 <- rownames(pw_ttest_pvals)
+pw_ttest_pvals <- melt(pw_ttest_pvals, id.vars="genre1", variable.name="genre2", value.name="p_value") %>% drop_na()
+
+ggplot(pw_ttest_pvals, aes(genre1, genre2, fill= p_value)) + 
+  geom_tile() +
+    # scale_x_discrete(guide = guide_axis(n.dodge=3)) +
+    theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
+      labs(title="Heat Map",
+          subtitle="P-values for pairwise T-tests on movie genres", 
+          caption="genre1: genre2")
+
+```
+
