@@ -1,0 +1,234 @@
+---
+title: "EDA"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(ggthemes)
+library(ezids)
+```
+
+
+```{r data_join}
+movies <- read.csv('movies.csv', header=TRUE)
+drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
+          'reviews_from_critics','production_company','description','writer')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+
+```
+
+
+```{r 1}
+movie_genre_1 <- movie_ratings[,c("genre", "avg_vote")]
+mean_mg <- aggregate(movie_genre_1$avg_vote, list(movie_genre_1$genre), FUN=mean, sort = FALSE)
+names(mean_mg)[names(mean_mg) == "Group.1"] <- "genre"
+count_mg <- movie_genre_1%>%count(genre)
+data_mg <- merge(mean_mg, count_mg, by="genre")
+names(data_mg)[names(data_mg) == "x"] <- "rating"
+names(data_mg)[names(data_mg) =="n"] <- "count"
+data_mg$genre <- as.factor(data_mg$genre)
+
+# Outliers
+#data_mg <-outlierKD2(data_mg, data_mg$rating)
+#data_mg <-outlierKD2(data_mg, data_mg$count)
+
+#outliers remove
+outliers <- boxplot(data_mg$rating, plot=FALSE)$out
+data_mg <- data_mg[-which(data_mg$rating %in% outliers),]
+
+hist(data_mg$rating, main = "Histogram of the movie rating", xlab="Movie rating", col="seagreen", breaks = 15)
+
+qqnorm(data_mg$rating, main = "Q-Q plot for movie rating")
+qqline(data_mg$rating)
+
+
+ggplot(data=data_mg, aes(x=rating, y=count)) + geom_point(col = "seagreen") + labs(title='The amount of attendance of rating vs. movie rating ') + geom_line(col = "seagreen")
+
+
+data_mg <- subset(data_mg, rating>7.5)
+
+ggplot(data=data_mg, aes(x=reorder(genre, rating), y=rating)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "skyblue3") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Rating")+ labs(title='The average rating of various movie genres (rating >= 7.5)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+```
+
+```{}
+
+data_mg <- subset(data_mg, count > 30)
+data_mg <- data_mg[order(data_mg$count),]
+
+# maximum and minimum values
+#data_mg[data_mg$mean_rate == max(data_mg$mean_rate),]
+#data_mg[data_mg$mean_rate == min(data_mg$mean_rate),]
+#data_mg[data_mg$count == max(data_mg$count),]
+#data_mg[data_mg$count == min(data_mg$count),]
+
+
+# plot for various genres
+ggplot(data = data_mg, mapping = aes(x = genre, y = rating )) + geom_col()
+ggplot(data = data_mg, mapping = aes(x = genre, y = count )) + geom_col()
+
+
+
+# t test
+#pairwise.t.test(data_mg$mean_rate, data_mg$genre)
+
+# Anova
+#rate_aov = aov(mean_rate ~ genre, data = data_mg)
+#tukeyAoV_rate <- TukeyHSD(rate_aov)
+#tukeyAoV_rate
+
+```
+
+```{r 2}
+#vote
+vote_all <- subset(movie_ratings[, c(35,43)])
+vote = data.frame(movie_ratings$genre, vote_all$males_allages_votes, vote_all$females_allages_votes)
+
+vote <- aggregate(list(vote$vote_all.males_allages_votes, vote$vote_all.females_allages_votes), by = list(vote$movie_ratings.genre), sum)
+colnames(vote) <- c("Genre","Male", "Female")
+
+# outliers votes female 
+outliers <- boxplot(vote$Female, plot=FALSE)$out
+vote_1 <- vote[-which(vote$Female %in% outliers),]
+# most vote in female
+vote_1 <- subset(vote_1, Female>25000)
+ggplot(data=vote_1, aes(x=reorder(Genre, Female), y=Female)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "skyblue3") + scale_fill_brewer(palette = "Set2") + xlab("movie genre") + ylab("Votes")+ labs(title='The amount of votes from female with various movie genres(votes > 25k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+
+# outliers votes male 
+outliers <- boxplot(vote$Male, plot=FALSE)$out
+vote_2 <- vote[-which(vote$Male %in% outliers),]
+# most vote in male
+vote_2 <- subset(vote_2, Male>120000)
+ggplot(data=vote_2, aes(x=reorder(Genre, Male), y=Male)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "seagreen") + scale_fill_brewer(palette = "Set2") + xlab("movie genre") + ylab("Votes")+ labs(title='The amount of votes from male with various movie genres(votes > 120k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+# total votes
+vote$Total <- vote[,2]+vote[,3]
+colnames(vote) <- c("Genre","Male", "Female", "Total")
+# outliers for total
+outliers <- boxplot(vote$Total, plot=FALSE)$out
+vote_0 <- vote[-which(vote$Total %in% outliers),]
+vote_0 <- subset(vote_0, Total > 150000)
+#create line plot for each column in data frame
+ggplot(data=vote_0, aes(x=reorder(Genre, Total), y=Total)) + geom_bar(stat = "identity", position="dodge",alpha=.7, fill= 'indianred') + scale_fill_brewer(palette = "Set1") + xlab("movie genre") + ylab("Votes")+ labs(title='The amount of votes in total with various movie genres(votes > 150k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+# drop total vote
+vote = subset(vote, select = -c(Total))
+barplot(colSums(vote[,2:3]), col = c("skyblue3","seagreen"), main="The total votes in female and male")
+```
+
+```{r q3}
+
+#rating
+mean_all <- rowMeans(subset(movie_ratings[, c(28, 30, 32)]))
+mean_male <- rowMeans(subset(movie_ratings[, c(36, 38, 40)]))
+mean_female <- rowMeans(subset(movie_ratings[, c(44, 46, 48)]))
+movie_gender = data.frame(movie_ratings[,c("genre")], mean_all, mean_male, mean_female)
+movie_gender <- aggregate(list(movie_gender$mean_all, movie_gender$mean_male, movie_gender$mean_female), by = list(movie_gender$`movie_ratings...c..genre...`), mean)
+colnames(movie_gender) <- c("genre","all gender","male", "female")
+
+
+# Outliers
+#movie_gender <-outlierKD2(movie_gender, movie_gender$`all gender`)
+#movie_gender <-outlierKD2(movie_gender, movie_gender$male)
+#movie_gender <-outlierKD2(movie_gender, movie_gender$female)
+
+# Outliers female rating
+outliers <- boxplot(movie_gender$female, plot=FALSE)$out
+movie_gender_1 <- movie_gender[-which(movie_gender$female %in% outliers),]
+
+#min and max
+movie_gender_1[movie_gender_1$female == max(movie_gender_1$female),]
+movie_gender_1[movie_gender_1$female == min(movie_gender_1$female),]
+
+
+# plot for female rating separately
+movie_gender_1 <- subset(movie_gender_1, female >= 8)
+ggplot(data=movie_gender_1, aes(x=reorder(genre, female), y=female)) + geom_bar(stat = "identity", position="dodge",alpha=.7, fill = 'skyblue3') + scale_fill_brewer(palette = "Set1") + xlab("movie genre") + ylab("Rating") + labs(title="Movie rating for female in various genre (rating >= 8)")+ coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+# Outliers male rating
+outliers <- boxplot(movie_gender$male, plot=FALSE)$out
+movie_gender_2 <- movie_gender[-which(movie_gender$male %in% outliers),]
+
+#min and max
+movie_gender_2[movie_gender_1$male == max(movie_gender_2$male),]
+movie_gender_2[movie_gender_1$male == min(movie_gender_2$male),]
+
+# plot for male rating separately
+movie_gender_2 <- subset(movie_gender_2, male >= 7.5)
+ggplot(data=movie_gender_2, aes(x=reorder(genre,male), y=male)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = 'seagreen') + scale_fill_brewer(palette = "Set1") + xlab("movie genre") + ylab("Rating")+ labs(title="Movie rating for male in various genre (rating >= 7.5)")+ coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+
+# Outliers all rating
+outliers <- boxplot(movie_gender$`all gender`, plot=FALSE)$out
+movie_gender_3 <- movie_gender[-which(movie_gender$`all gender` %in% outliers),]
+
+
+#min and max
+movie_gender_3[movie_gender_3$`all gender` == max(movie_gender_3$`all gender`),]
+movie_gender_3[movie_gender_3$`all gender` == min(movie_gender_3$`all gender`),]
+
+# plot for all rating
+movie_gender_3 <- subset(movie_gender_3,`all gender` >= 7.5)
+ggplot(data=movie_gender_3, aes(x=reorder(genre,`all gender`), y=`all gender`)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = 'indianred') + scale_fill_brewer(palette = "Set1") + xlab("movie genre") + ylab("Rating")+ labs(title="Movie rating for all gender in various genre (rating >= 7.5)")+ coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+# avg rating in genders
+colnames(movie_gender) <- c("Genre","All gender","Male", "Female")
+barplot(colMeans(movie_gender[,3:4]), col = c("skyblue3","seagreen"), main="The average of movie rating in female and male")
+```
+
+```{}
+# plot for all rating of gender together
+#melt data frame into long
+colnames(movie_gender) <- c("genre","all gender","male", "female")
+# <- melt(movie_gender, id.vars = 'genre', variable.name = 'gender')
+#movie_gender <- subset(movie_gender, value >= 8)
+#ggplot(data=movie_gender, aes(x=reorder(genre, value), y=value, fill = gender)) + geom_bar(stat = "identity", position="dodge",alpha=.7) + scale_fill_brewer(palette = "Set1") + xlab("movie genre") + ylab("Rating")+ labs(title="Rating plot with different genders(rating >= 8)") + coord_flip() + theme(legend.position="top")
+
+```
+
+```{r Q1}
+movie_genre <- movie_genre %>%
+  mutate(
+      Romance = grepl('Romance', genre),
+      Biography = grepl('Biography', genre),
+      Drama = grepl('Drama', genre),
+      Adventure = grepl('Adventure', genre),
+      History = grepl('History', genre),
+      Crime = grepl('Crime', genre),
+      Western = grepl('Western', genre),
+      Fantasy = grepl('Fantasy', genre),
+      Comedy = grepl('Comedy', genre),
+      Horror = grepl('Horror', genre),
+      Family = grepl('Family', genre),
+      Action = grepl('Action', genre),
+      Mystery = grepl('Mystery', genre),
+      Sci_Fi = grepl('Sci-Fi', genre),
+      Animation = grepl('Animation', genre),
+      Thriller = grepl('Thriller', genre),
+      Musical = grepl('Musical', genre),
+      Music = grepl('Music', genre),
+      War = grepl('War', genre),
+      Film_Noir = grepl('Film-Noir', genre),
+      Sport = grepl('Sport', genre),
+      Adult = grepl('Adult', genre),
+      Documentary = grepl('Documentary', genre),
+      Reality_TV = grepl('Reality-TV', genre),
+      News = grepl('News', genre)
+  )
+
+melt(movie_genre,id.vars = "genre", measure.vars = c("Romance",'Biography'), value.name = "avg_vote"
+)
+```
