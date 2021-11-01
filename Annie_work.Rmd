@@ -30,7 +30,7 @@ movie_ratings
 ```
 
 
-```{r 1}
+```{r 1 movie rating & qq plot}
 movie_genre_1 <- movie_ratings[,c("genre", "avg_vote")]
 mean_mg <- aggregate(movie_genre_1$avg_vote, list(movie_genre_1$genre), FUN=mean, sort = FALSE)
 names(mean_mg)[names(mean_mg) == "Group.1"] <- "genre"
@@ -66,6 +66,39 @@ data_mg <- subset(data_mg, rating>7.5)
 
 ggplot(data=data_mg, aes(x=reorder(genre, rating), y=rating)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "skyblue3") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Rating")+ labs(title='The average rating of various movie genres (rating >= 7.5)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
 
+```
+
+```{r }
+movie_genre_v <- movie_ratings[,c("genre", "votes")]
+sum_mg <- aggregate(movie_genre_v$votes, list(movie_genre_v$genre), FUN=sum, sort = FALSE)
+
+names(sum_mg)[names(sum_mg) == "Group.1"] <- "genre"
+count_v <- movie_genre_v%>%count(genre)
+data_v <- merge(sum_mg, count_v, by="genre")
+
+names(data_v)[names(data_v) == "x"] <- "movie_votes"
+names(data_v)[names(data_v) =="n"] <- "count"
+data_v$genre <- as.factor(data_v$genre)
+
+
+#outliers remove
+outliers <- boxplot(data_v$movie_votes, plot=FALSE)$out
+data_v <- data_v[-which(data_v$movie_votes %in% outliers),]
+
+hist(data_v$movie_votes, main = "Histogram of the movie votes", xlab="Movie votes", col="seagreen", breaks = 15)
+qqnorm(data_v$movie_votes, main = "Q-Q plot for movie votes")
+qqline(data_v$movie_votes)
+
+
+ggplot(data=data_v, aes(x=movie_votes, y=count)) + geom_point(col = "seagreen") + labs(title='The amount of attendance of votes vs. movie votes ')
+
+
+
+data_v <- subset(data_v, movie_votes>200000)
+
+ggplot(data=data_v, aes(x=reorder(genre, movie_votes), y=movie_votes)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "skyblue3") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Votes")+ labs(title='The sum of movie votes in movie genres (votes >= 200k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+```
 ```
 
 ```{}
