@@ -1,0 +1,105 @@
+---
+title: "EDA"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+```
+
+# Initial Dataset Creation
+
+```{r data_join, echo=F}
+
+movies <- read.csv('movies.csv', header=TRUE)
+drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
+          'reviews_from_critics','production_company','description','writer')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
+
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+
+```
+
+# Q3 Dataset Creation
+
+```{r Q3_dataset_creation, warning=F}
+
+genre_age_df1 <- movie_ratings[,c("genre", "allgenders_18age_votes", "allgenders_30age_votes", "allgenders_45age_votes")]
+
+genre_age_df2 <- genre_age_df1 %>%
+    mutate(
+      prop_18 = allgenders_18age_votes / (allgenders_18age_votes + allgenders_30age_votes + allgenders_45age_votes),
+      prop_30 = allgenders_30age_votes / (allgenders_18age_votes + allgenders_30age_votes + allgenders_45age_votes),
+      prop_45 = allgenders_45age_votes / (allgenders_18age_votes + allgenders_30age_votes + allgenders_45age_votes)
+    )
+
+names(genre_age_df2)[2:4] <- c("votes_18", "votes_30", "votes_45")
+
+genre_age_df3 <- genre_age_df2 %>%
+  separate(genre, c("c1",'c2','c3'),sep =c(', '))
+
+df1 <- genre_age_df3[,c("c1", "votes_18", "votes_30", "votes_45", "prop_18", "prop_30", "prop_45")] %>% drop_na()
+df2 <- genre_age_df3[,c("c2", "votes_18", "votes_30", "votes_45", "prop_18", "prop_30", "prop_45")] %>% drop_na()
+df3 <- genre_age_df3[,c("c3", "votes_18", "votes_30", "votes_45", "prop_18", "prop_30", "prop_45")] %>% drop_na()
+
+names(df1)[1] <- "genre"
+names(df2)[1] <- "genre"
+names(df3)[1] <- "genre"
+
+genre_age_df <- rbind(df1, df2, df3)
+
+```
+
+# Data Visualization
+
+```{r Q3_visualization, warning=F}
+ggplot(genre_age_df, aes(x=prop_18, group=genre, fill=genre)) +
+  geom_density(adjust=1.5, alpha=.4) +
+      ggtitle("Distribution of Age 18 viewing proportions for various genres")
+
+ggplot(genre_age_df, aes(x=prop_30, group=genre, fill=genre)) +
+  geom_density(adjust=1.5, alpha=.4) +
+      ggtitle("Distribution of Age 30 viewing proportions for various genres")
+
+ggplot(genre_age_df, aes(x=prop_45, group=genre, fill=genre)) +
+  geom_density(adjust=1.5, alpha=.4) +
+      ggtitle("Distribution of Age 45 viewing proportions for various genres")
+
+genre_age_grouped <- genre_age_df %>%
+  group_by(genre) %>%
+    summarize(
+      ages_18 = mean(prop_18),
+      ages_30 = mean(prop_30),
+      ages_45 = mean(prop_45)
+    ) 
+
+genre_age_melt <- melt(genre_age_grouped, id.vars = "genre", variable.name = "proportions")
+
+ggplot(genre_age_melt, aes(fill=proportions, y=value, x=genre)) + 
+    geom_bar(position="stack", stat="identity") +
+        coord_flip() + 
+            ggtitle("Mean of proportions of viewer ages across film genres")
+
+```
+
+# Hypothesis Testing
+
+```{r Q3_hypo_test, warning=F}
+res.man <- manova(cbind(votes_18, votes_30, votes_45) ~ genre, data = genre_age_df)
+summary(res.man)
+summary.aov(res.man)
+```
+
