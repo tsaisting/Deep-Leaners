@@ -55,6 +55,24 @@ movie_genre <- movie_genre %>%
       Reality_TV = grepl('Reality-TV', genre),
       News = grepl('News', genre)
   )
-melt(movie_genre,id.vars = "genre", measure.vars = c("Romance",'Biography'), value.name = "avg_vote"
-)
+library(tidyr)
+library(stringr)
+library(plyr)
+movie_genre <- movie_genre %>%
+  separate(genre,c("c1",'c2','c3'),sep =c(',',' '))
+movie_genre
+df1<-data.frame(movie_genre$c1,movie_genre$avg_vote)
+df2<-data.frame(movie_genre$c2,movie_genre$avg_vote)
+df3<-data.frame(movie_genre$c3,movie_genre$avg_vote)
+df1%>%drop_na(movie_genre.c1)
+df2%>%drop_na(movie_genre.c2)
+df3%>%drop_na(movie_genre.c3)
+colnames(df1)<-c("movie_genre","avg_vote")
+colnames(df2)<-c("movie_genre","avg_vote")
+colnames(df3)<-c("movie_genre","avg_vote")
+#inbind_rows(df1, df2, df3)
+dfs<-rbind.fill(df1,df2,df3)
+dfs
+#drops <- c("movie_genre.c2","movie_genre.c3")
+#dfs[ , !(names(dfs) %in% drops)]
 ```
