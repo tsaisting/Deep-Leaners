@@ -15,7 +15,7 @@ output:
 ---
 
 ```{r init, include=FALSE}
-knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+knitr::opts_chunk$set(warning = F, message = F)
 options(scientific=T, digits = 3) 
 
 library(tidyr)
@@ -27,7 +27,7 @@ library(ezids)
 
 ```
 
-### Data cleaning and Merging
+# Data cleaning and Merging
 
 ```{r data_join}
 
@@ -48,9 +48,9 @@ movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
 
 ```
 
-### EDA
+# EDA
 
-##### Movie Rating and QQ plot
+### Movie Rating and QQ plot
 
 ```{r movie_rating_&_qq_plot}
 movie_genre_1 <- movie_ratings[,c("genre", "avg_vote")]
@@ -84,7 +84,7 @@ ggplot(data=data_mg, aes(x=reorder(genre, rating), y=rating)) + geom_bar(stat = 
 
 ```
 
-##### Total movie votes and QQ plot
+### Total movie votes and QQ plot
 
 ```{r movie votes & qq plot}
 movie_genre_v <- movie_ratings[,c("genre", "votes")]
@@ -114,7 +114,7 @@ data_v <- subset(data_v, movie_votes>200000)
 ggplot(data=data_v, aes(x=reorder(genre, movie_votes), y=movie_votes)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "skyblue3") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Votes")+ labs(title='The sum of movie votes in movie genres (votes >= 200k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
 
 ```
-##### Year-wise movie distribution
+### Year-wise movie distribution
 
 ```{r EDA_year_movie_count, warning=F, fig.height=10, fig.width=8}
 
@@ -144,7 +144,7 @@ ggplot(years_num,aes(x=Year,y=Movie_numbers)) +
 
 ```
 
-##### Average votes per year
+### Average votes per year
 
 ```{r EDA_year_avg_votes, warning=F, fig.height=10, fig.width=8}
 # movies year-rating distribution
@@ -164,7 +164,7 @@ ggplot(data=years_rating,aes(x=Year,y=Rating)) +
 ```
 
 
-##### Number of votes per year
+### Number of votes per year
 
 ```{r EDA_year_votes, fig.height=10, fig.width=8}
 
@@ -184,7 +184,7 @@ ggplot(data=years_vote,aes(x=Year,y=Votes)) +
 
 ```
 
-##### Duration of movies per year
+### Duration of movies per year
 
 ```{r EDA_year_duration, fig.height=10, fig.width=8}
 
@@ -205,9 +205,9 @@ ggplot(data=years_duration,aes(x=Year,y=Duration)) +
 ```
 
 
-### Q1 Difference in movie Ratings across genres
+# Difference in movie Ratings across genres
 
-##### Dataset Creation
+### Dataset Creation
 
 ```{r Q1_dataset_creation, warning=F}
 
@@ -228,7 +228,7 @@ genre_df <- rbind(df1, df2, df3)
 
 ```
 
-##### Data Visualization
+### Data Visualization
 
 ```{r Q1_visualization, warning=F}
 
@@ -253,7 +253,7 @@ ggplot(genre_grouped, aes(fill=mean_vote, y=mean_vote, x=genre)) +
 
 ```
 
-##### Hypothesis Testing and P-value visualization
+### Hypothesis Testing and P-value visualization
 
 ```{r Q1_hypo_test, warning=F}
 
@@ -284,9 +284,9 @@ paste0("Since most p-values are far lesser than our alpha-value of 0.01, we can 
 ```
 
 
-### Q2 Choice of Director affect movie ratings
+# Choice of Director affect movie ratings
 
-##### EDA
+### EDA
 
 ```{r Q2, fig.width = 8, fig.height = 8}
 
@@ -311,7 +311,7 @@ ggplot(director_vote_40,aes(x=reorder(director,rating),y=rating)) +
 
 ```
 
-##### Hypothesis Testing and P-value visualization
+### Hypothesis Testing and P-value visualization
 
 ```{r Q2_hypo_test, warning=F}
 
@@ -327,16 +327,16 @@ summary(anovaRes)
 tukeyDirectorAoV <- TukeyHSD(anovaRes)
 tukeyVar <- data.frame(tukeyDirectorAoV$director)
 tukeyVarSig <- subset(tukeyVar, p.adj <= 0.01)
-tukeyVarSig
+head(tukeyVarSig)
 
 paste0("We see a list of director pairs where the movie ratings distribution for their movies are significantly different.")
 paste0("Hence, we can say that the choice of director is important in selecting a movie.")
 
 ```
 
-### Q3 Movie genre viewing statistic differences with age
+# Movie genre viewing statistic differences with age
 
-##### Dataset Creation
+### Dataset Creation
 
 ```{r Q3_dataset_creation, warning=F}
 
@@ -366,7 +366,7 @@ genre_age_df <- rbind(df1, df2, df3)
 
 ```
 
-##### Data Visualization
+### Data Visualization
 
 ```{r Q3_visualization, warning=F}
 ggplot(genre_age_df, aes(x=prop_18, group=genre, fill=genre)) +
@@ -400,7 +400,7 @@ paste0("We see how proportion differences across various genres differ for diffe
 
 ```
 
-##### Hypothesis Testing
+### Hypothesis Testing
 
 ```{r Q3_hypo_test, warning=F}
 res.man <- manova(cbind(votes_18, votes_30, votes_45) ~ genre, data = genre_age_df)
@@ -412,9 +412,9 @@ paste0("A low p-value for each age category tells us that all the ages have diff
 
 ```
 
-### Q4 Affect of duration of movie on avg_vote
+# Affect of duration of movie on avg_vote
 
-##### EDA
+### EDA
 
 ```{r Q4_EDA}
 
@@ -447,9 +447,9 @@ ggplot( duration_grouped, aes(fill=mean_vote, y=mean_vote, x=duration)) +
 
 ```
 
-##### Correlation Analysis
+### Correlation Analysis
 
-```{r}
+```{r Q4_corr_analysis}
 
 #correlation 
 cor.test(movies$avg_vote, as.numeric(movies$duration))
@@ -461,11 +461,11 @@ paste0("There is a weak correlation between movie duration and Rating.")
 
 ```
 
-### Effect of movie language on Average Vote
+# Effect of movie language on Average Vote
 
-##### Q5 Dataset Creation
+### Dataset Creation
 
-```{r Q1_dataset_creation, warning=F}
+```{r Q5_dataset_creation, warning=F}
 
 language_df1 <- movie_ratings[,c("language", "avg_vote")]
 
@@ -490,7 +490,7 @@ language_df <- rbind(df1, df2, df3, df4, df5, df6)
 
 ```
 
-##### Data Visualization
+### Data Visualization
 
 ```{r Q5_visualization, warning=F, fig.width=8, fig.height=12}
 
@@ -517,7 +517,7 @@ ggplot(language_grouped, aes(fill=mean_vote, y=mean_vote, x=language)) +
 
 ```
 
-##### Hypothesis Testing and P-value visualization
+### Hypothesis Testing and P-value visualization
 
 ```{r Q5_hypo_test, warning=F}
 
@@ -534,13 +534,13 @@ names(anovaRes)
 tukeyLanguageAoV <- TukeyHSD(anovaRes)
 tukeyVar <- data.frame(tukeyLanguageAoV$language)
 tukeyVarSig <- subset(tukeyVar, p.adj <= 0.01)
-tukeyVarSig
+head(tukeyVarSig)
 
 ```
 
-### Q6 Voter demographics affecting average vote and votes
+# Voter demographics affecting average vote and votes
 
-##### Average Vote v/s Gender
+### Average Vote v/s Gender
 
 ```{r Q6_movie_rating_vs_gender, warning=F}
 
@@ -569,6 +569,8 @@ movie_gender <- melt(movie_gender)
 boxplot(value~variable, data=movie_gender, main="Movie rating vs. genders", xlab="Gender", ylab="Movie rating", col=c("indianred", "seagreen","skyblue3")) 
 
 ```
+
+### Total Votes v/s Gender
 
 ```{r movie_vote_vs_gender}
 
@@ -613,7 +615,7 @@ boxplot(value~variable, data=vote, main="Movie votes vs. genders", xlab="Gender"
 
 ```
 
-##### Dataset Creation
+### Dataset Creation
 
 ```{r Q6_dataset_creation, warning=F}
 
@@ -625,7 +627,7 @@ names(gender_df)[1:2] <- c("avg_vote_male", "avg_vote_female", "avg_vote_45")
 
 ```
 
-##### Data Visualization
+### Data Visualization
 
 ```{r Q6_visualization, warning=F}
 
@@ -653,7 +655,7 @@ ggplot(gender_df_melt, aes(x=Var1, y=Var2, fill=value)) +
 
 ```
 
-##### Hypothesis Testing 
+### Hypothesis Testing 
 
 ```{r Q6_hypo_test, warning=F}
 
