@@ -15,59 +15,138 @@ output:
 ---
 
 ```{r init, include=FALSE}
- knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
 
 library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(reshape2)
+library(ggthemes)
+library(ezids)
 
 ```
+
 ### Data cleaning and Merging
+
 ```{r data_join}
+
 movies <- read.csv('movies.csv', header=TRUE)
 drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
           'reviews_from_critics','production_company','description','writer')
 movies <- movies[,!names(movies) %in% drop]
 movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
-movies
+
 ratings <- read.csv('ratings.csv', header=TRUE)
 drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
           'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
           'non_us_voters_rating', 'non_us_voters_votes')
 ratings <- ratings[,!names(ratings) %in% drop]
 ratings <- na.omit(ratings)
-ratings
+
 movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
 
 ```
+
 ### EDA
 
-```{r decription of the data}
-library(dplyr)
-library(ggplot2)
+##### Movie Rating and QQ plot
+
+```{r movie_rating_&_qq_plot}
+movie_genre_1 <- movie_ratings[,c("genre", "avg_vote")]
+
+data_mg <- aggregate(movie_genre_1$avg_vote, list(movie_genre_1$genre), FUN=mean, sort = FALSE)
+names(data_mg)[names(data_mg) == "Group.1"] <- "genre"
+#count_mg <- movie_genre_1%>%count(genre)
+names(data_mg)[names(data_mg) == "x"] <- "rating"
+names(data_mg)[names(data_mg) =="n"] <- "count"
+data_mg$genre <- as.factor(data_mg$genre)
+
+# summary of dataset
+summary(data_mg$rating)
+
+# plot histogram plot
+hist(data_mg$rating, main = "Histogram of the movie rating", xlab="Movie rating", col="seagreen", breaks = 15)
+
+# plot qqplot
+qqnorm(data_mg$rating, main = "Q-Q plot for movie rating")
+qqline(data_mg$rating)
+
+
+#remove outliers
+outliers <- boxplot(data_mg$rating, plot=FALSE)$out
+data_mg <- data_mg[-which(data_mg$rating %in% outliers),]
+
+# plot ggplot for rating
+
+data_mg <- subset(data_mg, rating>7.5)
+ggplot(data=data_mg, aes(x=reorder(genre, rating), y=rating)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "seagreen") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Rating")+ labs(title='The rating of various movie genres (rating >= 7.5)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+```
+
+##### Total movie votes and QQ plot
+
+```{r movie votes & qq plot}
+movie_genre_v <- movie_ratings[,c("genre", "votes")]
+data_v <- aggregate(movie_genre_v$votes, list(movie_genre_v$genre), FUN=sum, sort = FALSE)
+names(data_v)[names(data_v) == "Group.1"] <- "genre"
+names(data_v)[names(data_v) == "x"] <- "movie_votes"
+names(data_v)[names(data_v) =="n"] <- "count"
+data_v$genre <- as.factor(data_v$genre)
+
+# summary of dataset
+summary(data_v$movie_votes)
+
+# plot histogram plot
+hist(data_v$movie_votes, main = "Histogram of the movie votes", xlab="Movie votes", col="skyblue3", breaks = 15)
+
+# plot qq plot
+qqnorm(data_v$movie_votes, main = "Q-Q plot for movie votes")
+qqline(data_v$movie_votes)
+
+#remove outliers
+outliers <- boxplot(data_v$movie_votes, plot=FALSE)$out
+data_v <- data_v[-which(data_v$movie_votes %in% outliers),]
+
+
+# ggplot for movie votes
+data_v <- subset(data_v, movie_votes>200000)
+ggplot(data=data_v, aes(x=reorder(genre, movie_votes), y=movie_votes)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "skyblue3") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Votes")+ labs(title='The sum of movie votes in movie genres (votes >= 200k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+```
+##### Year-wise movie distribution
+
+```{r EDA_year_movie_count, warning=F, fig.height=10, fig.width=8}
+
 # average vote distribution
-summary(movies$avg_vote)
 movies<-movies[!movies$year=='TV Movie 2019',]
-hist(movies$avg_vote)
+
 # A brief overview of the dataset: the minimum vote is 1.000,while the maximum vote is 9.900.
 # the mean of the vote is 5.902, the median is 6.100.
 
 
 # movies year-numbers distribution
 years_numbers <- movies[,c('imdb_title_id', 'year')]
-years_num <- years_numbers %>% count(movies$year)
+years_num <- years_numbers %>% count(year,sort = TRUE)
 colnames(years_num)<-c('Year','Movie_numbers')
 df1 <-arrange(years_num, -Movie_numbers)
 head(df1)
 tail(df1)
 
 
-ggplot(years_num,aes(x=Year,y=Movie_numbers))+geom_col(stat='identity',fill='#f68060',alpha=.6, width=1)+labs(title=('year and Movie_numbers'))+coord_flip()+ylab('Year') + scale_x_discrete(guide = guide_axis(n.dodge=3))
+ggplot(years_num,aes(x=Year,y=Movie_numbers)) + 
+  geom_col(stat='identity', fill='#f68060', alpha=.6, width=1) + 
+    labs(title=('year and Movie_numbers')) + 
+      coord_flip() + 
+        ylab('Year') + 
+          scale_x_discrete(guide = guide_axis(n.dodge=3))
 
 
+```
 
+##### Average votes per year
+
+```{r EDA_year_avg_votes, warning=F, fig.height=10, fig.width=8}
 # movies year-rating distribution
 years_rating <- aggregate(movies$avg_vote, by = list(director = movies$year),FUN=mean)
 colnames(years_rating) <- c('Year','Rating')
@@ -76,7 +155,18 @@ head(df2)
 tail(df2)
 
 
-ggplot(data=years_rating,aes(x=Year,y=Rating)) +geom_col(width=1,fill='lightblue')+coord_flip()+xlab('Year')+labs(title=('years and Rating'))+ scale_x_discrete(guide = guide_axis(n.dodge=3))
+ggplot(data=years_rating,aes(x=Year,y=Rating)) +
+  geom_col(width=1,fill='lightblue') + 
+    coord_flip()+xlab('Year') + 
+      labs(title=('Years v/s Rating')) + 
+        scale_x_discrete(guide = guide_axis(n.dodge=3))
+
+```
+
+
+##### Number of votes per year
+
+```{r EDA_year_votes, fig.height=10, fig.width=8}
 
 # movies vote distribution
 years_vote <- aggregate(movies$votes, by = list(director = movies$year),FUN=sum)
@@ -86,7 +176,17 @@ head(df3)
 tail(df3)
 
 
-ggplot(data=years_vote,aes(x=Year,y=Votes)) +geom_col(fill='purple4',alpha=1, width=1)+xlab('Year')+ylab('Votes')+coord_flip()+labs(title=('Year and votes'))+ scale_x_discrete(guide = guide_axis(n.dodge=3))
+ggplot(data=years_vote,aes(x=Year,y=Votes)) +
+  geom_col(fill='purple4',alpha=1, width=1)+xlab('Year') +
+    ylab('Votes')+coord_flip() +
+      labs(title=('Year and votes')) + 
+        scale_x_discrete(guide = guide_axis(n.dodge=3))
+
+```
+
+##### Duration of movies per year
+
+```{r EDA_year_duration, fig.height=10, fig.width=8}
 
 # movies duration-year distribution
 years_duration <- aggregate(movies$duration, by = list(director = movies$year),FUN=mean)
@@ -95,166 +195,486 @@ df4 <-arrange(years_duration, -Duration)
 head(df4)
 tail(df4)
 
-ggplot(data=years_duration,aes(x=Year,y=Duration)) +geom_col(fill='purple4',alpha=1, width=1)+xlab('Year')+ylab('Duration')+coord_flip()+labs(title=('Year and Duration'))+ scale_x_discrete(guide = guide_axis(n.dodge=3))
+ggplot(data=years_duration,aes(x=Year,y=Duration)) +
+  geom_col(fill='purple4', alpha=1, width=1)+xlab('Year') + 
+    ylab('Duration') +
+      coord_flip() +
+        labs(title=('Year and Duration')) + 
+          scale_x_discrete(guide = guide_axis(n.dodge=3))
+
 ```
+
+
+### Q1 Difference in movie Ratings across genres
+
+##### Dataset Creation
+
+```{r Q1_dataset_creation, warning=F}
+
+genre_df1 <- movie_ratings[,c("genre", "avg_vote")]
+
+genre_df2 <- genre_df1 %>%
+  separate(genre, c("c1",'c2','c3'),sep =c(', '))
+
+df1 <- genre_df2[,c("c1", "avg_vote")] %>% drop_na()
+df2 <- genre_df2[,c("c2", "avg_vote")] %>% drop_na()
+df3 <- genre_df2[,c("c3", "avg_vote")] %>% drop_na()
+
+names(df1)[1] <- "genre"
+names(df2)[1] <- "genre"
+names(df3)[1] <- "genre"
+
+genre_df <- rbind(df1, df2, df3)
+
+```
+
+##### Data Visualization
+
+```{r Q1_visualization, warning=F}
+
+theme_set(theme_bw())
+
+genre_grouped <- genre_df %>%
+  group_by(genre) %>%
+    summarize(
+      mean_vote = mean(avg_vote),
+      n=n()
+    )
+
+genre_grouped <- genre_grouped[order(genre_grouped$mean_vote), ]
+genre_grouped$genre <- factor(genre_grouped$genre, levels = genre_grouped$genre)
+
+ggplot(genre_grouped, aes(fill=mean_vote, y=mean_vote, x=genre)) +
+    geom_bar(width=.8, stat="identity") +
+        coord_flip() +
+            labs(title="Ordered Bar Chart",
+                subtitle="Mean avg_vote across film genres", 
+                caption="genre: avg_vote")
+
+```
+
+##### Hypothesis Testing and P-value visualization
+
+```{r Q1_hypo_test, warning=F}
+
+genre_df_filtered <- genre_df %>%
+  group_by(genre) %>%
+    filter(n() >= 30) %>%
+      ungroup()
+
+pw_ttest <- pairwise.t.test(
+  x=genre_df_filtered$avg_vote, 
+  g=genre_df_filtered$genre,
+  p.adjust.method="bonferroni"
+)
+
+pw_ttest_pvals <- data.frame(pw_ttest$p.value)
+pw_ttest_pvals$genre1 <- rownames(pw_ttest_pvals)
+pw_ttest_pvals <- melt(pw_ttest_pvals, id.vars="genre1", variable.name="genre2", value.name="p_value") %>% drop_na()
+
+ggplot(pw_ttest_pvals, aes(genre1, genre2, fill= p_value)) + 
+  geom_tile() +
+    # scale_x_discrete(guide = guide_axis(n.dodge=3)) +
+    theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
+      labs(title="Heat Map",
+          subtitle="P-values for pairwise T-tests on movie genres", 
+          caption="genre1: genre2")
+
+paste0("Since most p-values are far lesser than our alpha-value of 0.01, we can say that the genre definitely affects the avg_vote.")
+```
+
+
+### Q2 Choice of Director affect movie ratings
+
+##### EDA
+
+```{r Q2, fig.width = 8, fig.height = 8}
+
+movie_director <- movie_ratings[,c("director", "avg_vote")]
+
+director_gourp <- aggregate(movie_director$avg_vote, by = list(director = movie_director$director),FUN=mean)
+director_num <- movie_director %>% count(director,sort = TRUE)
+director_vote <- merge(director_gourp,director_num,by='director')
+director_vote <- director_vote[order(-director_vote$n),]
+colnames(director_vote) <- c('director','rating','movie_numbers') 
+
+director_vote_40 <- subset(director_vote,movie_numbers>39)
+director_vote_40$rating <- as.numeric(director_vote_40$rating)
+
+
+ggplot(director_vote_40,aes(x=reorder(director,rating),y=rating)) +
+     geom_bar(stat='identity',fill='#f68060',alpha=.6, width=.4) +
+     labs(title="Rating plot for directors (Movie numbers more than 40)") +
+     coord_flip() +
+     xlab('directors') +
+     theme_bw()
+
+```
+
+##### Hypothesis Testing and P-value visualization
+
+```{r Q2_hypo_test, warning=F}
+
+movie_director_filtered <- movie_director %>%
+  group_by(director) %>%
+    filter(n() >= 30) %>%
+      ungroup()
+
+anovaRes = aov(avg_vote ~ director, data=movie_director_filtered)
+anovaRes 
+summary(anovaRes)
+
+tukeyDirectorAoV <- TukeyHSD(anovaRes)
+tukeyVar <- data.frame(tukeyDirectorAoV$director)
+tukeyVarSig <- subset(tukeyVar, p.adj <= 0.01)
+tukeyVarSig
+
+paste0("We see a list of director pairs where the movie ratings distribution for their movies are significantly different.")
+paste0("Hence, we can say that the choice of director is important in selecting a movie.")
+
+```
+
+### Q3 Movie genre viewing statistic differences with age
+
+##### Dataset Creation
+
+```{r Q3_dataset_creation, warning=F}
+
+genre_age_df1 <- movie_ratings[,c("genre", "allgenders_18age_votes", "allgenders_30age_votes", "allgenders_45age_votes")]
+
+genre_age_df2 <- genre_age_df1 %>%
+    mutate(
+      prop_18 = allgenders_18age_votes / (allgenders_18age_votes + allgenders_30age_votes + allgenders_45age_votes),
+      prop_30 = allgenders_30age_votes / (allgenders_18age_votes + allgenders_30age_votes + allgenders_45age_votes),
+      prop_45 = allgenders_45age_votes / (allgenders_18age_votes + allgenders_30age_votes + allgenders_45age_votes)
+    )
+
+names(genre_age_df2)[2:4] <- c("votes_18", "votes_30", "votes_45")
+
+genre_age_df3 <- genre_age_df2 %>%
+  separate(genre, c("c1",'c2','c3'),sep =c(', '))
+
+df1 <- genre_age_df3[,c("c1", "votes_18", "votes_30", "votes_45", "prop_18", "prop_30", "prop_45")] %>% drop_na()
+df2 <- genre_age_df3[,c("c2", "votes_18", "votes_30", "votes_45", "prop_18", "prop_30", "prop_45")] %>% drop_na()
+df3 <- genre_age_df3[,c("c3", "votes_18", "votes_30", "votes_45", "prop_18", "prop_30", "prop_45")] %>% drop_na()
+
+names(df1)[1] <- "genre"
+names(df2)[1] <- "genre"
+names(df3)[1] <- "genre"
+
+genre_age_df <- rbind(df1, df2, df3)
+
+```
+
+##### Data Visualization
+
+```{r Q3_visualization, warning=F}
+ggplot(genre_age_df, aes(x=prop_18, group=genre, fill=genre)) +
+  geom_density(adjust=1.5, alpha=.4) +
+      ggtitle("Distribution of Age 18 viewing proportions for various genres")
+
+ggplot(genre_age_df, aes(x=prop_30, group=genre, fill=genre)) +
+  geom_density(adjust=1.5, alpha=.4) +
+      ggtitle("Distribution of Age 30 viewing proportions for various genres")
+
+ggplot(genre_age_df, aes(x=prop_45, group=genre, fill=genre)) +
+  geom_density(adjust=1.5, alpha=.4) +
+      ggtitle("Distribution of Age 45 viewing proportions for various genres")
+
+genre_age_grouped <- genre_age_df %>%
+  group_by(genre) %>%
+    summarize(
+      ages_18 = mean(prop_18),
+      ages_30 = mean(prop_30),
+      ages_45 = mean(prop_45)
+    ) 
+
+genre_age_melt <- melt(genre_age_grouped, id.vars = "genre", variable.name = "proportions")
+
+ggplot(genre_age_melt, aes(fill=proportions, y=value, x=genre)) + 
+    geom_bar(position="stack", stat="identity") +
+        coord_flip() + 
+            ggtitle("Mean of proportions of viewer ages across film genres")
+
+paste0("We see how proportion differences across various genres differ for different ages.")
+
+```
+
+##### Hypothesis Testing
+
+```{r Q3_hypo_test, warning=F}
+res.man <- manova(cbind(votes_18, votes_30, votes_45) ~ genre, data = genre_age_df)
+summary(res.man)
+paste0("A very low p-value tells us that genre differences are significant acorss various ages.")
+
+summary.aov(res.man)
+paste0("A low p-value for each age category tells us that all the ages have differing viewing statistics across different genres.")
+
+```
+
+### Q4 Affect of duration of movie on avg_vote
+
+##### EDA
+
+```{r Q4_EDA}
+
+# movies duration-rating distribution
+duration <-outlierKD2(movies, movies$duration)
+outliers <- boxplot(movies$duration,plot=FALSE)$out
+movies1 <- movies[-which(movies$duration %in% outliers),]
+summary(movies$duration)
+
+duration_rating <- movies1[,c('duration','avg_vote')]
+colnames(duration_rating)<-c("duration","rating")
+df5 <-arrange(duration_rating, -rating)
+
+
+theme_set(theme_bw())
+
+duration_grouped <- duration_rating %>%
+  group_by(duration) %>%
+    summarize(
+      mean_vote = mean(rating),
+      n=n()
+    )
+
+ggplot( duration_grouped, aes(fill=mean_vote, y=mean_vote, x=duration)) +
+    geom_bar(width=.8, stat="identity") +
+        coord_flip() +
+            labs(title="Ordered Bar Chart",
+                subtitle="Mean Rating across film genres", 
+                caption="duration: Rating")
+
+```
+
+##### Correlation Analysis
 
 ```{r}
-# loadPkg(pastecs)
-# stat.desc(hittersC)
-# unloadPkg(pastecs)
+
+#correlation 
+cor.test(movies$avg_vote, as.numeric(movies$duration))
+ggplot(movies,aes(x=duration, y=avg_vote)) + 
+  ylab('Rating') +
+    geom_point()
+
+paste0("There is a weak correlation between movie duration and Rating.")
+
 ```
 
-### Exhaustive search  - Linear Model
+### Effect of movie language on Average Vote
 
-Q: How is the salary is effected by other variables in the dataset?
-```{r results='markup'}
-loadPkg("leaps")
-#This is essentially best fit 
-reg.best10 <- regsubsets(Salary~. , data = hittersC, nvmax = 10, nbest = 1, method = "exhaustive")  
+##### Q5 Dataset Creation
 
-# leaps::regsubsets() - Model selection by exhaustive (default) search, forward or backward stepwise, or sequential replacement
-#The plot will show the Adjust R^2 when using the variables across the bottom
-plot(reg.best10, scale = "adjr2", main = "Adjusted R^2")
-plot(reg.best10, scale = "r2", main = "R^2")
-# In the "leaps" package, we can use scale=c("bic","Cp","adjr2","r2")
-plot(reg.best10, scale = "bic", main = "BIC")
-plot(reg.best10, scale = "Cp", main = "Cp")
-summary(reg.best10)
+```{r Q1_dataset_creation, warning=F}
+
+language_df1 <- movie_ratings[,c("language", "avg_vote")]
+
+language_df2 <- language_df1 %>%
+  separate(language, c("c1",'c2','c3',"c4",'c5','c6'),sep =c(', '))
+
+df1 <- language_df2[,c("c1", "avg_vote")] %>% drop_na()
+df2 <- language_df2[,c("c2", "avg_vote")] %>% drop_na()
+df3 <- language_df2[,c("c3", "avg_vote")] %>% drop_na()
+df4 <- language_df2[,c("c4", "avg_vote")] %>% drop_na()
+df5 <- language_df2[,c("c5", "avg_vote")] %>% drop_na()
+df6 <- language_df2[,c("c6", "avg_vote")] %>% drop_na()
+
+names(df1)[1] <- "language"
+names(df2)[1] <- "language"
+names(df3)[1] <- "language"
+names(df4)[1] <- "language"
+names(df5)[1] <- "language"
+names(df6)[1] <- "language"
+
+language_df <- rbind(df1, df2, df3, df4, df5, df6)
+
 ```
 
+##### Data Visualization
 
-We used `nvmax=10` and `nbest=2` as options here. As a result, you will find two 10-variable models, two 9-variable models, two 8-variable models, etc. Can you find them in the graphical output?
+```{r Q5_visualization, warning=F, fig.width=8, fig.height=12}
 
-**In general, BIC criteria tends to favor more predictive model, with fewer regressors, while AIC favors more explanatory model with more regressors.**
+theme_set(theme_bw())
 
-Also notice how the categorical variables are being treated. Right now, such two variables each only has TWO values/levels, so we only need one coefficient for each. In general, there will be a whole lot more variables needed for more levels.
+language_grouped <- language_df %>%
+  group_by(language) %>%
+    filter(n() >= 30) %>%
+      summarize(
+        mean_vote = mean(avg_vote),
+        n=n()
+      )
+
+language_grouped <- language_grouped[order(language_grouped$mean_vote), ]
+language_grouped$language <- factor(language_grouped$language, levels = language_grouped$language)
 
 
-### Exhaustive search  - Non Linear Model
+ggplot(language_grouped, aes(fill=mean_vote, y=mean_vote, x=language)) +
+    geom_point(width=.8, stat="identity") +
+        coord_flip() +
+            labs(title="Ordered Bar Chart",
+                subtitle="Mean avg_vote across film languages", 
+                caption="language: avg_vote")
 
-Let us try non-linear model as well using feature selection with exhaustive method (`nbest=1`)
-
-```{r}
-regnonlin.forward10 <- regsubsets(Salary~(AtBat+Hits+Walks+Runs+RBI)^2+League:Division, data = hittersC, nvmax = 10)  # leaps, regsubsets: Model selection by exhaustive search, forward or backward stepwise, or sequential replacement
-#The plot will show the Adjust R^2 when using the variables across the bottom
-plot(regnonlin.forward10, scale = "adjr2", main = "Adjusted R^2")
-plot(regnonlin.forward10, scale = "bic", main = "BIC")
-plot(regnonlin.forward10, scale = "Cp", main = "Cp")
-summary(regnonlin.forward10)
 ```
 
-We can also use forward, backward, and seqrep (sequential replacement) methods to see if our results are any different.
+##### Hypothesis Testing and P-value visualization
 
-From <http://www.sthda.com/english/articles/37-model-selection-essentials-in-r/154-stepwise-regression-essentials-in-r/>  
-1. Forward selection, which starts with no predictors in the model (the null model), iteratively adds the most contributive predictors, and stops when the improvement is no longer statistically significant.  
-2. Backward selection (or backward elimination), which starts with all predictors in the model (full model), iteratively removes the least contributive predictors, and stops when you have a model where all predictors are statistically significant.  
-3. Sequential replacement is sort of a combination of forward and backward selections. You start with no predictors, then sequentially add the most contributive predictors (like forward selection). After adding each new variable, remove any variables that no longer provide an improvement in the model fit (like backward selection).  
+```{r Q5_hypo_test, warning=F}
 
-### Forward Selection
+language_df_filtered <- language_df %>%
+  group_by(language) %>%
+    filter(n() >= 30) %>%
+      ungroup()
 
-The result for forward selection (with `nvmax=10` and `nbest=2`) is here. We typically do not use the regular r2 as criteria, which usually improves with number of variables and leads to overfitting.  
+anovaRes = aov(avg_vote ~ language, data=language_df_filtered)
+anovaRes 
+summary(anovaRes)
+names(anovaRes)
 
-```{r}
-reg.forward10 <- regsubsets(Salary~., data = hittersC, nvmax = 10, nbest = 1, method = "forward")
-plot(reg.forward10, scale = "adjr2", main = "Adjusted R^2")
-plot(reg.forward10, scale = "bic", main = "BIC")
-plot(reg.forward10, scale = "Cp", main = "Cp")
-# summary(reg.forward10)
+tukeyLanguageAoV <- TukeyHSD(anovaRes)
+tukeyVar <- data.frame(tukeyLanguageAoV$language)
+tukeyVarSig <- subset(tukeyVar, p.adj <= 0.01)
+tukeyVarSig
+
 ```
 
-Can we trace the steps and procedures of the selection one level at a time? Start with the 1-var model, then 2-var, then 3?
+### Q6 Voter demographics affecting average vote and votes
 
-And the non-linear model:
+##### Average Vote v/s Gender
 
-```{r}
-regnonlin.forward10 <- regsubsets(Salary~(AtBat+Hits+Walks+Runs+RBI)^2+League:Division, data = hittersC, nvmax = 10, method="forward")  # leaps, regsubsets: Model selection by exhaustive search, forward or backward stepwise, or sequential replacement
-plot(regnonlin.forward10, scale = "adjr2", main = "Adjusted R^2")
-plot(regnonlin.forward10, scale = "bic", main = "BIC")
-plot(regnonlin.forward10, scale = "Cp", main = "Cp")
-summary(regnonlin.forward10)
+```{r Q6_movie_rating_vs_gender, warning=F}
+
+# rating
+mean_all <- rowMeans(subset(movie_ratings[, c(28, 30, 32)]))
+mean_male <- rowMeans(subset(movie_ratings[, c(36, 38, 40)]))
+mean_female <- rowMeans(subset(movie_ratings[, c(44, 46, 48)]))
+
+movie_gender = data.frame(movie_ratings[,c("genre")], mean_all, mean_male, mean_female)
+movie_gender <- aggregate(list(movie_gender$mean_all, movie_gender$mean_male, movie_gender$mean_female), by = list(movie_gender$`movie_ratings...c..genre...`), mean)
+colnames(movie_gender) <- c("genre","all gender","male", "female")
+
+# t-test for movie rating
+t.test(movie_gender$male, movie_gender$female)
+
+
+# barplot for movie ratings for both genders
+colnames(movie_gender) <- c("Genre","All gender","Male", "Female")
+barplot(colMeans(movie_gender[,3:4]), col = c("seagreen","skyblue3"), main="The average of movie rating in female and male")
+
+# melt data frame into long
+colnames(movie_gender) <- c("genre","all gender","male", "female")
+movie_gender <- melt(movie_gender)
+
+# boxplot: movie ratings vs. genders
+boxplot(value~variable, data=movie_gender, main="Movie rating vs. genders", xlab="Gender", ylab="Movie rating", col=c("indianred", "seagreen","skyblue3")) 
+
 ```
 
+```{r movie_vote_vs_gender}
 
-### Backward Selection
+# vote dataset with genders
+vote_all <- subset(movie_ratings[, c(35,43)])
+vote = data.frame(movie_ratings$genre, vote_all$males_allages_votes, vote_all$females_allages_votes)
 
-Now backwards (`nvmax=10` and `nbest=2`)
+vote <- aggregate(list(vote$vote_all.males_allages_votes, vote$vote_all.females_allages_votes), by = list(vote$movie_ratings.genre), sum)
+colnames(vote) <- c("Genre","Male", "Female")
 
-```{r}
-reg.back10 <- regsubsets(Salary~., data = hittersC, method = "backward", nvmax = 10, nbest = 2)
-plot(reg.back10, scale = "adjr2", main = "Adjusted R^2")
-plot(reg.back10, scale = "bic", main = "BIC")
-plot(reg.back10, scale = "Cp", main = "Cp")
-summary(reg.back10)
+
+# t-test for movie votes
+t.test(vote$Male, vote$Female)
+
+paste0("Difference in mean number of voters is significant between male and female genders.")
+
+
+# plot histogram plot for male
+hist(vote$Male, main = "Histogram of the movie votes for male", xlab="Movie rating", col="seagreen", breaks = 15)
+
+# plot qqplot for male
+qqnorm(vote$Male, main = "Q-Q plot for movie votes for male")
+qqline(vote$Male)
+
+
+# plot histogram plot for female
+hist(vote$Female, main = "Histogram of the movie votes for female", xlab="Movie rating", col="skyblue3", breaks = 15)
+
+# plot qqplot for female
+qqnorm(vote$Female, main = "Q-Q plot for movie votes for female")
+qqline(vote$Female)
+
+# bar plot: movie votes vs. genders
+barplot(colSums(vote[,2:3]), col = c("seagreen","skyblue3"), main="The total votes in female and male")
+
+# melt data frame into long
+colnames(vote) <- c("genre","male", "female")
+vote <- melt(vote)
+
+# boxplot: genders vs. movie votes
+boxplot(value~variable, data=vote, main="Movie votes vs. genders", xlab="Gender",ylab="Movie rating",col=c("seagreen","skyblue3"), border=c("seagreen","skyblue3"))
+
 ```
 
-Again, can we trace the steps and procedures one level at a time? Start with the 10-var model, then 9-var, then 3?  
+##### Dataset Creation
 
+```{r Q6_dataset_creation, warning=F}
 
-And the non-linear model (`nbest=1`).
+age_df <- movie_ratings[,c("allgenders_18age_avg_vote", "allgenders_30age_avg_vote", "allgenders_45age_avg_vote", "avg_vote")]
+names(age_df)[1:3] <- c("avg_vote_18", "avg_vote_30", "avg_vote_45")
 
-```{r}
-regnonlin.back <- regsubsets(Salary~(AtBat+Hits+Walks+Runs+RBI)^2+League:Division, data = hittersC, method = "backward", nvmax = 10)
-plot(regnonlin.back, scale = "adjr2", main = "Adjusted R^2")
-plot(regnonlin.back, scale = "bic", main = "BIC")
-plot(regnonlin.back, scale = "Cp", main = "Cp")
-summary(regnonlin.back)
+gender_df <- movie_ratings[,c("males_allages_avg_vote", "females_allages_avg_vote", "avg_vote")]
+names(gender_df)[1:2] <- c("avg_vote_male", "avg_vote_female", "avg_vote_45")
+
 ```
 
-### Sequential Replacement seqrep  
+##### Data Visualization
 
-Lastly we can try seqrep method.
-```{r}
-reg.seqrep <- regsubsets(Salary~., data = hittersC, nvmax = 10, nbest = 2 , method = "seqrep")
-plot(reg.seqrep, scale = "adjr2", main = "Adjusted R^2")
-plot(reg.seqrep, scale = "bic", main = "BIC")
-plot(reg.seqrep, scale = "Cp", main = "Cp")
+```{r Q6_visualization, warning=F}
+
+age_df_cor <- cor(age_df)
+age_df_melt <- melt(age_df_cor)
+
+ggplot(age_df_melt, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile(aes(label = value)) +
+    geom_text(aes(label = round(value,2))) +
+      theme(axis.text.x = element_text(angle=25, vjust=1, hjust=1)) +
+        labs(title="Heat Map",
+            subtitle="Age Correlation Matrix",
+            caption="age: avg_vote")
+
+gender_df_cor <- cor(gender_df)
+gender_df_melt <- melt(gender_df_cor)
+
+ggplot(gender_df_melt, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile() +
+    geom_text(aes(label = round(value,2))) +
+      theme(axis.text.x = element_text(angle=25, vjust=1, hjust=1)) +
+        labs(title="Heat Map",
+            subtitle="Gender Correlation Matrix",
+            caption="gender: avg_vote")
+
 ```
 
+##### Hypothesis Testing 
 
+```{r Q6_hypo_test, warning=F}
 
-## `car::subsets()`
+ttest_age_18_30 <- t.test(age_df$avg_vote_18, age_df$avg_vote_30, conf.level = 0.99)
+ttest_age_18_30
 
-Next, let us look at the results again using a differnt presentation. Instead of plotting the reg.forward10 results from the generic `graphics::plot()` function, we will use the `car` library function `car::subsets()` to make a different plot.
-The treatment is modified from an [online source here](https://rstudio-pubs-static.s3.amazonaws.com/2897_9220b21cfc0c43a396ff9abf122bb351.html).  
+paste0("Difference in average votes is significant between ages 18 and 30.")
 
-### Basic plots
-We need the object resulting from `regsubsets()` for more advanced plotting. So let us first re-create a result for the default plots. 
+ttest_age_30_45 <- t.test(age_df$avg_vote_30, age_df$avg_vote_45, conf.level = 0.99)
+ttest_age_30_45
 
-```{r}
+paste0("Difference in average votes is significant between ages 30 and 45.")
 
-reg2.best <- regsubsets(Salary~. , data = hittersC, nvmax = 9, nbest = 1, method = "exhaustive") 
-plot(reg2.best, scale = "adjr2", main = "Adjusted R^2")
-plot(reg2.best, scale = "r2", main = "R^2")
-plot(reg2.best, scale = "bic", main = "BIC")
-plot(reg2.best, scale = "Cp", main = "Cp")
-summary(reg2.best)
+ttest_age_45_18 <- t.test(age_df$avg_vote_45, age_df$avg_vote_18, conf.level = 0.99)
+ttest_age_45_18
+
+paste0("Difference in average votes is significant between ages 18 and 45.")
+
+ttest_gender <- t.test(gender_df$avg_vote_male, gender_df$avg_vote_female, conf.level = 0.99)
+ttest_gender
+
+paste0("Difference in average votes is significant between male and female genders.")
+
 ```
-### Alternative plots  
-We can then use the function `car::subsets()` to get some more advanced/alternative plotting. Below shows that the 6-var model AB-Ht-W-Y-D-P is at or close to the highest Adjusted $R^2$.  
-
-```{r}
-loadPkg("car")
-
-summaryRegForward = summary(reg2.best)
-# Adjusted R2
-car::subsets(reg2.best, statistic="adjr2", legend = FALSE, min.size = 2, main = "Adjusted R^2")
-```
-
-If we use Mallow Cp to decide on the regressors, the "stopping rule is to start with the smallest model and gradually increase number of variables, and stop when Mallow Cp is approximately (number of regressors + 1, broken line) for the first time." (from [this article](https://rstudio-pubs-static.s3.amazonaws.com/2897_9220b21cfc0c43a396ff9abf122bb351.html)). In our case, it happened close to broken line at the 5-var model AB-Ht-W-Y-P, and the 6-var model with AB-Ht-W-Y-D-P.  
-
-```{r}
-# 
-# Mallow Cp
-subsets(reg2.best, statistic="cp", legend = FALSE, min.size = 5, main = "Mallow Cp")
-abline(a = 1, b = 1, lty = 3)  
-# a: intercept; b: slope, 
-# lty: line-type (0=blank, 1=solid (default), 2=dashed, 3=dotted, 4=dotdash, 5=longdash, 6=twodash) 
-#
-# this output gives the list of variables and their abbreviations
-```
-
-You can now try to go back and change `nbest = 2` on (or about) line 186, and re-run the codes.  You should see more alternative results.
-
-
-
-
