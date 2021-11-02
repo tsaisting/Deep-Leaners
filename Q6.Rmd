@@ -1,0 +1,91 @@
+---
+title: "EDA"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=5, fig.height=4)
+
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+```
+
+# Initial Dataset Creation
+
+```{r data_join, echo=F}
+
+movies <- read.csv('movies.csv', header=TRUE)
+drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
+          'reviews_from_critics','production_company','description','writer')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
+
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+
+```
+
+
+# Q6 Dataset Creation
+
+```{r Q6_dataset_creation, warning=F}
+
+age_df <- movie_ratings[,c("allgenders_18age_avg_vote", "allgenders_30age_avg_vote", "allgenders_45age_avg_vote", "avg_vote")]
+names(age_df)[1:3] <- c("avg_vote_18", "avg_vote_30", "avg_vote_45")
+
+gender_df <- movie_ratings[,c("males_allages_avg_vote", "females_allages_avg_vote", "avg_vote")]
+names(gender_df)[1:2] <- c("avg_vote_male", "avg_vote_female", "avg_vote_45")
+
+```
+
+# Data Visualization
+
+```{r Q5_visualization, warning=F}
+
+age_df_cor <- cor(age_df)
+age_df_melt <- melt(age_df_cor)
+
+ggplot(age_df_melt, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile() +
+    theme(axis.text.x = element_text(angle=25, vjust=1, hjust=1)) +
+      labs(title="Heat Map",
+          subtitle="Age Correlation Matrix",
+          caption="age: avg_vote")
+
+gender_df_cor <- cor(gender_df)
+gender_df_melt <- melt(gender_df_cor)
+
+ggplot(gender_df_melt, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile() +
+    theme(axis.text.x = element_text(angle=25, vjust=1, hjust=1)) +
+      labs(title="Heat Map",
+          subtitle="Gender Correlation Matrix",
+          caption="gender: avg_vote")
+
+```
+
+# Hypothesis Testing 
+
+```{r Q6_hypo_test, warning=F}
+
+ttest_age_18_30 <- t.test(age_df$avg_vote_18, age_df$avg_vote_30, conf.level = 0.99)
+ttest_age_18_30
+
+ttest_age_30_45 <- t.test(age_df$avg_vote_30, age_df$avg_vote_45, conf.level = 0.99)
+ttest_age_30_45
+
+ttest_age_45_18 <- t.test(age_df$avg_vote_45, age_df$avg_vote_18, conf.level = 0.99)
+ttest_age_45_18
+
+ttest_gender <- t.test(gender_df$avg_vote_male, gender_df$avg_vote_female, conf.level = 0.99)
+ttest_gender
+```
+
