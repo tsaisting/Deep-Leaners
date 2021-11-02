@@ -31,6 +31,7 @@ movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
 
 ```{r movie rating & qq plot}
 movie_genre_1 <- movie_ratings[,c("genre", "avg_vote")]
+
 data_mg <- aggregate(movie_genre_1$avg_vote, list(movie_genre_1$genre), FUN=mean, sort = FALSE)
 names(data_mg)[names(data_mg) == "Group.1"] <- "genre"
 #count_mg <- movie_genre_1%>%count(genre)
