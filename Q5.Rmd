@@ -1,0 +1,111 @@
+---
+title: "EDA"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=8, fig.height=12)
+
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+```
+
+# Initial Dataset Creation
+
+```{r data_join, echo=F}
+
+movies <- read.csv('movies.csv', header=TRUE)
+drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
+          'reviews_from_critics','production_company','description','writer')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
+
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+
+```
+
+
+# Q5 Dataset Creation
+
+```{r Q1_dataset_creation, warning=F}
+
+language_df1 <- movie_ratings[,c("language", "avg_vote")]
+
+language_df2 <- language_df1 %>%
+  separate(language, c("c1",'c2','c3',"c4",'c5','c6'),sep =c(', '))
+
+df1 <- language_df2[,c("c1", "avg_vote")] %>% drop_na()
+df2 <- language_df2[,c("c2", "avg_vote")] %>% drop_na()
+df3 <- language_df2[,c("c3", "avg_vote")] %>% drop_na()
+df4 <- language_df2[,c("c4", "avg_vote")] %>% drop_na()
+df5 <- language_df2[,c("c5", "avg_vote")] %>% drop_na()
+df6 <- language_df2[,c("c6", "avg_vote")] %>% drop_na()
+
+names(df1)[1] <- "language"
+names(df2)[1] <- "language"
+names(df3)[1] <- "language"
+names(df4)[1] <- "language"
+names(df5)[1] <- "language"
+names(df6)[1] <- "language"
+
+language_df <- rbind(df1, df2, df3, df4, df5, df6)
+
+```
+
+# Data Visualization
+
+```{r Q5_visualization, warning=F}
+
+theme_set(theme_bw())
+
+language_grouped <- language_df %>%
+  group_by(language) %>%
+    filter(n() >= 30) %>%
+      summarize(
+        mean_vote = mean(avg_vote),
+        n=n()
+      )
+
+language_grouped <- language_grouped[order(language_grouped$mean_vote), ]
+language_grouped$language <- factor(language_grouped$language, levels = language_grouped$language)
+
+
+ggplot(language_grouped, aes(fill=mean_vote, y=mean_vote, x=language)) +
+    geom_point(width=.8, stat="identity") +
+        coord_flip() +
+            labs(title="Ordered Bar Chart",
+                subtitle="Mean avg_vote across film languages", 
+                caption="language: avg_vote")
+
+```
+
+# Hypothesis Testing and P-value visualization
+
+```{r Q5_hypo_test, warning=F}
+
+language_df_filtered <- language_df %>%
+  group_by(language) %>%
+    filter(n() >= 30) %>%
+      ungroup()
+
+anovaRes = aov(avg_vote ~ language, data=language_df_filtered)
+anovaRes 
+summary(anovaRes)
+names(anovaRes)
+
+tukeyLanguageAoV <- TukeyHSD(anovaRes)
+tukeyVar <- data.frame(tukeyLanguageAoV$language)
+tukeyVarSig <- subset(tukeyVar, p.adj <= 0.01)
+tukeyVarSig
+
+```
+
