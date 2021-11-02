@@ -1,39 +1,144 @@
 ---
-title: "Mid_project"
-author: "Annie"
-date: "10/21/2021"
+title: "EDA"
 output: html_document
-<<<<<<< Updated upstream:mid_project_annie.Rmd
-<<<<<<< Updated upstream:mid_project_annie.Rmd
-=======
-=======
->>>>>>> Stashed changes:mid-term project.Rmd
-author: "Team02 Deep Learners"
-date: "today"
-# date: "`r Sys.Date()`"
->>>>>>> Stashed changes:mid-term project.Rmd
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(ggthemes)
+library(ezids)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r data_join}
+movies <- read.csv('movies.csv', header=TRUE)
+drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
+          'reviews_from_critics','production_company','description','writer')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r movie rating & qq plot}
+movie_genre_1 <- movie_ratings[,c("genre", "avg_vote")]
+data_mg <- aggregate(movie_genre_1$avg_vote, list(movie_genre_1$genre), FUN=mean, sort = FALSE)
+names(data_mg)[names(data_mg) == "Group.1"] <- "genre"
+#count_mg <- movie_genre_1%>%count(genre)
+names(data_mg)[names(data_mg) == "x"] <- "rating"
+names(data_mg)[names(data_mg) =="n"] <- "count"
+data_mg$genre <- as.factor(data_mg$genre)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# summary of dataset
+summary(data_mg$rating)
+
+#t test
+t.test(data_mg$rating)
+
+# plot histogram plot
+hist(data_mg$rating, main = "Histogram of the movie rating", xlab="Movie rating", col="seagreen", breaks = 15)
+
+# plot qqplot
+qqnorm(data_mg$rating, main = "Q-Q plot for movie rating")
+qqline(data_mg$rating)
+
+
+#remove outliers
+outliers <- boxplot(data_mg$rating, plot=FALSE)$out
+data_mg <- data_mg[-which(data_mg$rating %in% outliers),]
+
+# plot ggplot for rating
+data_mg <- subset(data_mg, rating>7.5)
+ggplot(data=data_mg, aes(x=reorder(genre, rating), y=rating)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "seagreen") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Rating")+ labs(title='The rating of various movie genres (rating >= 7.5)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r movie votes & qq plot}
+movie_genre_v <- movie_ratings[,c("genre", "votes")]
+data_v <- aggregate(movie_genre_v$votes, list(movie_genre_v$genre), FUN=sum, sort = FALSE)
+names(data_v)[names(data_v) == "Group.1"] <- "genre"
+names(data_v)[names(data_v) == "x"] <- "movie_votes"
+names(data_v)[names(data_v) =="n"] <- "count"
+data_v$genre <- as.factor(data_v$genre)
+
+# summary of dataset
+summary(data_v$movie_votes)
+
+# plot histogram plot
+hist(data_v$movie_votes, main = "Histogram of the movie votes", xlab="Movie votes", col="skyblue3", breaks = 15)
+
+# plot qq plot
+qqnorm(data_v$movie_votes, main = "Q-Q plot for movie votes")
+qqline(data_v$movie_votes)
+
+#remove outliers
+outliers <- boxplot(data_v$movie_votes, plot=FALSE)$out
+data_v <- data_v[-which(data_v$movie_votes %in% outliers),]
+
+
+# ggplot for movie votes
+data_v <- subset(data_v, movie_votes>200000)
+ggplot(data=data_v, aes(x=reorder(genre, movie_votes), y=movie_votes)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "skyblue3") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Votes")+ labs(title='The sum of movie votes in movie genres (votes >= 200k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+
+```
+
+```{r movie rating vs. gender}
+
+#rating
+mean_all <- rowMeans(subset(movie_ratings[, c(28, 30, 32)]))
+mean_male <- rowMeans(subset(movie_ratings[, c(36, 38, 40)]))
+mean_female <- rowMeans(subset(movie_ratings[, c(44, 46, 48)]))
+movie_gender = data.frame(movie_ratings[,c("genre")], mean_all, mean_male, mean_female)
+movie_gender <- aggregate(list(movie_gender$mean_all, movie_gender$mean_male, movie_gender$mean_female), by = list(movie_gender$`movie_ratings...c..genre...`), mean)
+colnames(movie_gender) <- c("genre","all gender","male", "female")
+
+# t-test for movie rating
+t.test(movie_gender$male, movie_gender$female)
+
+# barplot for movie ratings for both genders
+colnames(movie_gender) <- c("Genre","All gender","Male", "Female")
+barplot(colMeans(movie_gender[,3:4]), col = c("seagreen","skyblue3"), main="The average of movie rating in female and male")
+
+#melt data frame into long
+colnames(movie_gender) <- c("genre","all gender","male", "female")
+movie_gender <- melt(movie_gender, id.vars = 'genre', variable.name = 'gender')
+
+# boxplot: movie ratings vs. genders
+boxplot(value~gender,data=movie_gender, main="Movie rating vs. genders", xlab="Gender",ylab="Movie rating",col=c("indianred", "seagreen","skyblue3"))
+
+```
+
+```{r movie vote vs. gender}
+#vote dataset with genders
+vote_all <- subset(movie_ratings[, c(35,43)])
+vote = data.frame(movie_ratings$genre, vote_all$males_allages_votes, vote_all$females_allages_votes)
+
+vote <- aggregate(list(vote$vote_all.males_allages_votes, vote$vote_all.females_allages_votes), by = list(vote$movie_ratings.genre), sum)
+colnames(vote) <- c("Genre","Male", "Female")
+
+
+# t-test for movie votes
+t.test(vote$Male, vote$Female)
+
+# bar plot: movie votes vs. genders
+barplot(colSums(vote[,2:3]), col = c("seagreen","skyblue3"), main="The total votes in female and male")
+
+# melt data frame into long
+colnames(vote) <- c("genre","male", "female")
+vote <- melt(vote, id.vars = 'genre', variable.name = 'gender')
+
+# boxplot: genders vs. movie votes
+boxplot(value~gender,data=vote, main="Movie votes vs. genders", xlab="Gender",ylab="Movie rating",col=c("seagreen","skyblue3"), border=c("seagreen","skyblue3"))
+
+```
+
+
