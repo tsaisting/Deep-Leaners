@@ -114,7 +114,7 @@ colnames(movie_gender) <- c("genre","all gender","male", "female")
 movie_gender <- melt(movie_gender, id.vars = 'genre', variable.name = 'gender')
 
 # boxplot: movie ratings vs. genders
-boxplot(value~gender,data=movie_gender, main="Movie rating vs. genders", xlab="Gender",ylab="Movie rating",col=c("indianred", "seagreen","skyblue3"))
+boxplot(value~gender,data=movie_gender, main="Movie rating vs. genders", xlab="Gender",ylab="Movie rating",col=c("indianred", "seagreen","skyblue3"))+theme(legend.position="top")
 
 ```
 
@@ -129,6 +129,21 @@ colnames(vote) <- c("Genre","Male", "Female")
 
 # t-test for movie votes
 t.test(vote$Male, vote$Female)
+
+# plot histogram plot for male
+hist(vote$Male, main = "Histogram of the movie votes for male", xlab="Movie rating", col="seagreen", breaks = 15)
+
+# plot qqplot for male
+qqnorm(vote$Male, main = "Q-Q plot for movie votes for male")
+qqline(vote$Male)
+
+
+# plot histogram plot for female
+hist(vote$Female, main = "Histogram of the movie votes for female", xlab="Movie rating", col="skyblue3", breaks = 15)
+
+# plot qqplot for female
+qqnorm(vote$Female, main = "Q-Q plot for movie votes for female")
+qqline(vote$Female)
 
 # bar plot: movie votes vs. genders
 barplot(colSums(vote[,2:3]), col = c("seagreen","skyblue3"), main="The total votes in female and male")
