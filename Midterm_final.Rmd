@@ -1,6 +1,6 @@
 ---
-title: "Feature Selection in LM / subsetting features"
-author: "GWU Intro to Data Science DATS 6101"
+title: "IMDB Feature Film Analysis"
+author: "T2 Deep Learners"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -15,41 +15,87 @@ output:
 ---
 
 ```{r init, include=FALSE}
-# The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
-# Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
-library(ezids)
- 
-# some of common options (and the defaults) are: 
-# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
-# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
-knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+ knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
-# options(scipen=9, digits = 3) 
-# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
-# use scipen=999 to prevent scientific notation at all times
+
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+
 ```
+### Data cleaning and Merging
+```{r data_join}
+movies <- read.csv('movies.csv', header=TRUE)
+drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
+          'reviews_from_critics','production_company','description','writer')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
+movies
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+ratings
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
 
-```{r base_lib}
-# loadPkg("ggplot2")
 ```
+### EDA
+
+```{r decription of the data}
+library(dplyr)
+library(ggplot2)
+# average vote distribution
+summary(movies$avg_vote)
+movies<-movies[!movies$year=='TV Movie 2019',]
+hist(movies$avg_vote)
+# A brief overview of the dataset: the minimum vote is 1.000,while the maximum vote is 9.900.
+# the mean of the vote is 5.902, the median is 6.100.
 
 
-# Feature Selection (step-wise)
+# movies year-numbers distribution
+years_numbers <- movies[,c('imdb_title_id', 'year')]
+years_num <- years_numbers %>% count(movies$year)
+colnames(years_num)<-c('Year','Movie_numbers')
+df1 <-arrange(years_num, -Movie_numbers)
+head(df1)
+tail(df1)
 
-## `leaps::regsubsets()`  
-Let us use the baseball player dataset (in library `ISLR`) to try feature selection in LM.  
-```{r}
-loadPkg("ISLR")
-str(Hitters)
-summary(Hitters)
-```
 
-One thing we can do right away is to clean up the data a little. Remove variables that we know for sure are useless.
-In our case, let us remove some cumulative player stats to make the dataframe more manageable.
+ggplot(years_num,aes(x=Year,y=Movie_numbers))+geom_col(stat='identity',fill='#f68060',alpha=.6, width=1)+labs(title=('year and Movie_numbers'))+coord_flip()+ylab('Year') + scale_x_discrete(guide = guide_axis(n.dodge=3))
 
-```{r}
-hittersC = Hitters[,c('AtBat','Hits','HmRun','Runs','RBI','Walks','Years','League','Division','PutOuts','Assists','Errors','Salary')] # cleaned dataset
-unloadPkg(ISLR)
+
+
+# movies year-rating distribution
+years_rating <- aggregate(movies$avg_vote, by = list(director = movies$year),FUN=mean)
+colnames(years_rating) <- c('Year','Rating')
+df2 <-arrange(years_rating, -Rating)
+head(df2)
+tail(df2)
+
+
+ggplot(data=years_rating,aes(x=Year,y=Rating)) +geom_col(width=1,fill='lightblue')+coord_flip()+xlab('Year')+labs(title=('years and Rating'))+ scale_x_discrete(guide = guide_axis(n.dodge=3))
+
+# movies vote distribution
+years_vote <- aggregate(movies$votes, by = list(director = movies$year),FUN=sum)
+colnames(years_vote) <- c('Year','Votes')
+df3 <-arrange(years_vote, -Votes)
+head(df3)
+tail(df3)
+
+
+ggplot(data=years_vote,aes(x=Year,y=Votes)) +geom_col(fill='purple4',alpha=1, width=1)+xlab('Year')+ylab('Votes')+coord_flip()+labs(title=('Year and votes'))+ scale_x_discrete(guide = guide_axis(n.dodge=3))
+
+# movies duration-year distribution
+years_duration <- aggregate(movies$duration, by = list(director = movies$year),FUN=mean)
+colnames(years_duration) <- c('Year','Duration')
+df4 <-arrange(years_duration, -Duration)
+head(df4)
+tail(df4)
+
+ggplot(data=years_duration,aes(x=Year,y=Duration)) +geom_col(fill='purple4',alpha=1, width=1)+xlab('Year')+ylab('Duration')+coord_flip()+labs(title=('Year and Duration'))+ scale_x_discrete(guide = guide_axis(n.dodge=3))
 ```
 
 ```{r}
