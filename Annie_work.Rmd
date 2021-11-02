@@ -38,22 +38,27 @@ names(data_mg)[names(data_mg) == "x"] <- "rating"
 names(data_mg)[names(data_mg) =="n"] <- "count"
 data_mg$genre <- as.factor(data_mg$genre)
 
-#remove outliers
-outliers <- boxplot(data_mg$rating, plot=FALSE)$out
-data_mg <- data_mg[-which(data_mg$rating %in% outliers),]
-
 # summary of dataset
 summary(data_mg$rating)
 
+#t test
+t.test(data_mg$rating)
+
 # plot histogram plot
 hist(data_mg$rating, main = "Histogram of the movie rating", xlab="Movie rating", col="seagreen", breaks = 15)
+
 # plot qqplot
 qqnorm(data_mg$rating, main = "Q-Q plot for movie rating")
 qqline(data_mg$rating)
 
+
+#remove outliers
+outliers <- boxplot(data_mg$rating, plot=FALSE)$out
+data_mg <- data_mg[-which(data_mg$rating %in% outliers),]
+
 # plot ggplot for rating
 data_mg <- subset(data_mg, rating>7.5)
-ggplot(data=data_mg, aes(x=reorder(genre, rating), y=rating)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "skyblue3") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Rating")+ labs(title='The rating of various movie genres (rating >= 7.5)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+ggplot(data=data_mg, aes(x=reorder(genre, rating), y=rating)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "seagreen") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Rating")+ labs(title='The rating of various movie genres (rating >= 7.5)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
 
 ```
 
@@ -65,19 +70,20 @@ names(data_v)[names(data_v) == "x"] <- "movie_votes"
 names(data_v)[names(data_v) =="n"] <- "count"
 data_v$genre <- as.factor(data_v$genre)
 
-#remove outliers
-outliers <- boxplot(data_v$movie_votes, plot=FALSE)$out
-data_v <- data_v[-which(data_v$movie_votes %in% outliers),]
-
 # summary of dataset
 summary(data_v$movie_votes)
 
 # plot histogram plot
-hist(data_v$movie_votes, main = "Histogram of the movie votes", xlab="Movie votes", col="seagreen", breaks = 15)
+hist(data_v$movie_votes, main = "Histogram of the movie votes", xlab="Movie votes", col="skyblue3", breaks = 15)
 
 # plot qq plot
 qqnorm(data_v$movie_votes, main = "Q-Q plot for movie votes")
 qqline(data_v$movie_votes)
+
+#remove outliers
+outliers <- boxplot(data_v$movie_votes, plot=FALSE)$out
+data_v <- data_v[-which(data_v$movie_votes %in% outliers),]
+
 
 # ggplot for movie votes
 data_v <- subset(data_v, movie_votes>200000)
@@ -95,53 +101,17 @@ movie_gender = data.frame(movie_ratings[,c("genre")], mean_all, mean_male, mean_
 movie_gender <- aggregate(list(movie_gender$mean_all, movie_gender$mean_male, movie_gender$mean_female), by = list(movie_gender$`movie_ratings...c..genre...`), mean)
 colnames(movie_gender) <- c("genre","all gender","male", "female")
 
-
-# remove outliers for movie ratings for female
-outliers <- boxplot(movie_gender$female, plot=FALSE)$out
-movie_gender_1 <- movie_gender[-which(movie_gender$female %in% outliers),]
-
-# gg-plot of movie ratings for female
-movie_gender_1 <- subset(movie_gender_1, female >= 8)
-ggplot(data=movie_gender_1, aes(x=reorder(genre, female), y=female)) + geom_bar(stat = "identity", position="dodge",alpha=.7, fill = 'skyblue3') + scale_fill_brewer(palette = "Set1") + xlab("movie genre") + ylab("Rating") + labs(title="Movie rating for female in various genre (rating >= 8)")+ coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
-
-
-# remove outliers for movie ratings for male
-outliers <- boxplot(movie_gender$male, plot=FALSE)$out
-movie_gender_2 <- movie_gender[-which(movie_gender$male %in% outliers),]
-
-# gg-plot of movie ratings for male
-movie_gender_2 <- subset(movie_gender_2, male >= 7.5)
-ggplot(data=movie_gender_2, aes(x=reorder(genre,male), y=male)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = 'seagreen') + scale_fill_brewer(palette = "Set1") + xlab("movie genre") + ylab("Rating")+ labs(title="Movie rating for male in various genre (rating >= 7.5)")+ coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
-
-
-# remove outliers for movie ratings for all
-outliers <- boxplot(movie_gender$`all gender`, plot=FALSE)$out
-movie_gender_3 <- movie_gender[-which(movie_gender$`all gender` %in% outliers),]
-
-# gg-plot of movie ratings for all
-movie_gender_3 <- subset(movie_gender_3,`all gender` >= 7.5)
-ggplot(data=movie_gender_3, aes(x=reorder(genre,`all gender`), y=`all gender`)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = 'indianred') + scale_fill_brewer(palette = "Set1") + xlab("movie genre") + ylab("Rating")+ labs(title="Movie rating for all gender in various genre (rating >= 7.5)")+ coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
-
-# remove outliers of movie rating in both genders
-outliers <- boxplot(movie_gender$female, plot=FALSE)$out
-movie_gender_r <- movie_gender[-which(movie_gender$female %in% outliers),]
-outliers <- boxplot(movie_gender_r$male, plot=FALSE)$out
-movie_gender_r <- movie_gender_r[-which(movie_gender_r$male %in% outliers),]
-
 # t-test for movie rating
-t.test(movie_gender_r$male, movie_gender_r$female)
+t.test(movie_gender$male, movie_gender$female)
 
 # barplot for movie ratings for both genders
-colnames(movie_gender_r) <- c("Genre","All gender","Male", "Female")
-barplot(colMeans(movie_gender_r[,3:4]), col = c("seagreen","skyblue3"), main="The average of movie rating in female and male")
-
+colnames(movie_gender) <- c("Genre","All gender","Male", "Female")
+barplot(colMeans(movie_gender[,3:4]), col = c("seagreen","skyblue3"), main="The average of movie rating in female and male")
 
 #melt data frame into long
 colnames(movie_gender) <- c("genre","all gender","male", "female")
 movie_gender <- melt(movie_gender, id.vars = 'genre', variable.name = 'gender')
-# remove outliers for all
-outliers <- boxplot(movie_gender$value, plot=FALSE)$out
-movie_gender <- movie_gender[-which(movie_gender$value %in% outliers),]
+
 # boxplot: movie ratings vs. genders
 boxplot(value~gender,data=movie_gender, main="Movie rating vs. genders", xlab="Gender",ylab="Movie rating",col=c("indianred", "seagreen","skyblue3"))
 
@@ -155,59 +125,19 @@ vote = data.frame(movie_ratings$genre, vote_all$males_allages_votes, vote_all$fe
 vote <- aggregate(list(vote$vote_all.males_allages_votes, vote$vote_all.females_allages_votes), by = list(vote$movie_ratings.genre), sum)
 colnames(vote) <- c("Genre","Male", "Female")
 
-# remove outliers votes for female 
-outliers <- boxplot(vote$Female, plot=FALSE)$out
-vote_1 <- vote[-which(vote$Female %in% outliers),]
-
-# plot gg-plot of movie votes for female
-vote_1 <- subset(vote_1, Female>25000)
-ggplot(data=vote_1, aes(x=reorder(Genre, Female), y=Female)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "skyblue3") + scale_fill_brewer(palette = "Set2") + xlab("movie genre") + ylab("Votes")+ labs(title='The amount of votes from female with various movie genres(votes > 25k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
-
-# remove outliers of movie votes for male 
-outliers <- boxplot(vote$Male, plot=FALSE)$out
-vote_2 <- vote[-which(vote$Male %in% outliers),]
-
-# plot gg-plot of movie votes for male
-vote_2 <- subset(vote_2, Male>120000)
-ggplot(data=vote_2, aes(x=reorder(Genre, Male), y=Male)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "seagreen") + scale_fill_brewer(palette = "Set2") + xlab("movie genre") + ylab("Votes")+ labs(title='The amount of votes from male with various movie genres(votes > 120k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
-
-# add total votes to dataset
-vote$Total <- vote[,2]+vote[,3]
-colnames(vote) <- c("Genre","Male", "Female", "Total")
-
-# remove outliers for total of movie votes
-outliers <- boxplot(vote$Total, plot=FALSE)$out
-vote_0 <- vote[-which(vote$Total %in% outliers),]
-vote_0 <- subset(vote_0, Total > 150000)
-
-# gg-plot of movie votes for total
-ggplot(data=vote_0, aes(x=reorder(Genre, Total), y=Total)) + geom_bar(stat = "identity", position="dodge",alpha=.7, fill= 'indianred') + scale_fill_brewer(palette = "Set1") + xlab("movie genre") + ylab("Votes")+ labs(title='The amount of votes in total with various movie genres(votes > 150k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
-
-# drop total vote and create a new dataset
-vote_t = subset(vote, select = -c(Total))
-
-# remove outliers for both genders
-outliers <- boxplot(vote_t$Female, plot=FALSE)$out
-vote_t <- vote_t[-which(vote_t$Female %in% outliers),]
-outliers <- boxplot(vote_t$Male, plot=FALSE)$out
-vote_t <- vote_t[-which(vote_t$Male %in% outliers),]
 
 # t-test for movie votes
-t.test(vote_t$Male, vote_t$Female)
+t.test(vote$Male, vote$Female)
 
 # bar plot: movie votes vs. genders
-barplot(colSums(vote_t[,2:3]), col = c("seagreen","skyblue3"), main="The total votes in female and male")
+barplot(colSums(vote[,2:3]), col = c("seagreen","skyblue3"), main="The total votes in female and male")
 
-# drop Total
-vote = subset(vote, select = -c(Total))
 # melt data frame into long
 colnames(vote) <- c("genre","male", "female")
 vote <- melt(vote, id.vars = 'genre', variable.name = 'gender')
-# remove Outliers of movie votes
-outliers <- boxplot(vote$value, plot=FALSE)$out
-vote <- vote[-which(vote$value %in% outliers),]
+
 # boxplot: genders vs. movie votes
-boxplot(value~gender,data=vote, main="Movie votes vs. genders", xlab="Gender",ylab="Movie rating",col=c("seagreen","skyblue3"))
+boxplot(value~gender,data=vote, main="Movie votes vs. genders", xlab="Gender",ylab="Movie rating",col=c("seagreen","skyblue3"), border=c("seagreen","skyblue3"))
 
 ```
 
