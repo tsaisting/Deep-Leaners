@@ -88,4 +88,25 @@ ttest_age_45_18
 ttest_gender <- t.test(gender_df$avg_vote_male, gender_df$avg_vote_female, conf.level = 0.99)
 ttest_gender
 ```
+```{r qq plot}
 
+# plot qqplot for age 18
+qqnorm(age_df$avg_vote_18, main = "Q-Q plot for movie rating for age 18")
+qqline(age_df$avg_vote_18)
+
+# plot qqplot for age 30
+qqnorm(age_df$avg_vote_30, main = "Q-Q plot for movie rating for age 30")
+qqline(age_df$avg_vote_30)
+
+# plot qqplot for age 45
+qqnorm(age_df$avg_vote_45, main = "Q-Q plot for movie rating for age 45")
+qqline(age_df$avg_vote_45)
+
+# plot qqplot for all age
+age_df_all <- melt(age_df[1:3])
+qqnorm(age_df_all$value, main = "Q-Q plot for movie rating for all age")
+qqline(age_df_all$value)
+
+
+
+```
