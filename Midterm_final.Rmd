@@ -66,7 +66,7 @@ data_mg$genre <- as.factor(data_mg$genre)
 summary(data_mg$rating)
 
 # plot histogram plot
-hist(data_mg$rating, main = "Histogram of the movie rating", xlab="Movie rating", col="seagreen", breaks = 15)
+hist(data_mg$rating, main = "Histogram of the movie rating", xlab="Movie rating", col="#66C2A5", breaks = 15)
 
 # plot qqplot
 qqnorm(data_mg$rating, main = "Q-Q plot for movie rating")
@@ -74,13 +74,20 @@ qqline(data_mg$rating)
 
 
 #remove outliers
-outliers <- boxplot(data_mg$rating, plot=FALSE)$out
+outliers <- unique(boxplot(data_mg$rating, plot=FALSE)$out)
 data_mg <- data_mg[-which(data_mg$rating %in% outliers),]
 
 # plot ggplot for rating
 
 data_mg <- subset(data_mg, rating>7.5)
-ggplot(data=data_mg, aes(x=reorder(genre, rating), y=rating)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "seagreen") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Rating")+ labs(title='The rating of various movie genres (rating >= 7.5)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+ggplot(data=data_mg, aes(x=reorder(genre, rating), y=rating)) + 
+  geom_bar(stat = "identity", position="dodge",alpha=.8, fill = "#66C2A5") + 
+    scale_fill_fermenter(palette = "Set2") + 
+      xlab("Movie genre") + 
+        ylab("Movie Rating")+ 
+          labs(title='The rating of various movie genres (rating >= 7.5)') + 
+            coord_flip() + 
+              theme(text = element_text(size=10), legend.position="right", plot.title = element_text(size=15))
 
 ```
 
@@ -98,28 +105,34 @@ data_v$genre <- as.factor(data_v$genre)
 summary(data_v$movie_votes)
 
 # plot histogram plot
-hist(data_v$movie_votes, main = "Histogram of the movie votes", xlab="Movie votes", col="skyblue3", breaks = 15)
+hist(data_v$movie_votes, main = "Histogram of the movie votes", xlab="Movie votes", col="#FC8D62", breaks = 15)
 
 # plot qq plot
 qqnorm(data_v$movie_votes, main = "Q-Q plot for movie votes")
 qqline(data_v$movie_votes)
 
 #remove outliers
-outliers <- boxplot(data_v$movie_votes, plot=FALSE)$out
+outliers <- unique(boxplot(data_v$movie_votes, plot=FALSE)$out)
 data_v <- data_v[-which(data_v$movie_votes %in% outliers),]
 
 
 # ggplot for movie votes
-data_v <- subset(data_v, movie_votes>200000)
-ggplot(data=data_v, aes(x=reorder(genre, movie_votes), y=movie_votes)) + geom_bar(stat = "identity", position="dodge",alpha=.7,fill = "skyblue3") + scale_fill_brewer(palette = "Set2") + xlab("Movie genre") + ylab("Movie Votes")+ labs(title='The sum of movie votes in movie genres (votes >= 200k)') + coord_flip()+theme(text = element_text(size=8),)+ theme(legend.position="right")+ theme(plot.title = element_text(size=12))
+data_v <- subset(data_v, movie_votes > 200000)
+ggplot(data=data_v, aes(x=reorder(genre, movie_votes), y=movie_votes)) + 
+  geom_bar(stat = "identity", alpha=.7,fill = "#FC8D62") + 
+    scale_fill_fermenter(palette = "Set2") + 
+      xlab("Movie genre") + ylab("Movie Votes")+ 
+        labs(title='The sum of movie votes in movie genres (votes >= 200k)') + 
+          coord_flip()+
+            theme(axis.text = element_text(size=8), legend.position="right", plot.title = element_text(size=15))
 
 ```
 ### Year-wise movie distribution
 
-```{r EDA_year_movie_count, warning=F, fig.height=10, fig.width=8}
+```{r EDA_year_movie_count, warning=F, fig.height=4, fig.width=6}
 
 # average vote distribution
-movies<-movies[!movies$year=='TV Movie 2019',]
+movies<-movies[!movies$year=='TV Movie 2019' & !movies$year=='2020',]
 
 # A brief overview of the dataset: the minimum vote is 1.000,while the maximum vote is 9.900.
 # the mean of the vote is 5.902, the median is 6.100.
@@ -129,78 +142,92 @@ movies<-movies[!movies$year=='TV Movie 2019',]
 years_numbers <- movies[,c('imdb_title_id', 'year')]
 years_num <- years_numbers %>% count(year,sort = TRUE)
 colnames(years_num)<-c('Year','Movie_numbers')
+years_num$Year <- as.numeric(years_num$Year)
 df1 <-arrange(years_num, -Movie_numbers)
 head(df1)
 tail(df1)
 
 
 ggplot(years_num,aes(x=Year,y=Movie_numbers)) + 
-  geom_col(stat='identity', fill='#f68060', alpha=.6, width=1) + 
-    labs(title=('year and Movie_numbers')) + 
-      coord_flip() + 
-        ylab('Year') + 
-          scale_x_discrete(guide = guide_axis(n.dodge=3))
-
+  geom_bar(stat="identity", fill='#66C2A5', alpha=.8, width=1) + 
+    labs(title=('Count of movies each year')) + 
+      scale_fill_fermenter(palette = "Set2") + 
+        ylab('Count') +
+          xlab('Year') +
+            coord_flip() +
+              scale_x_continuous(breaks=seq(1900, 2020, 10))
 
 ```
 
 ### Average votes per year
 
-```{r EDA_year_avg_votes, warning=F, fig.height=10, fig.width=8}
+```{r EDA_year_avg_votes, warning=F, fig.height=4, fig.width=6}
+
 # movies year-rating distribution
-years_rating <- aggregate(movies$avg_vote, by = list(director = movies$year),FUN=mean)
+years_rating <- aggregate(movies$avg_vote, by = list(movies$year),FUN=mean)
 colnames(years_rating) <- c('Year','Rating')
+years_rating$Year <- as.numeric(years_rating$Year)
 df2 <-arrange(years_rating, -Rating)
 head(df2)
 tail(df2)
 
 
 ggplot(data=years_rating,aes(x=Year,y=Rating)) +
-  geom_col(width=1,fill='lightblue') + 
-    coord_flip()+xlab('Year') + 
-      labs(title=('Years v/s Rating')) + 
-        scale_x_discrete(guide = guide_axis(n.dodge=3))
+  geom_bar(stat="identity", fill='#FC8D62', alpha=.8, width=1) +
+    scale_fill_fermenter(palette = "Set2") + 
+      labs(title=('Average Rating every Year')) + 
+        ylab('Count') +
+          xlab('Year') +
+            coord_flip() +
+              scale_x_continuous(breaks=seq(1900, 2020, 10))
 
 ```
 
 
 ### Number of votes per year
 
-```{r EDA_year_votes, fig.height=10, fig.width=8}
+```{r EDA_year_votes, fig.height=4, fig.width=6}
 
 # movies vote distribution
 years_vote <- aggregate(movies$votes, by = list(director = movies$year),FUN=sum)
 colnames(years_vote) <- c('Year','Votes')
+years_vote$Year <- as.numeric(years_vote$Year)
 df3 <-arrange(years_vote, -Votes)
 head(df3)
 tail(df3)
 
-
-ggplot(data=years_vote,aes(x=Year,y=Votes)) +
-  geom_col(fill='purple4',alpha=1, width=1)+xlab('Year') +
-    ylab('Votes')+coord_flip() +
-      labs(title=('Year and votes')) + 
-        scale_x_discrete(guide = guide_axis(n.dodge=3))
+ggplot(data=years_vote, aes(x=Year, y=Votes)) +
+  geom_bar(stat="identity", fill='#66C2A5', alpha=.8, width=1) +
+    scale_fill_fermenter(palette = "Set2") + 
+      labs(title=('Total Votes every Year')) + 
+        ylab('Votes') +
+          xlab('Year') +
+            coord_flip() +
+              scale_x_continuous(breaks=seq(1900, 2020, 10))
 
 ```
 
 ### Duration of movies per year
 
-```{r EDA_year_duration, fig.height=10, fig.width=8}
+```{r EDA_year_duration, fig.height=4, fig.width=6}
 
 # movies duration-year distribution
 years_duration <- aggregate(movies$duration, by = list(director = movies$year),FUN=mean)
 colnames(years_duration) <- c('Year','Duration')
+years_duration$Year <- as.numeric(years_duration$Year)
 df4 <-arrange(years_duration, -Duration)
 head(df4)
 tail(df4)
 
-ggplot(data=years_duration,aes(x=Year,y=Duration)) +
-  geom_col(fill='purple4', alpha=1, width=1)+xlab('Year') + 
-    ylab('Duration') +
-      coord_flip() +
-        labs(title=('Year and Duration')) + 
-          scale_x_discrete(guide = guide_axis(n.dodge=3))
+
+ggplot(data=years_duration, aes(x=Year, y=Duration)) +
+  geom_bar(stat="identity", fill='#FC8D62', alpha=.8, width=1) +
+    scale_fill_fermenter(palette = "Set2") + 
+      labs(title=('Years v/s Movie Duration')) + 
+        ylab('Duration') +
+          xlab('Year') +
+            coord_flip() +
+              scale_x_continuous(breaks=seq(1900, 2020, 10))
 
 ```
 
@@ -212,6 +239,10 @@ ggplot(data=years_duration,aes(x=Year,y=Duration)) +
 ```{r Q1_dataset_creation, warning=F}
 
 genre_df1 <- movie_ratings[,c("genre", "avg_vote")]
+
+# remove outliers
+outliers <- unique(boxplot(genre_df1$avg_vote, plot=FALSE)$out)
+genre_df1 <- genre_df1[-which(genre_df1$avg_vote %in% outliers),]
 
 genre_df2 <- genre_df1 %>%
   separate(genre, c("c1",'c2','c3'),sep =c(', '))
@@ -230,7 +261,7 @@ genre_df <- rbind(df1, df2, df3)
 
 ### Data Visualization
 
-```{r Q1_visualization, warning=F}
+```{r Q1_visualization, warning=F, fig.height=5, fig.width=7}
 
 theme_set(theme_bw())
 
@@ -245,7 +276,8 @@ genre_grouped <- genre_grouped[order(genre_grouped$mean_vote), ]
 genre_grouped$genre <- factor(genre_grouped$genre, levels = genre_grouped$genre)
 
 ggplot(genre_grouped, aes(fill=mean_vote, y=mean_vote, x=genre)) +
-    geom_bar(width=.8, stat="identity") +
+    geom_bar(stat="identity", alpha=.8, width=0.8) +
+      scale_fill_fermenter(palette = "Set2") +
         coord_flip() +
             labs(title="Ordered Bar Chart",
                 subtitle="Mean avg_vote across film genres", 
@@ -274,11 +306,11 @@ pw_ttest_pvals <- melt(pw_ttest_pvals, id.vars="genre1", variable.name="genre2",
 
 ggplot(pw_ttest_pvals, aes(genre1, genre2, fill= p_value)) + 
   geom_tile() +
-    # scale_x_discrete(guide = guide_axis(n.dodge=3)) +
-    theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
-      labs(title="Heat Map",
-          subtitle="P-values for pairwise T-tests on movie genres", 
-          caption="genre1: genre2")
+    scale_fill_fermenter(palette = "Blues") +
+      theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
+        labs(title="Heat Map",
+            subtitle="P-values for pairwise T-tests on movie genres", 
+            caption="genre2: genre1")
 
 paste0("Since most p-values are far lesser than our alpha-value of 0.01, we can say that the genre definitely affects the avg_vote.")
 ```
@@ -288,26 +320,30 @@ paste0("Since most p-values are far lesser than our alpha-value of 0.01, we can 
 
 ### EDA
 
-```{r Q2, fig.width = 8, fig.height = 8}
+```{r Q2, fig.height=5, fig.width=7}
 
 movie_director <- movie_ratings[,c("director", "avg_vote")]
 
-director_gourp <- aggregate(movie_director$avg_vote, by = list(director = movie_director$director),FUN=mean)
+# remove outliers
+outliers <- unique(boxplot(movie_director$avg_vote, plot=FALSE)$out)
+movie_director <- movie_director[-which(movie_director$avg_vote %in% outliers),]
+
+director_group <- aggregate(movie_director$avg_vote, by = list(director = movie_director$director),FUN=mean)
 director_num <- movie_director %>% count(director,sort = TRUE)
-director_vote <- merge(director_gourp,director_num,by='director')
+director_vote <- merge(director_group,director_num,by='director')
 director_vote <- director_vote[order(-director_vote$n),]
 colnames(director_vote) <- c('director','rating','movie_numbers') 
 
-director_vote_40 <- subset(director_vote,movie_numbers>39)
-director_vote_40$rating <- as.numeric(director_vote_40$rating)
+director_vote_50 <- subset(director_vote,movie_numbers>49)
+director_vote_50$rating <- as.numeric(director_vote_50$rating)
 
-
-ggplot(director_vote_40,aes(x=reorder(director,rating),y=rating)) +
-     geom_bar(stat='identity',fill='#f68060',alpha=.6, width=.4) +
-     labs(title="Rating plot for directors (Movie numbers more than 40)") +
-     coord_flip() +
-     xlab('directors') +
-     theme_bw()
+ggplot(director_vote_50, aes(fill=rating, y=rating, x=reorder(director,rating))) +
+    geom_bar(stat="identity", alpha=.8, width=0.8) +
+      scale_fill_fermenter(palette = "Set2") +
+        coord_flip() +
+            labs(title="Ordered Bar Chart",
+                subtitle="Mean avg_vote for various Directors",
+                caption="director: avg_vote")
 
 ```
 
@@ -366,6 +402,7 @@ genre_age_df <- rbind(df1, df2, df3)
 
 ```
 
+
 ### Data Visualization
 
 ```{r Q3_visualization, warning=F}
@@ -387,14 +424,15 @@ genre_age_grouped <- genre_age_df %>%
       ages_18 = mean(prop_18),
       ages_30 = mean(prop_30),
       ages_45 = mean(prop_45)
-    ) 
+    )
 
 genre_age_melt <- melt(genre_age_grouped, id.vars = "genre", variable.name = "proportions")
 
 ggplot(genre_age_melt, aes(fill=proportions, y=value, x=genre)) + 
     geom_bar(position="stack", stat="identity") +
-        coord_flip() + 
-            ggtitle("Mean of proportions of viewer ages across film genres")
+        scale_fill_brewer(palette = "Set2") +
+            coord_flip() + 
+                ggtitle("Mean of proportions of viewer ages across film genres")
 
 paste0("We see how proportion differences across various genres differ for different ages.")
 
@@ -403,7 +441,13 @@ paste0("We see how proportion differences across various genres differ for diffe
 ### Hypothesis Testing
 
 ```{r Q3_hypo_test, warning=F}
-res.man <- manova(cbind(votes_18, votes_30, votes_45) ~ genre, data = genre_age_df)
+
+genre_age_df_filtered <- genre_age_df %>%
+  group_by(genre) %>%
+    filter(n() >= 30) %>%
+      ungroup()
+
+res.man <- manova(cbind(votes_18, votes_30, votes_45) ~ genre, data = genre_age_df_filtered)
 summary(res.man)
 paste0("A very low p-value tells us that genre differences are significant acorss various ages.")
 
@@ -422,14 +466,12 @@ paste0("A low p-value for each age category tells us that all the ages have diff
 duration <-outlierKD2(movies, movies$duration)
 outliers <- boxplot(movies$duration,plot=FALSE)$out
 movies1 <- movies[-which(movies$duration %in% outliers),]
-summary(movies$duration)
+summary(movies1$duration)
 
 duration_rating <- movies1[,c('duration','avg_vote')]
 colnames(duration_rating)<-c("duration","rating")
 df5 <-arrange(duration_rating, -rating)
 
-
-theme_set(theme_bw())
 
 duration_grouped <- duration_rating %>%
   group_by(duration) %>%
@@ -438,11 +480,12 @@ duration_grouped <- duration_rating %>%
       n=n()
     )
 
-ggplot( duration_grouped, aes(fill=mean_vote, y=mean_vote, x=duration)) +
-    geom_bar(width=.8, stat="identity") +
+ggplot(duration_grouped, aes(fill=mean_vote, y=mean_vote, x=duration)) +
+    geom_bar(stat="identity", alpha=.8, width=0.8) +
+      scale_fill_fermenter(palette = "Set2") +
         coord_flip() +
             labs(title="Ordered Bar Chart",
-                subtitle="Mean Rating across film genres", 
+                subtitle="Mean rating for different film durations",
                 caption="duration: Rating")
 
 ```
@@ -454,8 +497,10 @@ ggplot( duration_grouped, aes(fill=mean_vote, y=mean_vote, x=duration)) +
 #correlation 
 cor.test(movies$avg_vote, as.numeric(movies$duration))
 ggplot(movies,aes(x=duration, y=avg_vote)) + 
-  ylab('Rating') +
-    geom_point()
+  scale_fill_fermenter(palette = "Set2") +
+    ylab('Rating') +
+      geom_point() +
+        geom_smooth(method='lm') 
 
 paste0("There is a weak correlation between movie duration and Rating.")
 
@@ -468,6 +513,10 @@ paste0("There is a weak correlation between movie duration and Rating.")
 ```{r Q5_dataset_creation, warning=F}
 
 language_df1 <- movie_ratings[,c("language", "avg_vote")]
+
+# remove outliers
+outliers <- unique(boxplot(language_df1$avg_vote, plot=FALSE)$out)
+language_df1 <- language_df1[-which(language_df1$avg_vote %in% outliers),]
 
 language_df2 <- language_df1 %>%
   separate(language, c("c1",'c2','c3',"c4",'c5','c6'),sep =c(', '))
@@ -492,28 +541,26 @@ language_df <- rbind(df1, df2, df3, df4, df5, df6)
 
 ### Data Visualization
 
-```{r Q5_visualization, warning=F, fig.width=8, fig.height=12}
+```{r Q5_visualization, warning=F, fig.height=5, fig.width=10}
 
 theme_set(theme_bw())
 
 language_grouped <- language_df %>%
   group_by(language) %>%
-    filter(n() >= 30) %>%
+    filter(n() >= 200) %>%
       summarize(
         mean_vote = mean(avg_vote),
         n=n()
       )
 
-language_grouped <- language_grouped[order(language_grouped$mean_vote), ]
-language_grouped$language <- factor(language_grouped$language, levels = language_grouped$language)
-
-
-ggplot(language_grouped, aes(fill=mean_vote, y=mean_vote, x=language)) +
+ggplot(language_grouped, aes(y=mean_vote, x=reorder(language,mean_vote))) +
     geom_point(width=.8, stat="identity") +
-        coord_flip() +
+      scale_fill_fermenter(palette = "Set2") +
+          xlab("language") +
+          theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
             labs(title="Ordered Bar Chart",
-                subtitle="Mean avg_vote across film languages", 
-                caption="language: avg_vote")
+                subtitle="Mean vote across film languages (>= 200 votes)", 
+                caption="language: mean_vote")
 
 ```
 
@@ -559,14 +606,14 @@ t.test(movie_gender$male, movie_gender$female)
 
 # barplot for movie ratings for both genders
 colnames(movie_gender) <- c("Genre","All gender","Male", "Female")
-barplot(colMeans(movie_gender[,3:4]), col = c("seagreen","skyblue3"), main="The average of movie rating in female and male")
+barplot(colMeans(movie_gender[,3:4]), col = c("#FC8D62", "#8DA0CB"), main="The average of movie rating in female and male")
 
 # melt data frame into long
 colnames(movie_gender) <- c("genre","all gender","male", "female")
 movie_gender <- melt(movie_gender)
 
 # boxplot: movie ratings vs. genders
-boxplot(value~variable, data=movie_gender, main="Movie rating vs. genders", xlab="Gender", ylab="Movie rating", col=c("indianred", "seagreen","skyblue3")) 
+boxplot(value~variable, data=movie_gender, main="Movie rating vs. genders", xlab="Gender", ylab="Movie rating", col=c("#66C2A5", "#FC8D62", "#8DA0CB")) 
 
 ```
 
@@ -589,29 +636,29 @@ paste0("Difference in mean number of voters is significant between male and fema
 
 
 # plot histogram plot for male
-hist(vote$Male, main = "Histogram of the movie votes for male", xlab="Movie rating", col="seagreen", breaks = 15)
+hist(vote$Male, main = "Histogram of the movie votes for male", xlab="Movie rating", col="#FC8D62", breaks = 15)
 
 # plot qqplot for male
-qqnorm(vote$Male, main = "Q-Q plot for movie votes for male")
+qqnorm(vote$Male, main = "Q-Q plot for movie votes for males")
 qqline(vote$Male)
 
 
 # plot histogram plot for female
-hist(vote$Female, main = "Histogram of the movie votes for female", xlab="Movie rating", col="skyblue3", breaks = 15)
+hist(vote$Female, main = "Histogram of the movie votes for female", xlab="Movie rating", col="#8DA0CB", breaks = 15)
 
 # plot qqplot for female
-qqnorm(vote$Female, main = "Q-Q plot for movie votes for female")
+qqnorm(vote$Female, main = "Q-Q plot for movie votes for females")
 qqline(vote$Female)
 
 # bar plot: movie votes vs. genders
-barplot(colSums(vote[,2:3]), col = c("seagreen","skyblue3"), main="The total votes in female and male")
+barplot(colSums(vote[,2:3]), col = c("#FC8D62", "#8DA0CB"), main="The total votes for females and males")
 
 # melt data frame into long
 colnames(vote) <- c("genre","male", "female")
 vote <- melt(vote)
 
 # boxplot: genders vs. movie votes
-boxplot(value~variable, data=vote, main="Movie votes vs. genders", xlab="Gender",ylab="Movie rating",col=c("seagreen","skyblue3"), border=c("seagreen","skyblue3"))
+boxplot(value~variable, data=vote, main="Movie votes vs. genders", xlab="Gender",ylab="Movie rating",col=c("#FC8D62", "#8DA0CB"), border=c("#FC8D62", "#8DA0CB"))
 
 ```
 
@@ -622,14 +669,33 @@ boxplot(value~variable, data=vote, main="Movie votes vs. genders", xlab="Gender"
 age_df <- movie_ratings[,c("allgenders_18age_avg_vote", "allgenders_30age_avg_vote", "allgenders_45age_avg_vote", "avg_vote")]
 names(age_df)[1:3] <- c("avg_vote_18", "avg_vote_30", "avg_vote_45")
 
+# remove outliers
+outliers_18 <- unique(boxplot(age_df$avg_vote_18, plot=FALSE)$out)
+age_df <- age_df[-which(age_df$avg_vote_18 %in% outliers_18),]
+
+outliers_30 <- unique(boxplot(age_df$avg_vote_30, plot=FALSE)$out)
+age_df <- age_df[-which(age_df$avg_vote_30 %in% outliers_30),]
+
+outliers_45 <- unique(boxplot(age_df$avg_vote_45, plot=FALSE)$out)
+age_df <- age_df[-which(age_df$avg_vote_45 %in% outliers_45),]
+
 gender_df <- movie_ratings[,c("males_allages_avg_vote", "females_allages_avg_vote", "avg_vote")]
-names(gender_df)[1:2] <- c("avg_vote_male", "avg_vote_female", "avg_vote_45")
+names(gender_df)[1:2] <- c("avg_vote_male", "avg_vote_female")
+
+# remove outliers
+outliers_male <- unique(boxplot(gender_df$avg_vote_male, plot=FALSE)$out)
+gender_df <- gender_df[-which(gender_df$avg_vote_male %in% outliers_male),]
+
+outliers_female <- unique(boxplot(gender_df$avg_vote_female, plot=FALSE)$out)
+gender_df <- gender_df[-which(gender_df$avg_vote_female %in% outliers_female),]
 
 ```
 
+
+
 ### Data Visualization
 
-```{r Q6_visualization, warning=F}
+```{r Q6_visualization, warning=F, fig.width=6, fig.height=4}
 
 age_df_cor <- cor(age_df)
 age_df_melt <- melt(age_df_cor)
@@ -637,10 +703,11 @@ age_df_melt <- melt(age_df_cor)
 ggplot(age_df_melt, aes(x=Var1, y=Var2, fill=value)) + 
   geom_tile(aes(label = value)) +
     geom_text(aes(label = round(value,2))) +
-      theme(axis.text.x = element_text(angle=25, vjust=1, hjust=1)) +
-        labs(title="Heat Map",
-            subtitle="Age Correlation Matrix",
-            caption="age: avg_vote")
+      theme(axis.title.x=element_blank(), axis.title.y=element_blank()) +
+        scale_fill_fermenter(palette = "Blues") +
+          labs(title="Heat Map",
+              subtitle="Age Correlation Matrix",
+              caption="age: avg_vote")
 
 gender_df_cor <- cor(gender_df)
 gender_df_melt <- melt(gender_df_cor)
@@ -648,10 +715,11 @@ gender_df_melt <- melt(gender_df_cor)
 ggplot(gender_df_melt, aes(x=Var1, y=Var2, fill=value)) + 
   geom_tile() +
     geom_text(aes(label = round(value,2))) +
-      theme(axis.text.x = element_text(angle=25, vjust=1, hjust=1)) +
-        labs(title="Heat Map",
-            subtitle="Gender Correlation Matrix",
-            caption="gender: avg_vote")
+      theme(axis.title.x=element_blank(), axis.title.y=element_blank()) +
+        scale_fill_fermenter(palette = "Blues") +
+          labs(title="Heat Map",
+              subtitle="Gender Correlation Matrix",
+              caption="gender: avg_vote")
 
 ```
 
