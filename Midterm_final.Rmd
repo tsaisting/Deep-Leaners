@@ -267,6 +267,7 @@ theme_set(theme_bw())
 
 genre_grouped <- genre_df %>%
   group_by(genre) %>%
+  filter(n() >= 30) %>%
     summarize(
       mean_vote = mean(avg_vote),
       n=n()
@@ -306,7 +307,7 @@ pw_ttest_pvals <- melt(pw_ttest_pvals, id.vars="genre1", variable.name="genre2",
 
 ggplot(pw_ttest_pvals, aes(genre1, genre2, fill= p_value)) + 
   geom_tile() +
-    scale_fill_fermenter(palette = "Blues") +
+    scale_fill_gradient(low="darkblue", high = "lightblue") +
       theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
         labs(title="Heat Map",
             subtitle="P-values for pairwise T-tests on movie genres", 
@@ -449,7 +450,7 @@ genre_age_df_filtered <- genre_age_df %>%
 
 res.man <- manova(cbind(votes_18, votes_30, votes_45) ~ genre, data = genre_age_df_filtered)
 summary(res.man)
-paste0("A very low p-value tells us that genre differences are significant acorss various ages.")
+paste0("A very low p-value tells us that genre differences are significant across various ages.")
 
 summary.aov(res.man)
 paste0("A low p-value for each age category tells us that all the ages have differing viewing statistics across different genres.")
@@ -558,7 +559,7 @@ ggplot(language_grouped, aes(y=mean_vote, x=reorder(language,mean_vote))) +
       scale_fill_fermenter(palette = "Set2") +
           xlab("language") +
           theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
-            labs(title="Ordered Bar Chart",
+            labs(title="Ordered Scatter Plot",
                 subtitle="Mean vote across film languages (>= 200 votes)", 
                 caption="language: mean_vote")
 
@@ -716,7 +717,7 @@ ggplot(gender_df_melt, aes(x=Var1, y=Var2, fill=value)) +
   geom_tile() +
     geom_text(aes(label = round(value,2))) +
       theme(axis.title.x=element_blank(), axis.title.y=element_blank()) +
-        scale_fill_fermenter(palette = "Blues") +
+        scale_fill_gradient(low="darkblue", high = "lightblue") +
           labs(title="Heat Map",
               subtitle="Gender Correlation Matrix",
               caption="gender: avg_vote")
