@@ -4,6 +4,8 @@ author: "T2 Deep Learners: Yue Li, Shuting Cai, Mrunalini Devineni, Siddharth Da
 date: "`r Sys.Date()`"
 output:
   html_document:
+    theme: united
+    highlight: tango
     code_folding: hide
     number_sections: true
     toc: yes
@@ -18,7 +20,7 @@ output:
 
 Movies are a great way to pass our leisure time. With the rapid development of the Internet, film review aggregators such as IMDb and Rotten Tomatoes have gradually become very popular. Hence, film reviews are of great importance for most movie audiences and film production companies. Generally, movies with a higher rating will obtain more attention and do better at the box office. It is not uncommon for movie reviewers to be hired by stakeholders, pretending to be ordinary netizens, giving high movie ratings, and posting favorable comments on the website for profit. In addition, some netizens give extreme movie ratings based on their preference for certain directors or actors instead of standing in neutrality. Such bogus movie ratings will mislead the public and may cause adverse effects. This issue has aroused considerable public attention, leading many researchers to start work on spurious comment detection. At present, most of the work focuses on judging whether a specific user or comment is reliable. In this project, the approach of our team is to construct a rating system that analyzes the average movie votes since it is the main factor for users to judge the quality of the movie. Gathering initial insights on the overall distribution of movie ratings might eliminate the influence of bogus reviews on the average movie score, leading to an authentic movie rating distribution. We also explore the factors and their interactions that affect movie ratings. Our end goal is to build a prediction model to help clients understand the trends in the film market to help them make the right decisions on movie production.
 
-## Prior Research
+
 Prior research on IMDB movie reviews includes movie review text classification using sentiment analysis on a data set comprising 1,000 positive and 1,000 negative reviews. (Brownlee, 2020)
 
 The bag-of-words feature extraction technique creates unigrams, bigrams, and trigrams as a feature set and represents it as a vector. The Naive Bayes algorithm is employed to categorize the movie reviews into negative and positive reviews. The word2vec model summarizes movie reviews by extracting features from classified movie review sentences, and the semantic clustering technique clusters semantically related review sentences. Different text features are employed to compute the salience score of all review sentences in the cluster. (Khan etc., 2020)
@@ -37,12 +39,11 @@ library(ezids)
 
 ```
 
-
 # Description of the Data 
+
 The dataset is from the Kaggle, divided into three separate CSV files. It contains 22 variables of 85,855 movies spanning from 1894 to 2020 from multiple countries. There are also 297,705 instances of cast information. The "in development" titles are not included in the files and contain missing categories of data like the short plot on the main page, awards, external reviews, parent's guide, synopsis, faqs, news, etc. Additional features such as the production company, title groups, adult titles, instant watch options like Amazon Prime or Netflix could make the analysis much broader and ideal.
 
 ```{r data_join}
-
 movies <- read.csv('movies.csv', header=TRUE)
 drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
           'reviews_from_critics','production_company','description','writer')
@@ -60,9 +61,10 @@ movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
 str(movies)
 ```
 
-
 # Independent Variables EDA
+
 ## Movie Rating Distribution
+
 ```{r movie_rating_&_qq_plot}
 movie_genre_1 <- movie_ratings[,c("genre", "avg_vote")]
 
@@ -90,6 +92,7 @@ data_mg <- data_mg[-which(data_mg$rating %in% outliers),]
 
 
 ```
+A brief overview of the dataset for movie rating: the minimum is 1.5, and the maximum is 8.7 out of 10; the mean of the movie rating is 5.916. From the histogram, we can see that the movie rating is left-skewed. Looking at the Q-Q plot, there is more data to the left of the Gaussian distribution. 
 
 ## Movie Votes Distribution 
 
@@ -116,6 +119,7 @@ outliers <- unique(boxplot(data_v$movie_votes, plot=FALSE)$out)
 data_v <- data_v[-which(data_v$movie_votes %in% outliers),]
 
 ```
+
 ## Movie Genres Distribution 
 
 ```{r Genre distribution}
@@ -144,6 +148,7 @@ ggplot(data=data_v, aes(x=reorder(genre, movie_votes), y=movie_votes)) +
 ```
 
 ## Year-Wise Movie Distribution
+
 ```{r EDA_year_movie_count, warning=F, fig.height=4, fig.width=6}
 
 # average vote distribution
@@ -245,12 +250,14 @@ ggplot(data=years_duration, aes(x=Year, y=Duration)) +
               scale_x_continuous(breaks=seq(1900, 2020, 10))
 
 ```
+Basic EDA was done by selecting quantitative variables, plotting movie rating histogram and bar graphs. During the EDA, one quantitative variable, movie duration, seemed to be taken into account. The relationship between movie duration and ratings could be analyzed. Therefore, the previous fourth question about the mean age of actors was switched to this one.
 
+# Tests
 
-# Tests Introduction
 We have used the following tests to arrive at our conclusions for the various SMART questions:
 
 ## Correlation Test
+
 Correlation coefficients are indicators of the strength of the linear relationship between two different variables: x and y. A linear correlation coefficient that is greater than zero indicates a positive relationship. A value that is less than zero signifies a negative relationship. Finally, a value of zero indicates no relationship between the two variables x and y. The possible range of values for the correlation coefficient is -1 to 1. A correlation of -1.0 indicates a perfect negative correlation, and a correlation of 1.0 indicates a perfect positive correlation. There are three major types of correlation:
 Pearson's Product Moment Co-efficient of Correlation
 Spearman's Rank Correlation Coefficient
@@ -258,19 +265,23 @@ Kendall’s Rank Correlation Coefficient
 For the Pearson correlation, both variables should be normally distributed (normally distributed variables have a bell-shaped curve). Other assumptions include linearity and homoscedasticity. Linearity assumes a straight-line relationship between each of the two variables and homoscedasticity assumes that data is equally distributed about the regression line. The assumptions of the Spearman correlation are that data must be at least ordinal and the scores on one variable must be monotonically related to the other variable.
 
 ## T – test
+
 A t-test is a type of inferential statistic used to determine if there is a significant difference between the means of two groups, which may be related in certain features. The t-test is one of many tests used for the purpose of hypothesis testing in statistics. Calculating a t-test requires three key data values. They include the difference between the mean values from each data set (called the mean difference), the standard deviation of each group, and the number of data values of each group. There are several different types of t-tests that can be performed depending on the data and type of analysis required. Mathematically, the t-test takes a sample from each of the two sets and establishes the problem statement by assuming a null hypothesis that the two means are equal. Based on the applicable formulas, certain values are calculated and compared against the standard values, and the assumed null hypothesis is accepted or rejected accordingly. 
 The pairwise t-test consists of calculating multiple t-test between all possible combinations of groups. The Bonferroni correction is a multiple-comparison correction used when several dependent or independent statistical tests are being performed simultaneously since while a given significance level (alpha value) may be appropriate for each individual comparison, it is not for the set of all comparisons. To avoid a lot of spurious positives, the alpha value needs to be lowered to account for the number of comparisons being performed.
 
 ## Analysis of Variance (ANOVA)
+
 Analysis of variance, or ANOVA, is a statistical method that separates observed variance data into different components to use for additional tests. A one-way ANOVA is used for three or more groups of data, to gain information about the relationship between the dependent and independent variables. The result of the ANOVA formula, the F statistic (also called the F-ratio), allows for the analysis of multiple groups of data to determine the variability between samples and within samples. If no true variance exists between the groups, the ANOVA's F-ratio should equal close to 1. 
 There are two main types of ANOVA: one-way (or unidirectional) and two-way. There are also variations of ANOVA. For example, MANOVA (multivariate ANOVA) differs from ANOVA as the former tests for multiple dependent variables simultaneously while the latter assesses only one dependent variable at a time. One-way or two-way refers to the number of independent variables in your analysis of variance test. A one-way ANOVA evaluates the impact of a sole factor on a sole response variable. It determines whether all the samples are the same. The one-way ANOVA is used to determine whether there are any statistically significant differences between the means of three or more independent (unrelated) groups. ANOVA has many applications in finance, economics, science, medicine, and social science.
 
 ## Tukey’s Honest Significant Difference test
+
 The Tukey Test (or Tukey procedure), also called Tukey’s Honest Significant Difference test, is a post-hoc test based on the studentized range distribution. An ANOVA test can tell you if your results are significant overall, but it won’t tell you exactly where those differences lie. After you have run an ANOVA and found significant results, then you can run Tukey’s HSD to find out which specific groups’ means (compared with each other) are different. The test compares all possible pairs of means. If we have unequal sample sizes, we must calculate the estimated standard deviation for each pairwise comparison. This is called the Tukey-Kramer Method.
 
 
 
 # SMART Questions
+
 There are 21 features in this dataset that include movie genre, director, released year, actors, duration, movie language, rating, vote numbers, vote demographics, etc. This project aims to explore the factors that affect movie ratings and the influence of different ages on the choice of movie genres. We consider six independent variables: movie genre, the choice of director, the mean age of actors, the movie language, the voting demographic (gender and age). These variables represent different aspects of the influence on movie ratings. Four of them (movie genre, director, actor age, and the movie language) focus on the characteristics of the movie. Other variables focus on the descriptions of voters, like their age and gender.
 
 We conducted exploratory data analysis by selecting quantitative variables like movie rating, plotting histograms, and bar graphs. During the EDA, one quantitative variable, movie duration, seemed to could be taken into account. We resolved to analyze the relationship between movie duration and ratings and rejected one question regarding the actor age because of increased complexity. 
@@ -617,7 +628,6 @@ We can further analyze the relationship between the two variables by introducing
 
 We have solved this SMART question in a very similar way to the first question. We split up the language column into its component languages and then run hypothesis tests on them. Initial data exploration included checking the mean movie ratings across different languages. We have considered only those languages having more than 200 movies for visualization purposes.     
 
-### Dataset Creation
 
 ```{r Q5_dataset_creation, warning=F}
 
@@ -696,7 +706,6 @@ head(tukeyVarSig)
 
 ```
 There are 76 languages in our dataset that have more than 30 movies in its sample. The total number of pairs possible for these languages is 2850. The Tukey test returned a table of 840 pairs with significant differences in their average movie ratings. Hence, we can say that the movie language has a considerable effect on the movie votes.
-
 
 ## Voter demographics affecting average vote and votes
 
@@ -875,17 +884,28 @@ ttest_gender
 
 From the first three tests, we see that the difference in average votes is significant between ages 18, 30, and 45. 
 
-from the last test, we see that the difference in average votes is significant between male and female genders.
+From the last test, we see that the difference in average votes is significant between male and female genders.
 
-# References:
+# Conclusion
+
+Based on the massive movie information, our aim was to understand what are the important factors that make a movie more successful than others. So we analysed what kind of movies are more successful , in other words get higher IMDB scores. We also showed the results of this analysis in an intuitive way by visualizing the outcome using ggplot2 in R. Our analysis states that all the factors that we considered in our smart questions i.e, Genre, director, movie duration, movie language and voter demographics have some amount of effect on the IMDB vote or score on a movie.
+
+# References
 
 Bonferroni correction. from Wolfram MathWorld. (n.d.). Retrieved November 9, 2021, from https://mathworld.wolfram.com/BonferroniCorrection.html.
+
 Brownlee, J. (2020, December 20). How to prepare movie review data for sentiment analysis (text classification). Machine Learning Mastery. Retrieved November 9, 2021, from https://machinelearningmastery.com/prepare-movie-review-data-sentiment-analysis/.
+
 Correlation (Pearson, Kendall, Spearman). Statistics Solutions. (2021, August 10). Retrieved November 9, 2021, from https://www.statisticssolutions.com/free-resources/directory-of-statistical-analyses/correlation-pearson-kendall-spearman/.
+
 Hayes, A. (2021, October 25). T-test definition. Investopedia. Retrieved November 9, 2021, from https://www.investopedia.com/terms/t/t-test.asp.
+
 Kenton, W. (2021, October 6). How analysis of variance (ANOVA) works. Investopedia. Retrieved November 9, 2021, from https://www.investopedia.com/terms/a/anova.asp.
+
 Khan, A., Gul, M. A., Uddin, M. I., Ali Shah, S. A., Ahmad, S., Al Firdausi, M. D., & Zaindin, M. (2020, August 1). Summarizing online movie reviews: A machine learning approach to big data analytics. Scientific Programming. Retrieved November 9, 2021, from https://www.hindawi.com/journals/sp/2020/5812715/.
+
 Nickolas, S. (2021, October 22). What do correlation coefficients positive, negative, and zero mean? Investopedia. Retrieved November 9, 2021, from https://www.investopedia.com/ask/answers/032515/what-does-it-mean-if-correlation-coefficient-positive-negative-or-zero.asp.
+
 Unofficialmerve. (2019, October 21). IMDB exploratory data analysis. Kaggle. Retrieved November 9, 2021, from https://www.kaggle.com/unofficialmerve/imdb-exploratory-data-analysis/notebook.
 
 
