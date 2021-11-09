@@ -1,6 +1,6 @@
 ---
 title: "IMDB Feature Film Analysis"
-author: "T2 Deep Learners: YUE LI, SHUTING CAI, MRUNALINI DEVINENI, SIDDHARTH DAS"
+author: "T2 Deep Learners: Yue Li, Shuting Cai, Mrunalini Devineni, Siddharth Das"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -16,13 +16,12 @@ output:
 
 # Introduction
 
-Prior to 2020, watching movies has become a popular way of mass leisure. With the rapid development of the Internet, film review aggregators such as IMDb and Rotten Tomatoes have gradually popularization. The film reviews have a great reference significance for the majority of ordinary movie audiences and also for the film production company. As a general rule, movies with a higher rating score would obtain more attention and then get a higher paying off at the box office. However, the movie reviewers who are hired by stakeholders, pretend to be ordinary netizens, giving high movie ratings, and posting favorable comments on the website to make profits. In addition, some of the netizens give extreme movie ratings based on the personal likes and dislikes of a certain director or actor, instead of standing in neutrality. The bogus movie ratings would mislead the public and might cause adverse effects. The issue of bogus movie comments has aroused public attention. Many researchers have also done a lot of work in the field of bogus comment detection. At present, most of the work focuses on judging whether a specific user or comment is reliable. In this project, the team is taking an approach to construct a rating system that analysis of the average vote of the movies, since it is the main factor for users to judge the quality of the movie as well. Starting with the overall distribution of movie ratings, the influence of bogus reviews on the average movie score would be eliminated and a movie rating distribution with authenticity would be established. The team would also explore what factors that have an effect on the movie ratings and the interaction effect between factors to build a prediction model that is built to help the clients to understand the trends in the film market so that the client can make the right decisions on movie production.
+Movies are a great way to pass our leisure time. With the rapid development of the Internet, film review aggregators such as IMDb and Rotten Tomatoes have gradually become very popular. Hence, film reviews are of great importance for most movie audiences and film production companies. Generally, movies with a higher rating will obtain more attention and do better at the box office. It is not uncommon for movie reviewers to be hired by stakeholders, pretending to be ordinary netizens, giving high movie ratings, and posting favorable comments on the website for profit. In addition, some netizens give extreme movie ratings based on their preference for certain directors or actors instead of standing in neutrality. Such bogus movie ratings will mislead the public and may cause adverse effects. This issue has aroused considerable public attention, leading many researchers to start work on spurious comment detection. At present, most of the work focuses on judging whether a specific user or comment is reliable. In this project, the approach of our team is to construct a rating system that analyzes the average movie votes since it is the main factor for users to judge the quality of the movie. Gathering initial insights on the overall distribution of movie ratings might eliminate the influence of bogus reviews on the average movie score, leading to an authentic movie rating distribution. We also explore the factors and their interactions that affect movie ratings. Our end goal is to build a prediction model to help clients understand the trends in the film market to help them make the right decisions on movie production.
 
-## Prior Researches
-For IMDB movies reviews, one prior research has been done with the movie review for sentiment analysis in text classification. A dataset comprised of 1,000 positive and 1,000 negative movie reviews was analyzed and used in the research on natural language processing. (Brownlee, 2020)
+## Prior Research
+Prior research on IMDB movie reviews includes movie review text classification using sentiment analysis on a data set comprising 1,000 positive and 1,000 negative reviews. (Brownlee, 2020)
 
-For movie review classification, bag-of-words feature extraction technique is used to extract unigrams, bigrams, and trigrams as a feature set from given review documents and represent the review documents as a vector. The Na¨ıve Bayes algorithm is employed to categorize the movie reviews into negative and positive reviews. For the task of movie review summarization, word2vec model is used to extract features from classified movie review sentences, and then semantic clustering technique is used to cluster semantically related review sentences. Different text features are employed to compute the salience score of all review sentences in clusters. (Khan etc., 2020)
-
+The bag-of-words feature extraction technique creates unigrams, bigrams, and trigrams as a feature set and represents it as a vector. The Naive Bayes algorithm is employed to categorize the movie reviews into negative and positive reviews. The word2vec model summarizes movie reviews by extracting features from classified movie review sentences, and the semantic clustering technique clusters semantically related review sentences. Different text features are employed to compute the salience score of all review sentences in the cluster. (Khan etc., 2020)
 
 
 ```{r init, include=FALSE}
@@ -40,7 +39,7 @@ library(ezids)
 
 
 # Description of the Data 
-The dataset is from the kaggle website,divided into three separate csv files .It contains 22 variables of 85,855 movies spanning over 1894 to 2020 January over multiple countries. Further, contains 297,705 cast instances corresponding to the movies. The "in development" titles are not included in the files and moreover contains  missing categories of data like: the short plot on the main page, awards, external reviews, parents guide, synopsis, faqs, news etc .Additional features as production company , title groups, adult titles, instant watch options like prime, Netflix if provided could make the analysis much broader and ideal.
+The dataset is from the Kaggle, divided into three separate CSV files. It contains 22 variables of 85,855 movies spanning from 1894 to 2020 from multiple countries. There are also 297,705 instances of cast information. The "in development" titles are not included in the files and contain missing categories of data like the short plot on the main page, awards, external reviews, parent's guide, synopsis, faqs, news, etc. Additional features such as the production company, title groups, adult titles, instant watch options like Amazon Prime or Netflix could make the analysis much broader and ideal.
 
 ```{r data_join}
 
@@ -272,15 +271,15 @@ The Tukey Test (or Tukey procedure), also called Tukey’s Honest Significant Di
 
 
 # SMART Questions
-The data set of IMDb Film features was gotten from Kaggle. There are 21 features, such as movie genre, director, released year, actors, duration, movie language, rating, vote numbers, vote demographics, etc. The aim of this project is to explore the factors that affect movie ratings and the influence of different ages on the choice of movie genre. Six independent variables, the difference of Movie genre, the choice of director, the mean age of actors, the movie language, the voting demographic(gender and age), and the age of viewers are taken into account. These variables represent different aspects of the influence on movie ratings. Four of them focus on the construction of movies. For example, Movie genre, the choice of director, the mean age of actors, and the movie language. Other variables focus on the character of voters. Such as, the age and gender of voters.
+There are 21 features in this dataset that include movie genre, director, released year, actors, duration, movie language, rating, vote numbers, vote demographics, etc. This project aims to explore the factors that affect movie ratings and the influence of different ages on the choice of movie genres. We consider six independent variables: movie genre, the choice of director, the mean age of actors, the movie language, the voting demographic (gender and age). These variables represent different aspects of the influence on movie ratings. Four of them (movie genre, director, actor age, and the movie language) focus on the characteristics of the movie. Other variables focus on the descriptions of voters, like their age and gender.
 
-At first, basic EDA was done by selecting quantitative variables, plotting movie rating histogram and bar graphs. During the EDA, one quantitative variable, movie duration, seemed to could be taken into account. The relationship between movie duration and ratings could be analyzed. Therefore, the previous fourth question about the mean age of actors was switched to this one.
-
-
+We conducted exploratory data analysis by selecting quantitative variables like movie rating, plotting histograms, and bar graphs. During the EDA, one quantitative variable, movie duration, seemed to could be taken into account. We resolved to analyze the relationship between movie duration and ratings and rejected one question regarding the actor age because of increased complexity. 
 
 
 ## Difference in Movie Ratings Across Genres
+
 We split up the movie genre column into its sub-genres and assigned the same rating to each sub-genre. Outliers in the avg_vote column were removed since we need the votes to follow a normal distribution for our upcoming hypothesis tests. Grouping the data to find the mean rating for every genre returned the following results:
+
 ```{r Q1_dataset_creation, warning=F}
 
 genre_df1 <- movie_ratings[,c("genre", "avg_vote")]
@@ -332,9 +331,13 @@ ggplot(genre_grouped, aes(fill=mean_vote, y=mean_vote, x=genre)) +
 ```
 
 ### Hypothesis Testing and P-value visualization
+
 We can see from the visualization that there is a difference among some genres based on the mean ratings they receive. We can run a pairwise t-test on the dataset to find out which pairs have a significant difference in mean ratings. We set up our experiment with an alpha-value of 0.01 as follows:
-HO -> The mean rating for all movie genres is same
-HA -> The mean rating for all movie genres is not same
+
+Ho -> The mean rating for all movie genres is same
+
+Ha -> The mean rating for all movie genres is not same
+
 Due to there being 25 different groups of genres, we have also elected to use the Bonferroni correction to get adjusted p-values. The results of our test can be best portrayed with the help of a heatmap of p-values for difference in mean ratings between the various genres. 
 As we can see from the map, most of the values are very close to zero, which means that the genre of the movie has a significant effect on the ratings the movie is going to receive. 
 
@@ -399,9 +402,13 @@ ggplot(director_vote_50, aes(fill=rating, y=rating, x=reorder(director,rating)))
 ```
 
 ### Hypothesis Testing and P-value visualization
+
 At first glance, we can see that there is a considerable difference in movie ratings for different directors. To back up our findings, we run an ANOVA test on the data with a significance level of 0.01 as follows:
-HO -> The mean movie ratings for all directors is same
-HA -> The mean movie ratings for all directors is not same
+
+Ho -> The mean movie ratings for all directors is same
+
+Ha -> The mean movie ratings for all directors is not same
+
 The results of the ANOVA test are:
 
 ```{r Q2_hypo_test, warning=F}
@@ -416,6 +423,7 @@ anovaRes
 summary(anovaRes)
 
 ```
+
 Running a post-hoc Tukey-Kramer test on the ANOVA results with a 99% confidence interval give us the director pairs which significantly differ in the mean of the ratings of their movies. A snippet of the output is as follows:
 
 ```{r Q2_tukey_test, warning=F}
@@ -425,12 +433,12 @@ tukeyVarSig <- subset(tukeyVar, p.adj <= 0.01)
 head(tukeyVarSig)
 
 ```
+
 Our final director dataset has 92 directors who had more than or equal to 30 films to their name. This is done to ensure that groups with lesser number of samples do not distort the test findings. As a result of this, we could get a maximum of 4186 pairs of directors with significant differences in their movie ratings. The Tukey test return a table of 840 pairs of directors with significant movie rating differences. Hence, we can reasonably say that the choice of director is important in selecting a movie.
 
 
-
-
 ## Movie genre viewing statistic differences with age
+
 To answer this SMART question, we firstly take the proportion of viewer votes for different age ranges. We have 4 age ranges in our dataset:
 0 – 18 age range
 18 – 30 age range
@@ -471,7 +479,9 @@ genre_age_df <- rbind(df1, df2, df3)
 
 
 ### Data Visualization
+
 Visualizing the data in a bar chart format to better understand the proportions for various genres gives us the following graph:
+
 ```{r Q3_visualization, warning=F}
 ggplot(genre_age_df, aes(x=prop_18, group=genre, fill=genre)) +
   geom_density(adjust=1.5, alpha=.4) +
@@ -507,8 +517,11 @@ ggplot(genre_age_melt, aes(fill=proportions, y=value, x=genre)) +
 
 ### Hypothesis Testing
 To see if there are significant differences in viewing statistics across genres for different ages, we run a MANOVA (Multivariate ANOVA) test. We set up our experiment with significance level 0.01 as follows:
-HO -> The viewing statistic for different ages across multiple genres is same
-HA -> The viewing statistic for different ages across multiple genres is not same
+
+Ho -> The viewing statistic for different ages across multiple genres is same
+
+Ha -> The viewing statistic for different ages across multiple genres is not same
+
 The results of the MANOVA test are:
 
 ```{r Q3_hypo_test, warning=F}
@@ -526,17 +539,20 @@ summary(res.man)
 A very low p-value tells us that genre differences are significant across various ages. We check which age ranges have significant differences between various genre movie views as follows:
 
 ```{r Q3_anov_hypo_test, warning=F}
+
 summary.aov(res.man)
-paste0("A low p-value for each age category tells us that all the ages have differing viewing statistics across different genres.")
 
 ```
+
 A low p-value for each age category tells us that all the ages have differing viewing statistics across different genres.
 
 ## Affect of duration of movie on avg_vote
 
 ### Outliers Analysis
+
 To see if the duration of the movie influences the movie rating, we must first remove outliers from the dataset. Here is a distribution of the duration values with and without outliers:
 Plotting the duration of the movie against the mean rating for the movie gives us the following results:
+
 ```{r Q4_EDA}
 
 # movies duration-rating distribution
@@ -572,6 +588,7 @@ ggplot(duration_grouped, aes(fill=mean_vote, y=mean_vote, x=duration)) +
 ```
 
 ### Correlation Analysis
+
 We can run a correlation analysis between the two continuous variables to see if there is a relation between the duration of the movie and its rating. The result of the Pearson’s correlation test is as follows:
 
 
@@ -589,14 +606,17 @@ ggplot(movies,aes(x=duration, y=avg_vote)) +
   scale_fill_fermenter(palette = "Set2") +
     ylab('Rating') +
       geom_point() +
-        geom_smooth(method='lm') 
+        geom_smooth(method='lm') +
+          ggtitle("Correlation plot between Duration and Average Rating")
 
 ```
 We can further analyze the relationship between the two variables by introducing some transformations to the duration variable and see how it affects the correlation coefficient. 
 
 
 ## Effect of movie language on Average Vote
+
 We have solved this SMART question in a very similar way to the first question. We split up the language column into its component languages and then run hypothesis tests on them. Initial data exploration included checking the mean movie ratings across different languages. We have considered only those languages having more than 200 movies for visualization purposes.     
+
 ### Dataset Creation
 
 ```{r Q5_dataset_creation, warning=F}
@@ -629,6 +649,7 @@ language_df <- rbind(df1, df2, df3, df4, df5, df6)
 ```
 
 ### Data Visualization
+
 ```{r Q5_visualization, warning=F, fig.height=5, fig.width=10}
 
 theme_set(theme_bw())
@@ -653,7 +674,9 @@ ggplot(language_grouped, aes(y=mean_vote, x=reorder(language,mean_vote))) +
 ```
 
 ### Hypothesis Testing and P-value visualization
+
 We again run an ANOVA test followed by a post-hoc Tukey-Kramer test to find language pairs that have significantly different average movie ratings. The outputs for the tests are as follows:
+
 ```{r Q5_hypo_test, warning=F}
 
 language_df_filtered <- language_df %>%
@@ -679,8 +702,10 @@ There are 76 languages in our dataset that have more than 30 movies in its sampl
 
 We explored the relationship between the characteristics of the movie viewers and the average vote of movies. From the histogram and the box plot of the mean vote of movies across genders, we note that the average rating by the male audience is slightly lower than in the female audience. We used a t-test that showed a significant difference between the average vote of males and females. The mean movie rating for the male audience is 5.801412, while for the female audience is 6.133158. Running a hypothesis test at 0.05 significance level as follows:
 
-HO -> The mean movie ratings given by different genders is same
-HA -> The mean movie ratings given by different genders is not same
+Ho -> The mean movie ratings given by different genders is same
+
+Ha -> The mean movie ratings given by different genders is not same
+
 ### Average Vote vs. Gender
 
 ```{r Q6_movie_rating_vs_gender, warning=F}
@@ -712,9 +737,12 @@ boxplot(value~variable, data=movie_gender, main="Movie rating vs. genders", xlab
 ```
 
 ### Total Votes vs. Gender
+
 While analyzing the histogram on total movie votes by gender, the total votes in the male audience are much higher than in the female audience. Additionally, in the figure of the boxplot, it is shown that there are outliers in both genders. After applying the t-test, we find a significant difference between the movie votes in males and females.
-HO -> The total movie votes given by different genders is same
-HA -> The total movie votes given by different genders is not same
+
+Ho -> The total movie votes given by different genders is same
+
+Ha -> The total movie votes given by different genders is not same
 
 ```{r movie_vote_vs_gender}
 
@@ -789,7 +817,6 @@ gender_df <- gender_df[-which(gender_df$avg_vote_female %in% outliers_female),]
 ```
 
 
-
 ### Data Visualization
 
 ```{r Q6_visualization, warning=F, fig.width=6, fig.height=4}
@@ -820,36 +847,37 @@ ggplot(gender_df_melt, aes(x=Var1, y=Var2, fill=value)) +
 
 ```
 
+The age correlation matrix shows us that there is a weaker correlation between age 45+ people and the rest of the viewers which could make them a group of interest while building regression models. The gender correlation matrix shows similar results with respect to female viewers.
+
 ### Hypothesis Testing 
+
 Finally, we did a t-test to check for differences in the average vote of three ranges of the audience age. The results show significant differences in the average rating of the movie across different viewer age ranges.
-HO -> The mean movie ratings given by different ages is same
-HA -> The mean movie ratings given by different ages is not same
+
+Ho -> The mean movie ratings given by different ages is same
+
+Ha -> The mean movie ratings given by different ages is not same
+
 ```{r Q6_hypo_test, warning=F}
 
 ttest_age_18_30 <- t.test(age_df$avg_vote_18, age_df$avg_vote_30, conf.level = 0.99)
 ttest_age_18_30
 
-paste0("Difference in average votes is significant between ages 18 and 30.")
-
 ttest_age_30_45 <- t.test(age_df$avg_vote_30, age_df$avg_vote_45, conf.level = 0.99)
 ttest_age_30_45
-
-paste0("Difference in average votes is significant between ages 30 and 45.")
 
 ttest_age_45_18 <- t.test(age_df$avg_vote_45, age_df$avg_vote_18, conf.level = 0.99)
 ttest_age_45_18
 
-paste0("Difference in average votes is significant between ages 18 and 45.")
-
 ttest_gender <- t.test(gender_df$avg_vote_male, gender_df$avg_vote_female, conf.level = 0.99)
 ttest_gender
 
-paste0("Difference in average votes is significant between male and female genders.")
-
 ```
 
+From the first three tests, we see that the difference in average votes is significant between ages 18, 30, and 45. 
 
-# Reference:
+from the last test, we see that the difference in average votes is significant between male and female genders.
+
+# References:
 
 Bonferroni correction. from Wolfram MathWorld. (n.d.). Retrieved November 9, 2021, from https://mathworld.wolfram.com/BonferroniCorrection.html.
 Brownlee, J. (2020, December 20). How to prepare movie review data for sentiment analysis (text classification). Machine Learning Mastery. Retrieved November 9, 2021, from https://machinelearningmastery.com/prepare-movie-review-data-sentiment-analysis/.
