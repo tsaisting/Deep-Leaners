@@ -110,25 +110,145 @@ model_data$allgenders_45age_avg_vote[model_data$allgenders_45age_avg_vote >= med
 
 model_data$age = model_data$allgenders_18age_avg_vote+ model_data$allgenders_30age_avg_vote+model_data$allgenders_45age_avg_vote
 
+
+# voting 
+model_data$votes = model_data$votes/1000
+
+#duration 
+# 90min:0  90-12min:1 120min:2
+#model_data$duration[model_data$duration < 90] = 0
+#model_data$duration[model_data$duration >=90 & model_data$duration <=120 ] = 1
+#model_data$duration[model_data$duration > 120] = 2
+
+# budget
+#model_data$budget 
+
 # general target
 
 model_data$avg_vote[model_data$avg_vote < median(model_data$avg_vote)] = 0
 model_data$avg_vote[model_data$avg_vote >= median(model_data$avg_vote)] = 1
+```
 
+
+
+```{r}
 # factor
 model_data$year <- as.factor(model_data$year)
 model_data$director <- as.factor(model_data$director)
 model_data$avg_vote <- as.factor(model_data$avg_vote)
 model_data$gender <- as.factor(model_data$gender)
 model_data$age <- as.factor(model_data$age)
+#model_data$duration <- as.factor(model_data$duration)
 
-str(model_data)
+#str(model_data)
 model <- subset(model_data[, c(1:13,36:37)])
 str(model)
 
 ```
+
+# Modeling 
+
+# test and train data set
 ```{r}
-model_data$language 
+data_model1 <- model[,c('director','year','duration','votes','budget','worlwide_gross_income','reviews_from_users','gender','avg_vote')]  # select some features (no genre)
+library(caret)
+data(data_model1)
+train <- createDataPartition(data_model1$avg_vote,p=0.7,list=FALSE)
+data_train <- data_model1[train,]
+data_test <- data_model1[-train,]
+```
+
+
+# build Logistic regression model
+```{r}
+lr_model <- glm(avg_vote~ director+year+duration+votes+budget+worlwide_gross_income+reviews_from_users+gender,data = data_train, family = "binomial")
+
+lr_model2 <- glm(avg_vote~ year+duration+budget+gender,data = data_train, family = "binomial") # after feature selection 
+```
+
+
+```{r data}
+xkabledply(lr_model)
+
+xkabledply(lr_model2)
+
+```
+
+# Model Evaluation
+
+#### Confusion matrix 
+```{r confusionMatrix, results='markup'}
+loadPkg("regclass")
+# confusion_matrix(admitLogit)
+xkabledply( confusion_matrix(lr_model), title = "Confusion matrix from Logit Model" )
+
+xkabledply( confusion_matrix(lr_model2), title = "Confusion matrix from Logit Model" )
+unloadPkg("regclass")
+```
+
+# ROC and AUC
+```{r roc_auc}
+loadPkg("pROC") 
+prob=predict(lr_model, type = "response" )
+data_train$prob=prob
+h <- roc(avg_vote~prob, data=data_train)
+auc(h) # area-under-curve prefer 0.8 or higher.
+plot(h)
+
+prob=predict(lr_model2, type = "response" )
+data_train$prob2=prob
+h <- roc(avg_vote~prob2, data=data_train)
+auc(h) # area-under-curve prefer 0.8 or higher.
+plot(h)
+
+# unloadPkg("pROC")
+```
+
+#### McFadden  
+
+McFadden is another evaluation tool we can use on logit regressions. This is part of what is called pseudo-R-squared values for evaluation tests. We can calculate the value directly from its definition if we so choose to.
+
+```{r McFadden}
+loadPkg("pscl") 
+admitLogitpr2 = pR2(lr_model)
+admitLogitpr2
+
+admitLogitpr2_2 = pR2(lr_model2)
+admitLogitpr2_2
+unloadPkg("pscl") 
+```
+
+
+# Feature Selections on Logit Models 
+First try using the package "leaps" which we learned before (for regular linear regressions). 
+```{r bestglm}
+data_model1 <- model[,c('director','year','duration','votes','budget','worlwide_gross_income','reviews_from_users','gender','avg_vote')] 
+loadPkg("bestglm")
+res.bestglm <- bestglm(Xy = data_model1, family = binomial,
+            IC = "AIC",                
+            method = "exhaustive")
+summary(res.bestglm)
+res.bestglm$BestModels
+summary(res.bestglm$BestModels)
+unloadPkg("bestglm") 
+```
+
+
+# Anova test two models 
+```{r data}
+anova(lr_model,lr_model2)
+
+```
+
+
+
+
+# test data predict 
+```{r data}
+pred <- predict(lr_model2, newdata=data_test)
+#confusionMatrix(data=pred,data_test$avg_vote)
+
+
 
 ```
 
