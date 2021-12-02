@@ -44,53 +44,94 @@ library(ezids)
 The dataset is from the Kaggle, divided into three separate CSV files. It contains 22 variables of 85,855 movies spanning from 1894 to 2020 from multiple countries. There are also 297,705 instances of cast information. The "in development" titles are not included in the files and contain missing categories of data like the short plot on the main page, awards, external reviews, parent's guide, synopsis, faqs, news, etc. Additional features such as the production company, title groups, adult titles, instant watch options like Amazon Prime or Netflix could make the analysis much broader and ideal.
 
 ```{r data_join}
-movies <- read.csv('movies.csv', header=TRUE)
-#drop <- c('original_title','date_published','worlwide_gross_income','metascore','reviews_from_critics','production_company','description','writer')
-#movies <- movies[,!names(movies) %in% drop]
+movies <- read.csv('movies.csv', header=TRUE,na.strings='')
+
 movies <- movies[,c('imdb_title_id','title','year','genre','duration','country','language','director','avg_vote','votes','budget','worlwide_gross_income','reviews_from_users')]
+movies <- na.omit(movies)
 
-movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$language == "None") & !(movies$budget == "")& !(movies$worlwide_gross_income == "")& !(movies$reviews_from_users == ""),]
+# movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$language == "None") & !(movies$budget == "")& !(movies$worlwide_gross_income == "")& !(movies$reviews_from_users == ""),]
 
-ratings <- read.csv('ratings.csv', header=TRUE)
-drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
-          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
-          'non_us_voters_rating', 'non_us_voters_votes')
-ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- read.csv('ratings.csv', header=TRUE,na.strings='')
+ratings <- subset(ratings[, c(1,18:25,28:35,38:43)])
 ratings <- na.omit(ratings)
 
 movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
 
 movie_ratings <- movie_ratings[which(movie_ratings$votes > 9999),]
 movie_ratings <- movie_ratings[!(movie_ratings$year == '2020'),]
-movie_ratings
 ```
 
-```{r data}
+```{r data preprocessing}
 
-movie_ratings <- movie_ratings[which(startsWith(movie_ratings$budget, "$") =='TRUE'),]
-movie_ratings$budget <- as.numeric(gsub('[$,]', '', movie_ratings$budget))
-movie_ratings <- movie_ratings[which(startsWith(movie_ratings$worlwide_gross_income, "$") =='TRUE'),]
-movie_ratings$worlwide_gross_income <- as.numeric(gsub('[$,]', '', movie_ratings$worlwide_gross_income))
+# budget, income
+model_data <- movie_ratings
+model_data <- model_data[which(startsWith(model_data$budget, "$") =='TRUE'),]
+model_data$budget <- as.numeric(gsub('[$,]', '', model_data$budget))
+model_data <- model_data[which(startsWith(model_data$worlwide_gross_income, "$") =='TRUE'),]
+model_data$worlwide_gross_income <- as.numeric(gsub('[$,]', '', model_data$worlwide_gross_income))
 
-
-movie_ratings$avg_vote[movie_ratings$avg_vote < median(movie_ratings$avg_vote)] = 0
-movie_ratings$avg_vote[movie_ratings$avg_vote >= median(movie_ratings$avg_vote)] = 1
-
-movie_ratings$year <- as.numeric(movie_ratings$year)
-movie_ratings$year[movie_ratings$year <= 1950] = 0
-movie_ratings$year[movie_ratings$year > 1950 & movie_ratings$year < 2000] = 1
-movie_ratings$year[movie_ratings$year >= 2000] = 2
-
-str(movie_ratings)
-
-#movie_ratings$genre <- as.factor(movie_ratings$genre)
-#movie_ratings$country <- as.factor(movie_ratings$country)
-#movie_ratings$language <- as.factor(movie_ratings$language)
-#movie_ratings$director <- as.factor(movie_ratings$director)
+# year 
+model_data$year <- as.numeric(model_data$year)
+model_data$year[model_data$year <= 1950] = 0
+model_data$year[model_data$year > 1950 & model_data$year < 2000] = 1
+model_data$year[model_data$year >= 2000] = 2
 
 
-#movie_ratings<-as.matrix(movie_ratings)
+# director, 0: below 4 movies; 1: above 4 movies.
+director_num <- model_data %>% count(model_data$director)
+colnames(director_num)<-c('director','directed_num')
+model_data <- merge(model_data, director_num, by="director" )
+model_data$director[model_data$directed_num < 4] = 0
+model_data$director[model_data$directed_num >= 4] = 1
+
+# language
+
+### users characterizes
+
+# genders,0:either; 1:female; 2:male; 3:both.
+model_data$females_allages_avg_vote[model_data$females_allages_avg_vote < median(model_data$females_allages_avg_vote)] = 0
+model_data$females_allages_avg_vote[model_data$females_allages_avg_vote >= median(model_data$females_allages_avg_vote)] = 1
+
+model_data$males_allages_avg_vote[model_data$males_allages_avg_vote < median(model_data$males_allages_avg_vote)] = 0
+model_data$males_allages_avg_vote[model_data$males_allages_avg_vote >= median(model_data$males_allages_avg_vote)] = 2
+
+model_data$gender = model_data$females_allages_avg_vote+ model_data$males_allages_avg_vote
+
+
+# ages, 0: neither; 1:18; 2:30,3:18+30; 4:45; 5: 18+45; 6:30+45; 7:all.
+model_data$allgenders_18age_avg_vote[model_data$allgenders_18age_avg_vote < median(model_data$allgenders_18age_avg_vote)] = 0
+model_data$allgenders_18age_avg_vote[model_data$allgenders_18age_avg_vote >= median(model_data$allgenders_18age_avg_vote)] = 1
+
+model_data$allgenders_30age_avg_vote[model_data$allgenders_30age_avg_vote < median(model_data$allgenders_30age_avg_vote)] = 0
+model_data$allgenders_30age_avg_vote[model_data$allgenders_30age_avg_vote >= median(model_data$allgenders_30age_avg_vote)] = 2
+
+model_data$allgenders_45age_avg_vote[model_data$allgenders_45age_avg_vote < median(model_data$allgenders_45age_avg_vote)] = 0
+model_data$allgenders_45age_avg_vote[model_data$allgenders_45age_avg_vote >= median(model_data$allgenders_45age_avg_vote)] = 4
+
+model_data$age = model_data$allgenders_18age_avg_vote+ model_data$allgenders_30age_avg_vote+model_data$allgenders_45age_avg_vote
+
+# general target
+
+model_data$avg_vote[model_data$avg_vote < median(model_data$avg_vote)] = 0
+model_data$avg_vote[model_data$avg_vote >= median(model_data$avg_vote)] = 1
+
+# factor
+model_data$year <- as.factor(model_data$year)
+model_data$director <- as.factor(model_data$director)
+model_data$avg_vote <- as.factor(model_data$avg_vote)
+model_data$gender <- as.factor(model_data$gender)
+model_data$age <- as.factor(model_data$age)
+
+str(model_data)
+model <- subset(model_data[, c(1:13,36:37)])
+str(model)
+
 ```
+```{r}
+model_data$language 
+
+```
+
 
 
 
