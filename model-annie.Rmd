@@ -84,7 +84,11 @@ model_data <- merge(model_data, director_num, by="director" )
 model_data$director[model_data$directed_num < 4] = 0
 model_data$director[model_data$directed_num >= 4] = 1
 
-# language
+# genre, 0: genres below 3; 1: genres above 3 
+
+model_data$genre_count <- lengths(strsplit(model_data$genre,split = ','))
+model_data$genre_count[model_data$genre_count < 3] = 0
+model_data$genre_count[model_data$genre_count >= 3] = 1
 
 ### users characterizes
 
@@ -117,19 +121,20 @@ model_data$avg_vote[model_data$avg_vote >= median(model_data$avg_vote)] = 1
 
 # factor
 model_data$year <- as.factor(model_data$year)
+model_data$genre_count <- as.factor(model_data$genre_count)
 model_data$director <- as.factor(model_data$director)
 model_data$avg_vote <- as.factor(model_data$avg_vote)
 model_data$gender <- as.factor(model_data$gender)
 model_data$age <- as.factor(model_data$age)
 
 str(model_data)
-model <- subset(model_data[, c(1:13,36:37)])
+model <- subset(model_data[, -c(2,7,8,14:35)])
 str(model)
 
 ```
 ```{r}
-model_data$language 
 
+  
 ```
 
 
