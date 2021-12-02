@@ -1,0 +1,1817 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  ignorenonframetext,
+]{beamer}
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{part title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{part title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usetheme[]{AnnArbor}
+\usecolortheme{dolphin}
+\usefonttheme{structurebold}
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={IMDB Feature Film Analysis},
+  pdfauthor={T2 Deep Learners: Yue Li, Shuting Cai, Mrunalini Devineni, Siddharth Das},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\newif\ifbibliography
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{IMDB Feature Film Analysis}
+\author{T2 Deep Learners: Yue Li, Shuting Cai, Mrunalini Devineni,
+Siddharth Das}
+\date{2021-11-09}
+
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}{Introduction}
+\protect\hypertarget{introduction}{}
+Movies are a great way to pass our leisure time. With the rapid
+development of the Internet, film review aggregators such as IMDb and
+Rotten Tomatoes have gradually become very popular. Hence, film reviews
+are of great importance for most movie audiences and film production
+companies. Generally, movies with a higher rating will obtain more
+attention and do better at the box office. It is not uncommon for movie
+reviewers to be hired by stakeholders, pretending to be ordinary
+netizens, giving high movie ratings, and posting favorable comments on
+the website for profit. In addition, some netizens give extreme movie
+ratings based on their preference for certain directors or actors
+instead of standing in neutrality. Such bogus movie ratings will mislead
+the public and may cause adverse effects. This issue has aroused
+considerable public attention, leading many researchers to start work on
+spurious comment detection. At present, most of the work focuses on
+judging whether a specific user or comment is reliable. In this project,
+the approach of our team is to construct a rating system that analyzes
+the average movie votes since it is the main factor for users to judge
+the quality of the movie. Gathering initial insights on the overall
+distribution of movie ratings might eliminate the influence of bogus
+reviews on the average movie score, leading to an authentic movie rating
+distribution. We also explore the factors and their interactions that
+affect movie ratings. Our end goal is to build a prediction model to
+help clients understand the trends in the film market to help them make
+the right decisions on movie production.
+
+Prior research on IMDB movie reviews includes movie review text
+classification using sentiment analysis on a data set comprising 1,000
+positive and 1,000 negative reviews. (Brownlee, 2020)
+
+The bag-of-words feature extraction technique creates unigrams, bigrams,
+and trigrams as a feature set and represents it as a vector. The Naive
+Bayes algorithm is employed to categorize the movie reviews into
+negative and positive reviews. The word2vec model summarizes movie
+reviews by extracting features from classified movie review sentences,
+and the semantic clustering technique clusters semantically related
+review sentences. Different text features are employed to compute the
+salience score of all review sentences in the cluster. (Khan etc., 2020)
+\end{frame}
+
+\begin{frame}[fragile]{Description of the Data}
+\protect\hypertarget{description-of-the-data}{}
+The dataset is from the Kaggle, divided into three separate CSV files.
+It contains 22 variables of 85,855 movies spanning from 1894 to 2020
+from multiple countries. There are also 297,705 instances of cast
+information. The ``in development'' titles are not included in the files
+and contain missing categories of data like the short plot on the main
+page, awards, external reviews, parent's guide, synopsis, faqs, news,
+etc. Additional features such as the production company, title groups,
+adult titles, instant watch options like Amazon Prime or Netflix could
+make the analysis much broader and ideal.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{movies }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{\textquotesingle{}movies.csv\textquotesingle{}}\NormalTok{, }\AttributeTok{header=}\ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{drop }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}budget\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}usa\_gross\_income\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}worlwide\_gross\_income\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}metascore\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}reviews\_from\_users\textquotesingle{}}\NormalTok{,}
+          \StringTok{\textquotesingle{}reviews\_from\_critics\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}production\_company\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}description\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}writer\textquotesingle{}}\NormalTok{)}
+\NormalTok{movies }\OtherTok{\textless{}{-}}\NormalTok{ movies[,}\SpecialCharTok{!}\FunctionTok{names}\NormalTok{(movies) }\SpecialCharTok{\%in\%}\NormalTok{ drop]}
+\NormalTok{movies }\OtherTok{\textless{}{-}}\NormalTok{ movies[}\SpecialCharTok{!}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{country }\SpecialCharTok{==} \StringTok{""}\NormalTok{) }\SpecialCharTok{\&} \SpecialCharTok{!}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{language }\SpecialCharTok{==} \StringTok{""}\NormalTok{) }\SpecialCharTok{\&} \SpecialCharTok{!}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{director }\SpecialCharTok{==} \StringTok{""}\NormalTok{) }\SpecialCharTok{\&} \SpecialCharTok{!}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{actors }\SpecialCharTok{==} \StringTok{""}\NormalTok{),]}
+
+\NormalTok{ratings }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{\textquotesingle{}ratings.csv\textquotesingle{}}\NormalTok{, }\AttributeTok{header=}\ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{drop }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}allgenders\_0age\_avg\_vote\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}allgenders\_0age\_votes\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}males\_0age\_avg\_vote\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}males\_0age\_votes\textquotesingle{}}\NormalTok{,}
+          \StringTok{\textquotesingle{}females\_0age\_avg\_vote\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}females\_0age\_votes\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}us\_voters\_rating\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}us\_voters\_votes\textquotesingle{}}\NormalTok{, }
+          \StringTok{\textquotesingle{}non\_us\_voters\_rating\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}non\_us\_voters\_votes\textquotesingle{}}\NormalTok{)}
+\NormalTok{ratings }\OtherTok{\textless{}{-}}\NormalTok{ ratings[,}\SpecialCharTok{!}\FunctionTok{names}\NormalTok{(ratings) }\SpecialCharTok{\%in\%}\NormalTok{ drop]}
+\NormalTok{ratings }\OtherTok{\textless{}{-}} \FunctionTok{na.omit}\NormalTok{(ratings)}
+
+\NormalTok{movie\_ratings }\OtherTok{\textless{}{-}} \FunctionTok{merge}\NormalTok{(movies, ratings, }\AttributeTok{by=}\StringTok{"imdb\_title\_id"}\NormalTok{ )}
+\FunctionTok{str}\NormalTok{(movies)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 'data.frame':    84856 obs. of  13 variables:
+##  $ imdb_title_id : chr  "tt0000009" "tt0000574" "tt0002101" "tt0002130" ...
+##  $ title         : chr  "Miss Jerry" "The Story of the Kelly Gang" "Cleopatra" "L'Inferno" ...
+##  $ original_title: chr  "Miss Jerry" "The Story of the Kelly Gang" "Cleopatra" "L'Inferno" ...
+##  $ year          : chr  "1894" "1906" "1912" "1911" ...
+##  $ date_published: chr  "1894-10-09" "1906-12-26" "1912-11-13" "1911-03-06" ...
+##  $ genre         : chr  "Romance" "Biography, Crime, Drama" "Drama, History" "Adventure, Drama, Fantasy" ...
+##  $ duration      : int  45 70 100 68 60 85 120 55 121 54 ...
+##  $ country       : chr  "USA" "Australia" "USA" "Italy" ...
+##  $ language      : chr  "None" "None" "English" "Italian" ...
+##  $ director      : chr  "Alexander Black" "Charles Tait" "Charles L. Gaskill" "Francesco Bertolini, Adolfo Padovan" ...
+##  $ actors        : chr  "Blanche Bayliss, William Courtenay, Chauncey Depew" "Elizabeth Tait, John Tait, Norman Campbell, Bella Cola, Will Coyne, Sam Crewes, Jack Ennis, John Forde, Vera Li"| __truncated__ "Helen Gardner, Pearl Sindelar, Miss Fielding, Miss Robson, Helene Costello, Charles Sindelar, Mr. Howard, James"| __truncated__ "Salvatore Papa, Arturo Pirovano, Giuseppe de Liguoro, Pier Delle Vigne, Augusto Milla, Attilio Motta, Emilise Beretta" ...
+##  $ avg_vote      : num  5.9 6.1 5.2 7 5.7 6.8 6.2 5.5 6.6 7 ...
+##  $ votes         : int  154 589 446 2237 484 753 273 225 331 1944 ...
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Independent Variables EDA}
+\protect\hypertarget{independent-variables-eda}{}
+\begin{block}{Movie Rating Distribution}
+\protect\hypertarget{movie-rating-distribution}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{movie\_genre\_1 }\OtherTok{\textless{}{-}}\NormalTok{ movie\_ratings[,}\FunctionTok{c}\NormalTok{(}\StringTok{"genre"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)]}
+
+\NormalTok{data\_mg }\OtherTok{\textless{}{-}} \FunctionTok{aggregate}\NormalTok{(movie\_genre\_1}\SpecialCharTok{$}\NormalTok{avg\_vote, }\FunctionTok{list}\NormalTok{(movie\_genre\_1}\SpecialCharTok{$}\NormalTok{genre), }\AttributeTok{FUN=}\NormalTok{mean, }\AttributeTok{sort =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{names}\NormalTok{(data\_mg)[}\FunctionTok{names}\NormalTok{(data\_mg) }\SpecialCharTok{==} \StringTok{"Group.1"}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"genre"}
+\CommentTok{\#count\_mg \textless{}{-} movie\_genre\_1\%\textgreater{}\%count(genre)}
+\FunctionTok{names}\NormalTok{(data\_mg)[}\FunctionTok{names}\NormalTok{(data\_mg) }\SpecialCharTok{==} \StringTok{"x"}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"rating"}
+\FunctionTok{names}\NormalTok{(data\_mg)[}\FunctionTok{names}\NormalTok{(data\_mg) }\SpecialCharTok{==}\StringTok{"n"}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"count"}
+\NormalTok{data\_mg}\SpecialCharTok{$}\NormalTok{genre }\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(data\_mg}\SpecialCharTok{$}\NormalTok{genre)}
+
+\CommentTok{\# summary of dataset}
+\FunctionTok{summary}\NormalTok{(data\_mg}\SpecialCharTok{$}\NormalTok{rating)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    1.50    5.47    6.05    5.92    6.50    8.70
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# plot histogram plot}
+\FunctionTok{hist}\NormalTok{(data\_mg}\SpecialCharTok{$}\NormalTok{rating, }\AttributeTok{main =} \StringTok{"Histogram of the movie rating"}\NormalTok{, }\AttributeTok{xlab=}\StringTok{"Movie rating"}\NormalTok{, }\AttributeTok{col=}\StringTok{"\#66C2A5"}\NormalTok{, }\AttributeTok{breaks =} \DecValTok{15}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/movie_rating_\&_qq_plot-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# plot qqplot}
+\FunctionTok{qqnorm}\NormalTok{(data\_mg}\SpecialCharTok{$}\NormalTok{rating, }\AttributeTok{main =} \StringTok{"Q{-}Q plot for movie rating"}\NormalTok{)}
+\FunctionTok{qqline}\NormalTok{(data\_mg}\SpecialCharTok{$}\NormalTok{rating)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/movie_rating_\&_qq_plot-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#remove outliers}
+\NormalTok{outliers }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{boxplot}\NormalTok{(data\_mg}\SpecialCharTok{$}\NormalTok{rating, }\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out)}
+\NormalTok{data\_mg }\OtherTok{\textless{}{-}}\NormalTok{ data\_mg[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(data\_mg}\SpecialCharTok{$}\NormalTok{rating }\SpecialCharTok{\%in\%}\NormalTok{ outliers),]}
+\end{Highlighting}
+\end{Shaded}
+\end{block}
+
+\begin{block}{Movie Votes Distribution}
+\protect\hypertarget{movie-votes-distribution}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{movie\_genre\_v }\OtherTok{\textless{}{-}}\NormalTok{ movie\_ratings[,}\FunctionTok{c}\NormalTok{(}\StringTok{"genre"}\NormalTok{, }\StringTok{"votes"}\NormalTok{)]}
+\NormalTok{data\_v }\OtherTok{\textless{}{-}} \FunctionTok{aggregate}\NormalTok{(movie\_genre\_v}\SpecialCharTok{$}\NormalTok{votes, }\FunctionTok{list}\NormalTok{(movie\_genre\_v}\SpecialCharTok{$}\NormalTok{genre), }\AttributeTok{FUN=}\NormalTok{sum, }\AttributeTok{sort =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{names}\NormalTok{(data\_v)[}\FunctionTok{names}\NormalTok{(data\_v) }\SpecialCharTok{==} \StringTok{"Group.1"}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"genre"}
+\FunctionTok{names}\NormalTok{(data\_v)[}\FunctionTok{names}\NormalTok{(data\_v) }\SpecialCharTok{==} \StringTok{"x"}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"movie\_votes"}
+\FunctionTok{names}\NormalTok{(data\_v)[}\FunctionTok{names}\NormalTok{(data\_v) }\SpecialCharTok{==}\StringTok{"n"}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"count"}
+\NormalTok{data\_v}\SpecialCharTok{$}\NormalTok{genre }\OtherTok{\textless{}{-}} \FunctionTok{as.factor}\NormalTok{(data\_v}\SpecialCharTok{$}\NormalTok{genre)}
+
+\CommentTok{\# summary of dataset}
+\FunctionTok{summary}\NormalTok{(data\_v}\SpecialCharTok{$}\NormalTok{movie\_votes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+##      101      853     4710   679217    98043 44471670
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# plot histogram plot}
+\FunctionTok{hist}\NormalTok{(data\_v}\SpecialCharTok{$}\NormalTok{movie\_votes, }\AttributeTok{main =} \StringTok{"Histogram of the movie votes"}\NormalTok{, }\AttributeTok{xlab=}\StringTok{"Movie votes"}\NormalTok{, }\AttributeTok{col=}\StringTok{"\#FC8D62"}\NormalTok{, }\AttributeTok{breaks =} \DecValTok{15}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/movie votes \& qq plot-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# plot qq plot}
+\FunctionTok{qqnorm}\NormalTok{(data\_v}\SpecialCharTok{$}\NormalTok{movie\_votes, }\AttributeTok{main =} \StringTok{"Q{-}Q plot for movie votes"}\NormalTok{)}
+\FunctionTok{qqline}\NormalTok{(data\_v}\SpecialCharTok{$}\NormalTok{movie\_votes)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/movie votes \& qq plot-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#remove outliers}
+\NormalTok{outliers }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{boxplot}\NormalTok{(data\_v}\SpecialCharTok{$}\NormalTok{movie\_votes, }\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out)}
+\NormalTok{data\_v }\OtherTok{\textless{}{-}}\NormalTok{ data\_v[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(data\_v}\SpecialCharTok{$}\NormalTok{movie\_votes }\SpecialCharTok{\%in\%}\NormalTok{ outliers),]}
+\end{Highlighting}
+\end{Shaded}
+\end{block}
+
+\begin{block}{Movie Genres Distribution}
+\protect\hypertarget{movie-genres-distribution}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# plot ggplot for rating}
+
+\NormalTok{data\_mg }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(data\_mg, rating}\SpecialCharTok{\textgreater{}}\FloatTok{7.5}\NormalTok{)}
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data=}\NormalTok{data\_mg, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\FunctionTok{reorder}\NormalTok{(genre, rating), }\AttributeTok{y=}\NormalTok{rating)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"identity"}\NormalTok{, }\AttributeTok{position=}\StringTok{"dodge"}\NormalTok{,}\AttributeTok{alpha=}\NormalTok{.}\DecValTok{8}\NormalTok{, }\AttributeTok{fill =} \StringTok{"\#66C2A5"}\NormalTok{) }\SpecialCharTok{+} 
+    \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+} 
+      \FunctionTok{xlab}\NormalTok{(}\StringTok{"Movie genre"}\NormalTok{) }\SpecialCharTok{+} 
+        \FunctionTok{ylab}\NormalTok{(}\StringTok{"Movie Rating"}\NormalTok{)}\SpecialCharTok{+} 
+          \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{\textquotesingle{}The rating of various movie genres (rating \textgreater{}= 7.5)\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+} 
+            \FunctionTok{coord\_flip}\NormalTok{() }\SpecialCharTok{+} 
+              \FunctionTok{theme}\NormalTok{(}\AttributeTok{text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size=}\DecValTok{10}\NormalTok{), }\AttributeTok{legend.position=}\StringTok{"right"}\NormalTok{, }\AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size=}\DecValTok{15}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Genre distribution-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# ggplot for movie votes}
+\NormalTok{data\_v }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(data\_v, movie\_votes }\SpecialCharTok{\textgreater{}} \DecValTok{200000}\NormalTok{)}
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data=}\NormalTok{data\_v, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\FunctionTok{reorder}\NormalTok{(genre, movie\_votes), }\AttributeTok{y=}\NormalTok{movie\_votes)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat =} \StringTok{"identity"}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{7}\NormalTok{,}\AttributeTok{fill =} \StringTok{"\#FC8D62"}\NormalTok{) }\SpecialCharTok{+} 
+    \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+} 
+      \FunctionTok{xlab}\NormalTok{(}\StringTok{"Movie genre"}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{ylab}\NormalTok{(}\StringTok{"Movie Votes"}\NormalTok{)}\SpecialCharTok{+} 
+        \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{\textquotesingle{}The sum of movie votes in movie genres (votes \textgreater{}= 200k)\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+} 
+          \FunctionTok{coord\_flip}\NormalTok{()}\SpecialCharTok{+}
+            \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size=}\DecValTok{8}\NormalTok{), }\AttributeTok{legend.position=}\StringTok{"right"}\NormalTok{, }\AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size=}\DecValTok{15}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Genre distribution-2.pdf}
+\end{block}
+
+\begin{block}{Year-Wise Movie Distribution}
+\protect\hypertarget{year-wise-movie-distribution}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# average vote distribution}
+\NormalTok{movies}\OtherTok{\textless{}{-}}\NormalTok{movies[}\SpecialCharTok{!}\NormalTok{movies}\SpecialCharTok{$}\NormalTok{year}\SpecialCharTok{==}\StringTok{\textquotesingle{}TV Movie 2019\textquotesingle{}} \SpecialCharTok{\&} \SpecialCharTok{!}\NormalTok{movies}\SpecialCharTok{$}\NormalTok{year}\SpecialCharTok{==}\StringTok{\textquotesingle{}2020\textquotesingle{}}\NormalTok{,]}
+
+\CommentTok{\# A brief overview of the dataset: the minimum vote is 1.000,while the maximum vote is 9.900.}
+\CommentTok{\# the mean of the vote is 5.902, the median is 6.100.}
+
+
+\CommentTok{\# movies year{-}numbers distribution}
+\NormalTok{years\_numbers }\OtherTok{\textless{}{-}}\NormalTok{ movies[,}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}imdb\_title\_id\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}year\textquotesingle{}}\NormalTok{)]}
+\NormalTok{years\_num }\OtherTok{\textless{}{-}}\NormalTok{ years\_numbers }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{count}\NormalTok{(year,}\AttributeTok{sort =} \ConstantTok{TRUE}\NormalTok{)}
+\FunctionTok{colnames}\NormalTok{(years\_num)}\OtherTok{\textless{}{-}}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}Year\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}Movie\_numbers\textquotesingle{}}\NormalTok{)}
+\NormalTok{years\_num}\SpecialCharTok{$}\NormalTok{Year }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(years\_num}\SpecialCharTok{$}\NormalTok{Year)}
+\NormalTok{df1 }\OtherTok{\textless{}{-}}\FunctionTok{arrange}\NormalTok{(years\_num, }\SpecialCharTok{{-}}\NormalTok{Movie\_numbers)}
+\FunctionTok{head}\NormalTok{(df1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Year Movie_numbers
+## 1 2017          3246
+## 2 2018          3158
+## 3 2016          3076
+## 4 2015          2939
+## 5 2014          2900
+## 6 2013          2763
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{tail}\NormalTok{(df1)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     Year Movie_numbers
+## 106 1917            14
+## 107 1913            12
+## 108 1912             4
+## 109 1911             2
+## 110 1894             1
+## 111 1906             1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(years\_num,}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Year,}\AttributeTok{y=}\NormalTok{Movie\_numbers)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat=}\StringTok{"identity"}\NormalTok{, }\AttributeTok{fill=}\StringTok{\textquotesingle{}\#66C2A5\textquotesingle{}}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{8}\NormalTok{, }\AttributeTok{width=}\DecValTok{1}\NormalTok{) }\SpecialCharTok{+} 
+    \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\NormalTok{(}\StringTok{\textquotesingle{}Count of movies each year\textquotesingle{}}\NormalTok{)) }\SpecialCharTok{+} 
+      \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+} 
+        \FunctionTok{ylab}\NormalTok{(}\StringTok{\textquotesingle{}Count\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+          \FunctionTok{xlab}\NormalTok{(}\StringTok{\textquotesingle{}Year\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+            \FunctionTok{coord\_flip}\NormalTok{() }\SpecialCharTok{+}
+              \FunctionTok{scale\_x\_continuous}\NormalTok{(}\AttributeTok{breaks=}\FunctionTok{seq}\NormalTok{(}\DecValTok{1900}\NormalTok{, }\DecValTok{2020}\NormalTok{, }\DecValTok{10}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/EDA_year_movie_count-1.pdf}
+\end{block}
+
+\begin{block}{Average Votes vs.~Year}
+\protect\hypertarget{average-votes-vs.-year}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# movies year{-}rating distribution}
+\NormalTok{years\_rating }\OtherTok{\textless{}{-}} \FunctionTok{aggregate}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{avg\_vote, }\AttributeTok{by =} \FunctionTok{list}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{year),}\AttributeTok{FUN=}\NormalTok{mean)}
+\FunctionTok{colnames}\NormalTok{(years\_rating) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}Year\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}Rating\textquotesingle{}}\NormalTok{)}
+\NormalTok{years\_rating}\SpecialCharTok{$}\NormalTok{Year }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(years\_rating}\SpecialCharTok{$}\NormalTok{Year)}
+\NormalTok{df2 }\OtherTok{\textless{}{-}}\FunctionTok{arrange}\NormalTok{(years\_rating, }\SpecialCharTok{{-}}\NormalTok{Rating)}
+\FunctionTok{head}\NormalTok{(df2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Year Rating
+## 1 1928   6.86
+## 2 1921   6.76
+## 3 1923   6.75
+## 4 1924   6.69
+## 5 1926   6.68
+## 6 1911   6.60
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{tail}\NormalTok{(df2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     Year Rating
+## 106 2009   5.64
+## 107 2010   5.63
+## 108 2012   5.63
+## 109 2015   5.62
+## 110 2011   5.62
+## 111 2013   5.62
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data=}\NormalTok{years\_rating,}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Year,}\AttributeTok{y=}\NormalTok{Rating)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat=}\StringTok{"identity"}\NormalTok{, }\AttributeTok{fill=}\StringTok{\textquotesingle{}\#FC8D62\textquotesingle{}}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{8}\NormalTok{, }\AttributeTok{width=}\DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+} 
+      \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\NormalTok{(}\StringTok{\textquotesingle{}Average Rating every Year\textquotesingle{}}\NormalTok{)) }\SpecialCharTok{+} 
+        \FunctionTok{ylab}\NormalTok{(}\StringTok{\textquotesingle{}Count\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+          \FunctionTok{xlab}\NormalTok{(}\StringTok{\textquotesingle{}Year\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+            \FunctionTok{coord\_flip}\NormalTok{() }\SpecialCharTok{+}
+              \FunctionTok{scale\_x\_continuous}\NormalTok{(}\AttributeTok{breaks=}\FunctionTok{seq}\NormalTok{(}\DecValTok{1900}\NormalTok{, }\DecValTok{2020}\NormalTok{, }\DecValTok{10}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/EDA_year_avg_votes-1.pdf}
+\end{block}
+
+\begin{block}{Number of Votes vs.~Year}
+\protect\hypertarget{number-of-votes-vs.-year}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# movies vote distribution}
+\NormalTok{years\_vote }\OtherTok{\textless{}{-}} \FunctionTok{aggregate}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{votes, }\AttributeTok{by =} \FunctionTok{list}\NormalTok{(}\AttributeTok{director =}\NormalTok{ movies}\SpecialCharTok{$}\NormalTok{year),}\AttributeTok{FUN=}\NormalTok{sum)}
+\FunctionTok{colnames}\NormalTok{(years\_vote) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}Year\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}Votes\textquotesingle{}}\NormalTok{)}
+\NormalTok{years\_vote}\SpecialCharTok{$}\NormalTok{Year }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(years\_vote}\SpecialCharTok{$}\NormalTok{Year)}
+\NormalTok{df3 }\OtherTok{\textless{}{-}}\FunctionTok{arrange}\NormalTok{(years\_vote, }\SpecialCharTok{{-}}\NormalTok{Votes)}
+\FunctionTok{head}\NormalTok{(df3)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Year    Votes
+## 1 2013 37209029
+## 2 2014 36190145
+## 3 2011 33877671
+## 4 2012 33740537
+## 5 2008 31621851
+## 6 2010 31496239
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{tail}\NormalTok{(df3)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     Year Votes
+## 106 1913  8880
+## 107 1917  7147
+## 108 1911  2399
+## 109 1912  1460
+## 110 1906   589
+## 111 1894   154
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data=}\NormalTok{years\_vote, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Year, }\AttributeTok{y=}\NormalTok{Votes)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat=}\StringTok{"identity"}\NormalTok{, }\AttributeTok{fill=}\StringTok{\textquotesingle{}\#66C2A5\textquotesingle{}}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{8}\NormalTok{, }\AttributeTok{width=}\DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+} 
+      \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\NormalTok{(}\StringTok{\textquotesingle{}Total Votes every Year\textquotesingle{}}\NormalTok{)) }\SpecialCharTok{+} 
+        \FunctionTok{ylab}\NormalTok{(}\StringTok{\textquotesingle{}Votes\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+          \FunctionTok{xlab}\NormalTok{(}\StringTok{\textquotesingle{}Year\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+            \FunctionTok{coord\_flip}\NormalTok{() }\SpecialCharTok{+}
+              \FunctionTok{scale\_x\_continuous}\NormalTok{(}\AttributeTok{breaks=}\FunctionTok{seq}\NormalTok{(}\DecValTok{1900}\NormalTok{, }\DecValTok{2020}\NormalTok{, }\DecValTok{10}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/EDA_year_votes-1.pdf}
+\end{block}
+
+\begin{block}{Duration of Movies vs.~Year}
+\protect\hypertarget{duration-of-movies-vs.-year}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# movies duration{-}year distribution}
+\NormalTok{years\_duration }\OtherTok{\textless{}{-}} \FunctionTok{aggregate}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{duration, }\AttributeTok{by =} \FunctionTok{list}\NormalTok{(}\AttributeTok{director =}\NormalTok{ movies}\SpecialCharTok{$}\NormalTok{year),}\AttributeTok{FUN=}\NormalTok{mean)}
+\FunctionTok{colnames}\NormalTok{(years\_duration) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}Year\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}Duration\textquotesingle{}}\NormalTok{)}
+\NormalTok{years\_duration}\SpecialCharTok{$}\NormalTok{Year }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(years\_duration}\SpecialCharTok{$}\NormalTok{Year)}
+\NormalTok{df4 }\OtherTok{\textless{}{-}}\FunctionTok{arrange}\NormalTok{(years\_duration, }\SpecialCharTok{{-}}\NormalTok{Duration)}
+\FunctionTok{head}\NormalTok{(df4)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   Year Duration
+## 1 2019      105
+## 2 1993      105
+## 3 1992      105
+## 4 2003      104
+## 5 1980      104
+## 6 1994      104
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{tail}\NormalTok{(df4)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     Year Duration
+## 106 1911     74.0
+## 107 1920     74.0
+## 108 1906     70.0
+## 109 1917     67.6
+## 110 1912     65.0
+## 111 1894     45.0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(}\AttributeTok{data=}\NormalTok{years\_duration, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Year, }\AttributeTok{y=}\NormalTok{Duration)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat=}\StringTok{"identity"}\NormalTok{, }\AttributeTok{fill=}\StringTok{\textquotesingle{}\#FC8D62\textquotesingle{}}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{8}\NormalTok{, }\AttributeTok{width=}\DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+} 
+      \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\NormalTok{(}\StringTok{\textquotesingle{}Years v/s Movie Duration\textquotesingle{}}\NormalTok{)) }\SpecialCharTok{+} 
+        \FunctionTok{ylab}\NormalTok{(}\StringTok{\textquotesingle{}Duration\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+          \FunctionTok{xlab}\NormalTok{(}\StringTok{\textquotesingle{}Year\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+            \FunctionTok{coord\_flip}\NormalTok{() }\SpecialCharTok{+}
+              \FunctionTok{scale\_x\_continuous}\NormalTok{(}\AttributeTok{breaks=}\FunctionTok{seq}\NormalTok{(}\DecValTok{1900}\NormalTok{, }\DecValTok{2020}\NormalTok{, }\DecValTok{10}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/EDA_year_duration-1.pdf}
+\end{block}
+\end{frame}
+
+\begin{frame}{Tests Introduction}
+\protect\hypertarget{tests-introduction}{}
+We have used the following tests to arrive at our conclusions for the
+various SMART questions:
+
+\begin{block}{Correlation Test}
+\protect\hypertarget{correlation-test}{}
+Correlation coefficients are indicators of the strength of the linear
+relationship between two different variables: x and y. A linear
+correlation coefficient that is greater than zero indicates a positive
+relationship. A value that is less than zero signifies a negative
+relationship. Finally, a value of zero indicates no relationship between
+the two variables x and y. The possible range of values for the
+correlation coefficient is -1 to 1. A correlation of -1.0 indicates a
+perfect negative correlation, and a correlation of 1.0 indicates a
+perfect positive correlation. There are three major types of
+correlation: Pearson's Product Moment Co-efficient of Correlation
+Spearman's Rank Correlation Coefficient Kendall's Rank Correlation
+Coefficient For the Pearson correlation, both variables should be
+normally distributed (normally distributed variables have a bell-shaped
+curve). Other assumptions include linearity and homoscedasticity.
+Linearity assumes a straight-line relationship between each of the two
+variables and homoscedasticity assumes that data is equally distributed
+about the regression line. The assumptions of the Spearman correlation
+are that data must be at least ordinal and the scores on one variable
+must be monotonically related to the other variable.
+\end{block}
+
+\begin{block}{T -- test}
+\protect\hypertarget{t-test}{}
+A t-test is a type of inferential statistic used to determine if there
+is a significant difference between the means of two groups, which may
+be related in certain features. The t-test is one of many tests used for
+the purpose of hypothesis testing in statistics. Calculating a t-test
+requires three key data values. They include the difference between the
+mean values from each data set (called the mean difference), the
+standard deviation of each group, and the number of data values of each
+group. There are several different types of t-tests that can be
+performed depending on the data and type of analysis required.
+Mathematically, the t-test takes a sample from each of the two sets and
+establishes the problem statement by assuming a null hypothesis that the
+two means are equal. Based on the applicable formulas, certain values
+are calculated and compared against the standard values, and the assumed
+null hypothesis is accepted or rejected accordingly. The pairwise t-test
+consists of calculating multiple t-test between all possible
+combinations of groups. The Bonferroni correction is a
+multiple-comparison correction used when several dependent or
+independent statistical tests are being performed simultaneously since
+while a given significance level (alpha value) may be appropriate for
+each individual comparison, it is not for the set of all comparisons. To
+avoid a lot of spurious positives, the alpha value needs to be lowered
+to account for the number of comparisons being performed.
+\end{block}
+
+\begin{block}{Analysis of Variance (ANOVA)}
+\protect\hypertarget{analysis-of-variance-anova}{}
+Analysis of variance, or ANOVA, is a statistical method that separates
+observed variance data into different components to use for additional
+tests. A one-way ANOVA is used for three or more groups of data, to gain
+information about the relationship between the dependent and independent
+variables. The result of the ANOVA formula, the F statistic (also called
+the F-ratio), allows for the analysis of multiple groups of data to
+determine the variability between samples and within samples. If no true
+variance exists between the groups, the ANOVA's F-ratio should equal
+close to 1. There are two main types of ANOVA: one-way (or
+unidirectional) and two-way. There are also variations of ANOVA. For
+example, MANOVA (multivariate ANOVA) differs from ANOVA as the former
+tests for multiple dependent variables simultaneously while the latter
+assesses only one dependent variable at a time. One-way or two-way
+refers to the number of independent variables in your analysis of
+variance test. A one-way ANOVA evaluates the impact of a sole factor on
+a sole response variable. It determines whether all the samples are the
+same. The one-way ANOVA is used to determine whether there are any
+statistically significant differences between the means of three or more
+independent (unrelated) groups. ANOVA has many applications in finance,
+economics, science, medicine, and social science.
+\end{block}
+
+\begin{block}{Tukey's Honest Significant Difference test}
+\protect\hypertarget{tukeys-honest-significant-difference-test}{}
+The Tukey Test (or Tukey procedure), also called Tukey's Honest
+Significant Difference test, is a post-hoc test based on the studentized
+range distribution. An ANOVA test can tell you if your results are
+significant overall, but it won't tell you exactly where those
+differences lie. After you have run an ANOVA and found significant
+results, then you can run Tukey's HSD to find out which specific groups'
+means (compared with each other) are different. The test compares all
+possible pairs of means. If we have unequal sample sizes, we must
+calculate the estimated standard deviation for each pairwise comparison.
+This is called the Tukey-Kramer Method.
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{SMART Questions}
+\protect\hypertarget{smart-questions}{}
+There are 21 features in this dataset that include movie genre,
+director, released year, actors, duration, movie language, rating, vote
+numbers, vote demographics, etc. This project aims to explore the
+factors that affect movie ratings and the influence of different ages on
+the choice of movie genres. We consider six independent variables: movie
+genre, the choice of director, the mean age of actors, the movie
+language, the voting demographic (gender and age). These variables
+represent different aspects of the influence on movie ratings. Four of
+them (movie genre, director, actor age, and the movie language) focus on
+the characteristics of the movie. Other variables focus on the
+descriptions of voters, like their age and gender.
+
+We conducted exploratory data analysis by selecting quantitative
+variables like movie rating, plotting histograms, and bar graphs. During
+the EDA, one quantitative variable, movie duration, seemed to could be
+taken into account. We resolved to analyze the relationship between
+movie duration and ratings and rejected one question regarding the actor
+age because of increased complexity.
+
+\begin{block}{Difference in Movie Ratings Across Genres}
+\protect\hypertarget{difference-in-movie-ratings-across-genres}{}
+We split up the movie genre column into its sub-genres and assigned the
+same rating to each sub-genre. Outliers in the avg\_vote column were
+removed since we need the votes to follow a normal distribution for our
+upcoming hypothesis tests. Grouping the data to find the mean rating for
+every genre returned the following results:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{genre\_df1 }\OtherTok{\textless{}{-}}\NormalTok{ movie\_ratings[,}\FunctionTok{c}\NormalTok{(}\StringTok{"genre"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)]}
+
+\CommentTok{\# remove outliers}
+\NormalTok{outliers }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{boxplot}\NormalTok{(genre\_df1}\SpecialCharTok{$}\NormalTok{avg\_vote, }\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out)}
+\NormalTok{genre\_df1 }\OtherTok{\textless{}{-}}\NormalTok{ genre\_df1[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(genre\_df1}\SpecialCharTok{$}\NormalTok{avg\_vote }\SpecialCharTok{\%in\%}\NormalTok{ outliers),]}
+
+\NormalTok{genre\_df2 }\OtherTok{\textless{}{-}}\NormalTok{ genre\_df1 }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{separate}\NormalTok{(genre, }\FunctionTok{c}\NormalTok{(}\StringTok{"c1"}\NormalTok{,}\StringTok{\textquotesingle{}c2\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}c3\textquotesingle{}}\NormalTok{),}\AttributeTok{sep =}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}, \textquotesingle{}}\NormalTok{))}
+
+\NormalTok{df1 }\OtherTok{\textless{}{-}}\NormalTok{ genre\_df2[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c1"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+\NormalTok{df2 }\OtherTok{\textless{}{-}}\NormalTok{ genre\_df2[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c2"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+\NormalTok{df3 }\OtherTok{\textless{}{-}}\NormalTok{ genre\_df2[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c3"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+
+\FunctionTok{names}\NormalTok{(df1)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"genre"}
+\FunctionTok{names}\NormalTok{(df2)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"genre"}
+\FunctionTok{names}\NormalTok{(df3)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"genre"}
+
+\NormalTok{genre\_df }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(df1, df2, df3)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{block}{Data Visualization}
+\protect\hypertarget{data-visualization}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{theme\_set}\NormalTok{(}\FunctionTok{theme\_bw}\NormalTok{())}
+
+\NormalTok{genre\_grouped }\OtherTok{\textless{}{-}}\NormalTok{ genre\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(genre) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{filter}\NormalTok{(}\FunctionTok{n}\NormalTok{() }\SpecialCharTok{\textgreater{}=} \DecValTok{30}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{summarize}\NormalTok{(}
+      \AttributeTok{mean\_vote =} \FunctionTok{mean}\NormalTok{(avg\_vote),}
+      \AttributeTok{n=}\FunctionTok{n}\NormalTok{()}
+\NormalTok{    )}
+
+\NormalTok{genre\_grouped }\OtherTok{\textless{}{-}}\NormalTok{ genre\_grouped[}\FunctionTok{order}\NormalTok{(genre\_grouped}\SpecialCharTok{$}\NormalTok{mean\_vote), ]}
+\NormalTok{genre\_grouped}\SpecialCharTok{$}\NormalTok{genre }\OtherTok{\textless{}{-}} \FunctionTok{factor}\NormalTok{(genre\_grouped}\SpecialCharTok{$}\NormalTok{genre, }\AttributeTok{levels =}\NormalTok{ genre\_grouped}\SpecialCharTok{$}\NormalTok{genre)}
+
+\FunctionTok{ggplot}\NormalTok{(genre\_grouped, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{fill=}\NormalTok{mean\_vote, }\AttributeTok{y=}\NormalTok{mean\_vote, }\AttributeTok{x=}\NormalTok{genre)) }\SpecialCharTok{+}
+    \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat=}\StringTok{"identity"}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{8}\NormalTok{, }\AttributeTok{width=}\FloatTok{0.8}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+}
+        \FunctionTok{coord\_flip}\NormalTok{() }\SpecialCharTok{+}
+            \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Ordered Scatter Plot"}\NormalTok{,}
+                \AttributeTok{subtitle=}\StringTok{"Mean avg\_vote across film genres"}\NormalTok{, }
+                \AttributeTok{caption=}\StringTok{"genre: avg\_vote"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q1_visualization-1.pdf}
+\end{block}
+
+\begin{block}{Hypothesis Testing and P-value visualization}
+\protect\hypertarget{hypothesis-testing-and-p-value-visualization}{}
+We can see from the visualization that there is a difference among some
+genres based on the mean ratings they receive. We can run a pairwise
+t-test on the dataset to find out which pairs have a significant
+difference in mean ratings. We set up our experiment with an alpha-value
+of 0.01 as follows:
+
+Ho -\textgreater{} The mean rating for all movie genres is same
+
+Ha -\textgreater{} The mean rating for all movie genres is not same
+
+Due to there being 25 different groups of genres, we have also elected
+to use the Bonferroni correction to get adjusted p-values. The results
+of our test can be best portrayed with the help of a heatmap of p-values
+for difference in mean ratings between the various genres. As we can see
+from the map, most of the values are very close to zero, which means
+that the genre of the movie has a significant effect on the ratings the
+movie is going to receive.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{genre\_df\_filtered }\OtherTok{\textless{}{-}}\NormalTok{ genre\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(genre) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{filter}\NormalTok{(}\FunctionTok{n}\NormalTok{() }\SpecialCharTok{\textgreater{}=} \DecValTok{30}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+      \FunctionTok{ungroup}\NormalTok{()}
+
+\NormalTok{pw\_ttest }\OtherTok{\textless{}{-}} \FunctionTok{pairwise.t.test}\NormalTok{(}
+  \AttributeTok{x=}\NormalTok{genre\_df\_filtered}\SpecialCharTok{$}\NormalTok{avg\_vote, }
+  \AttributeTok{g=}\NormalTok{genre\_df\_filtered}\SpecialCharTok{$}\NormalTok{genre,}
+  \AttributeTok{p.adjust.method=}\StringTok{"bonferroni"}
+\NormalTok{)}
+
+\NormalTok{pw\_ttest\_pvals }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(pw\_ttest}\SpecialCharTok{$}\NormalTok{p.value)}
+\NormalTok{pw\_ttest\_pvals}\SpecialCharTok{$}\NormalTok{genre1 }\OtherTok{\textless{}{-}} \FunctionTok{rownames}\NormalTok{(pw\_ttest\_pvals)}
+\NormalTok{pw\_ttest\_pvals }\OtherTok{\textless{}{-}} \FunctionTok{melt}\NormalTok{(pw\_ttest\_pvals, }\AttributeTok{id.vars=}\StringTok{"genre1"}\NormalTok{, }\AttributeTok{variable.name=}\StringTok{"genre2"}\NormalTok{, }\AttributeTok{value.name=}\StringTok{"p\_value"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+
+\FunctionTok{ggplot}\NormalTok{(pw\_ttest\_pvals, }\FunctionTok{aes}\NormalTok{(genre1, genre2, }\AttributeTok{fill=}\NormalTok{ p\_value)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_tile}\NormalTok{() }\SpecialCharTok{+}
+    \FunctionTok{scale\_fill\_gradient}\NormalTok{(}\AttributeTok{low=}\StringTok{"darkblue"}\NormalTok{, }\AttributeTok{high =} \StringTok{"lightblue"}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.text.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{angle=}\DecValTok{45}\NormalTok{, }\AttributeTok{vjust=}\DecValTok{1}\NormalTok{, }\AttributeTok{hjust=}\DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+        \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Heat Map"}\NormalTok{,}
+            \AttributeTok{subtitle=}\StringTok{"P{-}values for pairwise T{-}tests on movie genres"}\NormalTok{, }
+            \AttributeTok{caption=}\StringTok{"genre2: genre1"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q1_hypo_test-1.pdf}
+\end{block}
+\end{block}
+
+\begin{block}{Choice of Director affect movie ratings}
+\protect\hypertarget{choice-of-director-affect-movie-ratings}{}
+We group up the movie data on the director and find the mean rating that
+each director has received for their movies. We only consider directors
+who have created at least 50 movies for visualization purposes, and we
+get the following results:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{movie\_director }\OtherTok{\textless{}{-}}\NormalTok{ movie\_ratings[,}\FunctionTok{c}\NormalTok{(}\StringTok{"director"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)]}
+
+\CommentTok{\# remove outliers}
+\NormalTok{outliers }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{boxplot}\NormalTok{(movie\_director}\SpecialCharTok{$}\NormalTok{avg\_vote, }\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out)}
+\NormalTok{movie\_director }\OtherTok{\textless{}{-}}\NormalTok{ movie\_director[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(movie\_director}\SpecialCharTok{$}\NormalTok{avg\_vote }\SpecialCharTok{\%in\%}\NormalTok{ outliers),]}
+
+\NormalTok{director\_group }\OtherTok{\textless{}{-}} \FunctionTok{aggregate}\NormalTok{(movie\_director}\SpecialCharTok{$}\NormalTok{avg\_vote, }\AttributeTok{by =} \FunctionTok{list}\NormalTok{(}\AttributeTok{director =}\NormalTok{ movie\_director}\SpecialCharTok{$}\NormalTok{director),}\AttributeTok{FUN=}\NormalTok{mean)}
+\NormalTok{director\_num }\OtherTok{\textless{}{-}}\NormalTok{ movie\_director }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{count}\NormalTok{(director,}\AttributeTok{sort =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{director\_vote }\OtherTok{\textless{}{-}} \FunctionTok{merge}\NormalTok{(director\_group,director\_num,}\AttributeTok{by=}\StringTok{\textquotesingle{}director\textquotesingle{}}\NormalTok{)}
+\NormalTok{director\_vote }\OtherTok{\textless{}{-}}\NormalTok{ director\_vote[}\FunctionTok{order}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{director\_vote}\SpecialCharTok{$}\NormalTok{n),]}
+\FunctionTok{colnames}\NormalTok{(director\_vote) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}director\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}rating\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}movie\_numbers\textquotesingle{}}\NormalTok{) }
+
+\NormalTok{director\_vote\_50 }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(director\_vote,movie\_numbers}\SpecialCharTok{\textgreater{}}\DecValTok{49}\NormalTok{)}
+\NormalTok{director\_vote\_50}\SpecialCharTok{$}\NormalTok{rating }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(director\_vote\_50}\SpecialCharTok{$}\NormalTok{rating)}
+
+\FunctionTok{ggplot}\NormalTok{(director\_vote\_50, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{fill=}\NormalTok{rating, }\AttributeTok{y=}\NormalTok{rating, }\AttributeTok{x=}\FunctionTok{reorder}\NormalTok{(director,rating))) }\SpecialCharTok{+}
+    \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat=}\StringTok{"identity"}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{8}\NormalTok{, }\AttributeTok{width=}\FloatTok{0.8}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+}
+        \FunctionTok{coord\_flip}\NormalTok{() }\SpecialCharTok{+}
+            \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Ordered Bar Chart"}\NormalTok{,}
+                \AttributeTok{subtitle=}\StringTok{"Mean avg\_vote for various Directors"}\NormalTok{,}
+                \AttributeTok{caption=}\StringTok{"director: avg\_vote"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q2-1.pdf}
+
+\begin{block}{Hypothesis Testing and P-value visualization}
+\protect\hypertarget{hypothesis-testing-and-p-value-visualization-1}{}
+At first glance, we can see that there is a considerable difference in
+movie ratings for different directors. To back up our findings, we run
+an ANOVA test on the data with a significance level of 0.01 as follows:
+
+Ho -\textgreater{} The mean movie ratings for all directors is same
+
+Ha -\textgreater{} The mean movie ratings for all directors is not same
+
+The results of the ANOVA test are:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{movie\_director\_filtered }\OtherTok{\textless{}{-}}\NormalTok{ movie\_director }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(director) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{filter}\NormalTok{(}\FunctionTok{n}\NormalTok{() }\SpecialCharTok{\textgreater{}=} \DecValTok{30}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+      \FunctionTok{ungroup}\NormalTok{()}
+
+\NormalTok{anovaRes }\OtherTok{=} \FunctionTok{aov}\NormalTok{(avg\_vote }\SpecialCharTok{\textasciitilde{}}\NormalTok{ director, }\AttributeTok{data=}\NormalTok{movie\_director\_filtered)}
+\NormalTok{anovaRes }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:
+##    aov(formula = avg_vote ~ director, data = movie_director_filtered)
+## 
+## Terms:
+##                 director Residuals
+## Sum of Squares      1260      1726
+## Deg. of Freedom       91      3537
+## 
+## Residual standard error: 0.698
+## Estimated effects may be unbalanced
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(anovaRes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               Df Sum Sq Mean Sq F value Pr(>F)    
+## director      91   1260   13.85    28.4 <2e-16 ***
+## Residuals   3537   1726    0.49                   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+Running a post-hoc Tukey-Kramer test on the ANOVA results with a 99\%
+confidence interval give us the director pairs which significantly
+differ in the mean of the ratings of their movies. A snippet of the
+output is as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tukeyDirectorAoV }\OtherTok{\textless{}{-}} \FunctionTok{TukeyHSD}\NormalTok{(anovaRes)}
+\NormalTok{tukeyVar }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(tukeyDirectorAoV}\SpecialCharTok{$}\NormalTok{director)}
+\NormalTok{tukeyVarSig }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(tukeyVar, p.adj }\SpecialCharTok{\textless{}=} \FloatTok{0.01}\NormalTok{)}
+\FunctionTok{head}\NormalTok{(tukeyVarSig)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                         diff   lwr    upr    p.adj
+## Carlo Vanzina-Alekos Sakellarios      -2.023 -2.69 -1.354 3.77e-09
+## David Dhawan-Alekos Sakellarios       -1.594 -2.30 -0.890 3.77e-09
+## Fred Olen Ray-Alekos Sakellarios      -3.068 -3.77 -2.364 3.77e-09
+## George Sherman-Alekos Sakellarios     -0.834 -1.54 -0.125 1.85e-03
+## Gerald Thomas-Alekos Sakellarios      -0.997 -1.70 -0.298 4.91e-06
+## Giannis Dalianidis-Alekos Sakellarios -0.971 -1.61 -0.330 4.81e-07
+\end{verbatim}
+
+Our final director dataset has 92 directors who had more than or equal
+to 30 films to their name. This is done to ensure that groups with
+lesser number of samples do not distort the test findings. As a result
+of this, we could get a maximum of 4186 pairs of directors with
+significant differences in their movie ratings. The Tukey test return a
+table of 840 pairs of directors with significant movie rating
+differences. Hence, we can reasonably say that the choice of director is
+important in selecting a movie.
+\end{block}
+\end{block}
+
+\begin{block}{Movie genre viewing statistic differences with age}
+\protect\hypertarget{movie-genre-viewing-statistic-differences-with-age}{}
+To answer this SMART question, we firstly take the proportion of viewer
+votes for different age ranges. We have 4 age ranges in our dataset: 0
+-- 18 age range 18 -- 30 age range 30 -- 45 age range 45+ age range
+
+The 0-18 age range has many missing values, so we do not consider those
+votes. For the rest of the values, we name the columns as ages\_18,
+ages\_30, and ages\_45 respectively. We also name their relative
+proportions as prop\_18, prop\_30, and prop\_45 respectively. We see the
+following distributions of densities across different movie genres for
+the various age groups:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{genre\_age\_df1 }\OtherTok{\textless{}{-}}\NormalTok{ movie\_ratings[,}\FunctionTok{c}\NormalTok{(}\StringTok{"genre"}\NormalTok{, }\StringTok{"allgenders\_18age\_votes"}\NormalTok{, }\StringTok{"allgenders\_30age\_votes"}\NormalTok{, }\StringTok{"allgenders\_45age\_votes"}\NormalTok{)]}
+
+\NormalTok{genre\_age\_df2 }\OtherTok{\textless{}{-}}\NormalTok{ genre\_age\_df1 }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{mutate}\NormalTok{(}
+      \AttributeTok{prop\_18 =}\NormalTok{ allgenders\_18age\_votes }\SpecialCharTok{/}\NormalTok{ (allgenders\_18age\_votes }\SpecialCharTok{+}\NormalTok{ allgenders\_30age\_votes }\SpecialCharTok{+}\NormalTok{ allgenders\_45age\_votes),}
+      \AttributeTok{prop\_30 =}\NormalTok{ allgenders\_30age\_votes }\SpecialCharTok{/}\NormalTok{ (allgenders\_18age\_votes }\SpecialCharTok{+}\NormalTok{ allgenders\_30age\_votes }\SpecialCharTok{+}\NormalTok{ allgenders\_45age\_votes),}
+      \AttributeTok{prop\_45 =}\NormalTok{ allgenders\_45age\_votes }\SpecialCharTok{/}\NormalTok{ (allgenders\_18age\_votes }\SpecialCharTok{+}\NormalTok{ allgenders\_30age\_votes }\SpecialCharTok{+}\NormalTok{ allgenders\_45age\_votes)}
+\NormalTok{    )}
+
+\FunctionTok{names}\NormalTok{(genre\_age\_df2)[}\DecValTok{2}\SpecialCharTok{:}\DecValTok{4}\NormalTok{] }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"votes\_18"}\NormalTok{, }\StringTok{"votes\_30"}\NormalTok{, }\StringTok{"votes\_45"}\NormalTok{)}
+
+\NormalTok{genre\_age\_df3 }\OtherTok{\textless{}{-}}\NormalTok{ genre\_age\_df2 }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{separate}\NormalTok{(genre, }\FunctionTok{c}\NormalTok{(}\StringTok{"c1"}\NormalTok{,}\StringTok{\textquotesingle{}c2\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}c3\textquotesingle{}}\NormalTok{),}\AttributeTok{sep =}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}, \textquotesingle{}}\NormalTok{))}
+
+\NormalTok{df1 }\OtherTok{\textless{}{-}}\NormalTok{ genre\_age\_df3[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c1"}\NormalTok{, }\StringTok{"votes\_18"}\NormalTok{, }\StringTok{"votes\_30"}\NormalTok{, }\StringTok{"votes\_45"}\NormalTok{, }\StringTok{"prop\_18"}\NormalTok{, }\StringTok{"prop\_30"}\NormalTok{, }\StringTok{"prop\_45"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+\NormalTok{df2 }\OtherTok{\textless{}{-}}\NormalTok{ genre\_age\_df3[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c2"}\NormalTok{, }\StringTok{"votes\_18"}\NormalTok{, }\StringTok{"votes\_30"}\NormalTok{, }\StringTok{"votes\_45"}\NormalTok{, }\StringTok{"prop\_18"}\NormalTok{, }\StringTok{"prop\_30"}\NormalTok{, }\StringTok{"prop\_45"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+\NormalTok{df3 }\OtherTok{\textless{}{-}}\NormalTok{ genre\_age\_df3[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c3"}\NormalTok{, }\StringTok{"votes\_18"}\NormalTok{, }\StringTok{"votes\_30"}\NormalTok{, }\StringTok{"votes\_45"}\NormalTok{, }\StringTok{"prop\_18"}\NormalTok{, }\StringTok{"prop\_30"}\NormalTok{, }\StringTok{"prop\_45"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+
+\FunctionTok{names}\NormalTok{(df1)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"genre"}
+\FunctionTok{names}\NormalTok{(df2)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"genre"}
+\FunctionTok{names}\NormalTok{(df3)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"genre"}
+
+\NormalTok{genre\_age\_df }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(df1, df2, df3)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{block}{Data Visualization}
+\protect\hypertarget{data-visualization-1}{}
+Visualizing the data in a bar chart format to better understand the
+proportions for various genres gives us the following graph:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(genre\_age\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{prop\_18, }\AttributeTok{group=}\NormalTok{genre, }\AttributeTok{fill=}\NormalTok{genre)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_density}\NormalTok{(}\AttributeTok{adjust=}\FloatTok{1.5}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{4}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Distribution of Age 18 viewing proportions for various genres"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q3_visualization-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(genre\_age\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{prop\_30, }\AttributeTok{group=}\NormalTok{genre, }\AttributeTok{fill=}\NormalTok{genre)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_density}\NormalTok{(}\AttributeTok{adjust=}\FloatTok{1.5}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{4}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Distribution of Age 30 viewing proportions for various genres"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q3_visualization-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(genre\_age\_df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{prop\_45, }\AttributeTok{group=}\NormalTok{genre, }\AttributeTok{fill=}\NormalTok{genre)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_density}\NormalTok{(}\AttributeTok{adjust=}\FloatTok{1.5}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{4}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Distribution of Age 45 viewing proportions for various genres"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q3_visualization-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{genre\_age\_grouped }\OtherTok{\textless{}{-}}\NormalTok{ genre\_age\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(genre) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{summarize}\NormalTok{(}
+      \AttributeTok{ages\_18 =} \FunctionTok{mean}\NormalTok{(prop\_18),}
+      \AttributeTok{ages\_30 =} \FunctionTok{mean}\NormalTok{(prop\_30),}
+      \AttributeTok{ages\_45 =} \FunctionTok{mean}\NormalTok{(prop\_45)}
+\NormalTok{    )}
+
+\NormalTok{genre\_age\_melt }\OtherTok{\textless{}{-}} \FunctionTok{melt}\NormalTok{(genre\_age\_grouped, }\AttributeTok{id.vars =} \StringTok{"genre"}\NormalTok{, }\AttributeTok{variable.name =} \StringTok{"proportions"}\NormalTok{)}
+
+\FunctionTok{ggplot}\NormalTok{(genre\_age\_melt, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{fill=}\NormalTok{proportions, }\AttributeTok{y=}\NormalTok{value, }\AttributeTok{x=}\NormalTok{genre)) }\SpecialCharTok{+} 
+    \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{position=}\StringTok{"stack"}\NormalTok{, }\AttributeTok{stat=}\StringTok{"identity"}\NormalTok{) }\SpecialCharTok{+}
+        \FunctionTok{scale\_fill\_brewer}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+}
+            \FunctionTok{coord\_flip}\NormalTok{() }\SpecialCharTok{+} 
+                \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Mean of proportions of viewer ages across film genres"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q3_visualization-4.pdf}
+\end{block}
+
+\begin{block}{Hypothesis Testing}
+\protect\hypertarget{hypothesis-testing}{}
+To see if there are significant differences in viewing statistics across
+genres for different ages, we run a MANOVA (Multivariate ANOVA) test. We
+set up our experiment with significance level 0.01 as follows:
+
+Ho -\textgreater{} The viewing statistic for different ages across
+multiple genres is same
+
+Ha -\textgreater{} The viewing statistic for different ages across
+multiple genres is not same
+
+The results of the MANOVA test are:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{genre\_age\_df\_filtered }\OtherTok{\textless{}{-}}\NormalTok{ genre\_age\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(genre) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{filter}\NormalTok{(}\FunctionTok{n}\NormalTok{() }\SpecialCharTok{\textgreater{}=} \DecValTok{30}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+      \FunctionTok{ungroup}\NormalTok{()}
+
+\NormalTok{res.man }\OtherTok{\textless{}{-}} \FunctionTok{manova}\NormalTok{(}\FunctionTok{cbind}\NormalTok{(votes\_18, votes\_30, votes\_45) }\SpecialCharTok{\textasciitilde{}}\NormalTok{ genre, }\AttributeTok{data =}\NormalTok{ genre\_age\_df\_filtered)}
+\FunctionTok{summary}\NormalTok{(res.man)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               Df Pillai approx F num Df den Df Pr(>F)    
+## genre         20 0.0235     61.3     60 466449 <2e-16 ***
+## Residuals 155483                                         
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+A very low p-value tells us that genre differences are significant
+across various ages. We check which age ranges have significant
+differences between various genre movie views as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary.aov}\NormalTok{(res.man)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  Response votes_18 :
+##                 Df   Sum Sq  Mean Sq F value Pr(>F)    
+## genre           20 3.44e+11 1.72e+10    87.9 <2e-16 ***
+## Residuals   155483 3.04e+13 1.96e+08                   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+##  Response votes_30 :
+##                 Df   Sum Sq  Mean Sq F value Pr(>F)    
+## genre           20 1.35e+12 6.76e+10    99.8 <2e-16 ***
+## Residuals   155483 1.05e+14 6.78e+08                   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+##  Response votes_45 :
+##                 Df   Sum Sq  Mean Sq F value Pr(>F)    
+## genre           20 8.22e+10 4.11e+09     104 <2e-16 ***
+## Residuals   155483 6.16e+12 3.96e+07                   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+A low p-value for each age category tells us that all the ages have
+differing viewing statistics across different genres.
+\end{block}
+\end{block}
+
+\begin{block}{Affect of duration of movie on avg\_vote}
+\protect\hypertarget{affect-of-duration-of-movie-on-avg_vote}{}
+\begin{block}{Outliers Analysis}
+\protect\hypertarget{outliers-analysis}{}
+To see if the duration of the movie influences the movie rating, we must
+first remove outliers from the dataset. Here is a distribution of the
+duration values with and without outliers: Plotting the duration of the
+movie against the mean rating for the movie gives us the following
+results:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# movies duration{-}rating distribution}
+\NormalTok{duration }\OtherTok{\textless{}{-}}\FunctionTok{outlierKD2}\NormalTok{(movies, movies}\SpecialCharTok{$}\NormalTok{duration)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Outliers identified: 5671 
+## Propotion (%) of outliers: 7.2 
+## Mean of the outliers: 149 
+## Mean without removing outliers: 100 
+## Mean if we remove outliers: 96.8 
+## Nothing changed
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{outliers }\OtherTok{\textless{}{-}} \FunctionTok{boxplot}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{duration,}\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out}
+\NormalTok{movies1 }\OtherTok{\textless{}{-}}\NormalTok{ movies[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{duration }\SpecialCharTok{\%in\%}\NormalTok{ outliers),]}
+\FunctionTok{summary}\NormalTok{(movies1}\SpecialCharTok{$}\NormalTok{duration)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    58.0    88.0    95.0    96.8   105.0   138.0
+\end{verbatim}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q4_EDA-1.pdf}
+
+Plotting the duration of the movie against the mean rating for the movie
+gives us the following results:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{duration\_rating }\OtherTok{\textless{}{-}}\NormalTok{ movies1[,}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}duration\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}avg\_vote\textquotesingle{}}\NormalTok{)]}
+\FunctionTok{colnames}\NormalTok{(duration\_rating)}\OtherTok{\textless{}{-}}\FunctionTok{c}\NormalTok{(}\StringTok{"duration"}\NormalTok{,}\StringTok{"rating"}\NormalTok{)}
+\NormalTok{df5 }\OtherTok{\textless{}{-}}\FunctionTok{arrange}\NormalTok{(duration\_rating, }\SpecialCharTok{{-}}\NormalTok{rating)}
+
+
+\NormalTok{duration\_grouped }\OtherTok{\textless{}{-}}\NormalTok{ duration\_rating }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(duration) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{summarize}\NormalTok{(}
+      \AttributeTok{mean\_vote =} \FunctionTok{mean}\NormalTok{(rating),}
+      \AttributeTok{n=}\FunctionTok{n}\NormalTok{()}
+\NormalTok{    )}
+
+\FunctionTok{ggplot}\NormalTok{(duration\_grouped, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{fill=}\NormalTok{mean\_vote, }\AttributeTok{y=}\NormalTok{mean\_vote, }\AttributeTok{x=}\NormalTok{duration)) }\SpecialCharTok{+}
+    \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{stat=}\StringTok{"identity"}\NormalTok{, }\AttributeTok{alpha=}\NormalTok{.}\DecValTok{8}\NormalTok{, }\AttributeTok{width=}\FloatTok{0.8}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+}
+        \FunctionTok{coord\_flip}\NormalTok{() }\SpecialCharTok{+}
+            \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Ordered Bar Chart"}\NormalTok{,}
+                \AttributeTok{subtitle=}\StringTok{"Mean rating for different film durations"}\NormalTok{,}
+                \AttributeTok{caption=}\StringTok{"duration: Rating"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q4_EDA_plot-1.pdf}
+\end{block}
+
+\begin{block}{Correlation Analysis}
+\protect\hypertarget{correlation-analysis}{}
+We can run a correlation analysis between the two continuous variables
+to see if there is a relation between the duration of the movie and its
+rating. The result of the Pearson's correlation test is as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#correlation }
+\FunctionTok{cor.test}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{avg\_vote, }\FunctionTok{as.numeric}\NormalTok{(movies}\SpecialCharTok{$}\NormalTok{duration))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's product-moment correlation
+## 
+## data:  movies$avg_vote and as.numeric(movies$duration)
+## t = 73, df = 84111, p-value <2e-16
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  0.238 0.250
+## sample estimates:
+##   cor 
+## 0.244
+\end{verbatim}
+
+We see that there is a weak correlation between the two variables.
+Plotting a linear regression line through the data points gives us the
+following output:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(movies,}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{duration, }\AttributeTok{y=}\NormalTok{avg\_vote)) }\SpecialCharTok{+} 
+  \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{ylab}\NormalTok{(}\StringTok{\textquotesingle{}Rating\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+        \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method=}\StringTok{\textquotesingle{}lm\textquotesingle{}}\NormalTok{) }\SpecialCharTok{+}
+          \FunctionTok{ggtitle}\NormalTok{(}\StringTok{"Correlation plot between Duration and Average Rating"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q4_corr_plot-1.pdf}
+We can further analyze the relationship between the two variables by
+introducing some transformations to the duration variable and see how it
+affects the correlation coefficient.
+\end{block}
+\end{block}
+
+\begin{block}{Effect of movie language on Average Vote}
+\protect\hypertarget{effect-of-movie-language-on-average-vote}{}
+We have solved this SMART question in a very similar way to the first
+question. We split up the language column into its component languages
+and then run hypothesis tests on them. Initial data exploration included
+checking the mean movie ratings across different languages. We have
+considered only those languages having more than 200 movies for
+visualization purposes.
+
+\begin{block}{Dataset Creation}
+\protect\hypertarget{dataset-creation}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{language\_df1 }\OtherTok{\textless{}{-}}\NormalTok{ movie\_ratings[,}\FunctionTok{c}\NormalTok{(}\StringTok{"language"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)]}
+
+\CommentTok{\# remove outliers}
+\NormalTok{outliers }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{boxplot}\NormalTok{(language\_df1}\SpecialCharTok{$}\NormalTok{avg\_vote, }\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out)}
+\NormalTok{language\_df1 }\OtherTok{\textless{}{-}}\NormalTok{ language\_df1[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(language\_df1}\SpecialCharTok{$}\NormalTok{avg\_vote }\SpecialCharTok{\%in\%}\NormalTok{ outliers),]}
+
+\NormalTok{language\_df2 }\OtherTok{\textless{}{-}}\NormalTok{ language\_df1 }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{separate}\NormalTok{(language, }\FunctionTok{c}\NormalTok{(}\StringTok{"c1"}\NormalTok{,}\StringTok{\textquotesingle{}c2\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}c3\textquotesingle{}}\NormalTok{,}\StringTok{"c4"}\NormalTok{,}\StringTok{\textquotesingle{}c5\textquotesingle{}}\NormalTok{,}\StringTok{\textquotesingle{}c6\textquotesingle{}}\NormalTok{),}\AttributeTok{sep =}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}, \textquotesingle{}}\NormalTok{))}
+
+\NormalTok{df1 }\OtherTok{\textless{}{-}}\NormalTok{ language\_df2[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c1"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+\NormalTok{df2 }\OtherTok{\textless{}{-}}\NormalTok{ language\_df2[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c2"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+\NormalTok{df3 }\OtherTok{\textless{}{-}}\NormalTok{ language\_df2[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c3"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+\NormalTok{df4 }\OtherTok{\textless{}{-}}\NormalTok{ language\_df2[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c4"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+\NormalTok{df5 }\OtherTok{\textless{}{-}}\NormalTok{ language\_df2[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c5"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+\NormalTok{df6 }\OtherTok{\textless{}{-}}\NormalTok{ language\_df2[,}\FunctionTok{c}\NormalTok{(}\StringTok{"c6"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)] }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{drop\_na}\NormalTok{()}
+
+\FunctionTok{names}\NormalTok{(df1)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"language"}
+\FunctionTok{names}\NormalTok{(df2)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"language"}
+\FunctionTok{names}\NormalTok{(df3)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"language"}
+\FunctionTok{names}\NormalTok{(df4)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"language"}
+\FunctionTok{names}\NormalTok{(df5)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"language"}
+\FunctionTok{names}\NormalTok{(df6)[}\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"language"}
+
+\NormalTok{language\_df }\OtherTok{\textless{}{-}} \FunctionTok{rbind}\NormalTok{(df1, df2, df3, df4, df5, df6)}
+\end{Highlighting}
+\end{Shaded}
+\end{block}
+
+\begin{block}{Data Visualization}
+\protect\hypertarget{data-visualization-2}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{theme\_set}\NormalTok{(}\FunctionTok{theme\_bw}\NormalTok{())}
+
+\NormalTok{language\_grouped }\OtherTok{\textless{}{-}}\NormalTok{ language\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(language) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{filter}\NormalTok{(}\FunctionTok{n}\NormalTok{() }\SpecialCharTok{\textgreater{}=} \DecValTok{200}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+      \FunctionTok{summarize}\NormalTok{(}
+        \AttributeTok{mean\_vote =} \FunctionTok{mean}\NormalTok{(avg\_vote),}
+        \AttributeTok{n=}\FunctionTok{n}\NormalTok{()}
+\NormalTok{      )}
+
+\FunctionTok{ggplot}\NormalTok{(language\_grouped, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{y=}\NormalTok{mean\_vote, }\AttributeTok{x=}\FunctionTok{reorder}\NormalTok{(language,mean\_vote))) }\SpecialCharTok{+}
+    \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{width=}\NormalTok{.}\DecValTok{8}\NormalTok{, }\AttributeTok{stat=}\StringTok{"identity"}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Set2"}\NormalTok{) }\SpecialCharTok{+}
+          \FunctionTok{xlab}\NormalTok{(}\StringTok{"language"}\NormalTok{) }\SpecialCharTok{+}
+          \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.text.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{angle=}\DecValTok{45}\NormalTok{, }\AttributeTok{vjust=}\DecValTok{1}\NormalTok{, }\AttributeTok{hjust=}\DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+            \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Ordered Bar Chart"}\NormalTok{,}
+                \AttributeTok{subtitle=}\StringTok{"Mean vote across film languages (\textgreater{}= 200 votes)"}\NormalTok{, }
+                \AttributeTok{caption=}\StringTok{"language: mean\_vote"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q5_visualization-1.pdf}
+\end{block}
+
+\begin{block}{Hypothesis Testing and P-value visualization}
+\protect\hypertarget{hypothesis-testing-and-p-value-visualization-2}{}
+We again run an ANOVA test followed by a post-hoc Tukey-Kramer test to
+find language pairs that have significantly different average movie
+ratings. The outputs for the tests are as follows:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{language\_df\_filtered }\OtherTok{\textless{}{-}}\NormalTok{ language\_df }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(language) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{filter}\NormalTok{(}\FunctionTok{n}\NormalTok{() }\SpecialCharTok{\textgreater{}=} \DecValTok{30}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+      \FunctionTok{ungroup}\NormalTok{()}
+
+\NormalTok{anovaRes }\OtherTok{=} \FunctionTok{aov}\NormalTok{(avg\_vote }\SpecialCharTok{\textasciitilde{}}\NormalTok{ language, }\AttributeTok{data=}\NormalTok{language\_df\_filtered)}
+\NormalTok{anovaRes }
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Call:
+##    aov(formula = avg_vote ~ language, data = language_df_filtered)
+## 
+## Terms:
+##                 language Residuals
+## Sum of Squares      8880     98909
+## Deg. of Freedom       75     93853
+## 
+## Residual standard error: 1.03
+## Estimated effects may be unbalanced
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{summary}\NormalTok{(anovaRes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                Df Sum Sq Mean Sq F value Pr(>F)    
+## language       75   8880   118.4     112 <2e-16 ***
+## Residuals   93853  98909     1.1                   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{names}\NormalTok{(anovaRes)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] "coefficients"  "residuals"     "effects"       "rank"         
+##  [5] "fitted.values" "assign"        "qr"            "df.residual"  
+##  [9] "contrasts"     "xlevels"       "call"          "terms"        
+## [13] "model"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tukeyLanguageAoV }\OtherTok{\textless{}{-}} \FunctionTok{TukeyHSD}\NormalTok{(anovaRes)}
+\NormalTok{tukeyVar }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(tukeyLanguageAoV}\SpecialCharTok{$}\NormalTok{language)}
+\NormalTok{tukeyVarSig }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(tukeyVar, p.adj }\SpecialCharTok{\textless{}=} \FloatTok{0.01}\NormalTok{)}
+\FunctionTok{head}\NormalTok{(tukeyVarSig)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                         diff     lwr    upr    p.adj
+## English-Aboriginal    -0.885 -1.6442 -0.126 2.60e-03
+## Azerbaijani-Afrikaans  1.207  0.4680  1.946 2.39e-08
+## Bengali-Afrikaans      0.738  0.2570  1.220 3.95e-07
+## Bulgarian-Afrikaans    0.596  0.0685  1.123 5.21e-03
+## English-Afrikaans     -0.560 -0.9817 -0.139 7.34e-05
+## Georgian-Afrikaans     0.783  0.2077  1.358 3.42e-05
+\end{verbatim}
+
+There are 76 languages in our dataset that have more than 30 movies in
+its sample. The total number of pairs possible for these languages is
+2850. The Tukey test returned a table of 840 pairs with significant
+differences in their average movie ratings. Hence, we can say that the
+movie language has a considerable effect on the movie votes.
+\end{block}
+\end{block}
+
+\begin{block}{Voter demographics affecting average vote and votes}
+\protect\hypertarget{voter-demographics-affecting-average-vote-and-votes}{}
+We explored the relationship between the characteristics of the movie
+viewers and the average vote of movies. From the histogram and the box
+plot of the mean vote of movies across genders, we note that the average
+rating by the male audience is slightly lower than in the female
+audience. We used a t-test that showed a significant difference between
+the average vote of males and females. The mean movie rating for the
+male audience is 5.801412, while for the female audience is 6.133158.
+Running a hypothesis test at 0.05 significance level as follows:
+
+Ho -\textgreater{} The mean movie ratings given by different genders is
+same
+
+Ha -\textgreater{} The mean movie ratings given by different genders is
+not same
+
+\begin{block}{Average Vote vs.~Gender}
+\protect\hypertarget{average-vote-vs.-gender}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# rating}
+\NormalTok{mean\_all }\OtherTok{\textless{}{-}} \FunctionTok{rowMeans}\NormalTok{(}\FunctionTok{subset}\NormalTok{(movie\_ratings[, }\FunctionTok{c}\NormalTok{(}\DecValTok{28}\NormalTok{, }\DecValTok{30}\NormalTok{, }\DecValTok{32}\NormalTok{)]))}
+\NormalTok{mean\_male }\OtherTok{\textless{}{-}} \FunctionTok{rowMeans}\NormalTok{(}\FunctionTok{subset}\NormalTok{(movie\_ratings[, }\FunctionTok{c}\NormalTok{(}\DecValTok{36}\NormalTok{, }\DecValTok{38}\NormalTok{, }\DecValTok{40}\NormalTok{)]))}
+\NormalTok{mean\_female }\OtherTok{\textless{}{-}} \FunctionTok{rowMeans}\NormalTok{(}\FunctionTok{subset}\NormalTok{(movie\_ratings[, }\FunctionTok{c}\NormalTok{(}\DecValTok{44}\NormalTok{, }\DecValTok{46}\NormalTok{, }\DecValTok{48}\NormalTok{)]))}
+
+\NormalTok{movie\_gender }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(movie\_ratings[,}\FunctionTok{c}\NormalTok{(}\StringTok{"genre"}\NormalTok{)], mean\_all, mean\_male, mean\_female)}
+\NormalTok{movie\_gender }\OtherTok{\textless{}{-}} \FunctionTok{aggregate}\NormalTok{(}\FunctionTok{list}\NormalTok{(movie\_gender}\SpecialCharTok{$}\NormalTok{mean\_all, movie\_gender}\SpecialCharTok{$}\NormalTok{mean\_male, movie\_gender}\SpecialCharTok{$}\NormalTok{mean\_female), }\AttributeTok{by =} \FunctionTok{list}\NormalTok{(movie\_gender}\SpecialCharTok{$}\StringTok{\textasciigrave{}}\AttributeTok{movie\_ratings...c..genre...}\StringTok{\textasciigrave{}}\NormalTok{), mean)}
+\FunctionTok{colnames}\NormalTok{(movie\_gender) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"genre"}\NormalTok{,}\StringTok{"all gender"}\NormalTok{,}\StringTok{"male"}\NormalTok{, }\StringTok{"female"}\NormalTok{)}
+
+\CommentTok{\# t{-}test for movie rating}
+\FunctionTok{t.test}\NormalTok{(movie\_gender}\SpecialCharTok{$}\NormalTok{male, movie\_gender}\SpecialCharTok{$}\NormalTok{female)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Welch Two Sample t-test
+## 
+## data:  movie_gender$male and movie_gender$female
+## t = -9, df = 2380, p-value <2e-16
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -0.407 -0.257
+## sample estimates:
+## mean of x mean of y 
+##      5.80      6.13
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# barplot for movie ratings for both genders}
+\FunctionTok{colnames}\NormalTok{(movie\_gender) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Genre"}\NormalTok{,}\StringTok{"All gender"}\NormalTok{,}\StringTok{"Male"}\NormalTok{, }\StringTok{"Female"}\NormalTok{)}
+\FunctionTok{barplot}\NormalTok{(}\FunctionTok{colMeans}\NormalTok{(movie\_gender[,}\DecValTok{3}\SpecialCharTok{:}\DecValTok{4}\NormalTok{]), }\AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"\#FC8D62"}\NormalTok{, }\StringTok{"\#8DA0CB"}\NormalTok{), }\AttributeTok{main=}\StringTok{"The average of movie rating in female and male"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q6_movie_rating_vs_gender-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# melt data frame into long}
+\FunctionTok{colnames}\NormalTok{(movie\_gender) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"genre"}\NormalTok{,}\StringTok{"all gender"}\NormalTok{,}\StringTok{"male"}\NormalTok{, }\StringTok{"female"}\NormalTok{)}
+\NormalTok{movie\_gender }\OtherTok{\textless{}{-}} \FunctionTok{melt}\NormalTok{(movie\_gender)}
+
+\CommentTok{\# boxplot: movie ratings vs. genders}
+\FunctionTok{boxplot}\NormalTok{(value}\SpecialCharTok{\textasciitilde{}}\NormalTok{variable, }\AttributeTok{data=}\NormalTok{movie\_gender, }\AttributeTok{main=}\StringTok{"Movie rating vs. genders"}\NormalTok{, }\AttributeTok{xlab=}\StringTok{"Gender"}\NormalTok{, }\AttributeTok{ylab=}\StringTok{"Movie rating"}\NormalTok{, }\AttributeTok{col=}\FunctionTok{c}\NormalTok{(}\StringTok{"\#66C2A5"}\NormalTok{, }\StringTok{"\#FC8D62"}\NormalTok{, }\StringTok{"\#8DA0CB"}\NormalTok{)) }
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q6_movie_rating_vs_gender-2.pdf}
+\end{block}
+
+\begin{block}{Total Votes vs.~Gender}
+\protect\hypertarget{total-votes-vs.-gender}{}
+While analyzing the histogram on total movie votes by gender, the total
+votes in the male audience are much higher than in the female audience.
+Additionally, in the figure of the boxplot, it is shown that there are
+outliers in both genders. After applying the t-test, we find a
+significant difference between the movie votes in males and females.
+
+Ho -\textgreater{} The total movie votes given by different genders is
+same
+
+Ha -\textgreater{} The total movie votes given by different genders is
+not same
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# vote dataset with genders}
+\NormalTok{vote\_all }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(movie\_ratings[, }\FunctionTok{c}\NormalTok{(}\DecValTok{35}\NormalTok{,}\DecValTok{43}\NormalTok{)])}
+\NormalTok{vote }\OtherTok{=} \FunctionTok{data.frame}\NormalTok{(movie\_ratings}\SpecialCharTok{$}\NormalTok{genre, vote\_all}\SpecialCharTok{$}\NormalTok{males\_allages\_votes, vote\_all}\SpecialCharTok{$}\NormalTok{females\_allages\_votes)}
+
+\NormalTok{vote }\OtherTok{\textless{}{-}} \FunctionTok{aggregate}\NormalTok{(}\FunctionTok{list}\NormalTok{(vote}\SpecialCharTok{$}\NormalTok{vote\_all.males\_allages\_votes, vote}\SpecialCharTok{$}\NormalTok{vote\_all.females\_allages\_votes), }\AttributeTok{by =} \FunctionTok{list}\NormalTok{(vote}\SpecialCharTok{$}\NormalTok{movie\_ratings.genre), sum)}
+\FunctionTok{colnames}\NormalTok{(vote) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Genre"}\NormalTok{,}\StringTok{"Male"}\NormalTok{, }\StringTok{"Female"}\NormalTok{)}
+
+
+\CommentTok{\# t{-}test for movie votes}
+\FunctionTok{t.test}\NormalTok{(vote}\SpecialCharTok{$}\NormalTok{Male, vote}\SpecialCharTok{$}\NormalTok{Female)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Welch Two Sample t-test
+## 
+## data:  vote$Male and vote$Female
+## t = 6, df = 1338, p-value = 2e-09
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  225994 441069
+## sample estimates:
+## mean of x mean of y 
+##    431335     97803
+\end{verbatim}
+
+Difference in mean number of voters is significant between male and
+female genders.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# plot histogram plot for male}
+\FunctionTok{hist}\NormalTok{(vote}\SpecialCharTok{$}\NormalTok{Male, }\AttributeTok{main =} \StringTok{"Histogram of the movie votes for male"}\NormalTok{, }\AttributeTok{xlab=}\StringTok{"Movie rating"}\NormalTok{, }\AttributeTok{col=}\StringTok{"\#FC8D62"}\NormalTok{, }\AttributeTok{breaks =} \DecValTok{15}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/movie_vote_vs_gender_plot-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# plot qqplot for male}
+\FunctionTok{qqnorm}\NormalTok{(vote}\SpecialCharTok{$}\NormalTok{Male, }\AttributeTok{main =} \StringTok{"Q{-}Q plot for movie votes for males"}\NormalTok{)}
+\FunctionTok{qqline}\NormalTok{(vote}\SpecialCharTok{$}\NormalTok{Male)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/movie_vote_vs_gender_plot-2.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# plot histogram plot for female}
+\FunctionTok{hist}\NormalTok{(vote}\SpecialCharTok{$}\NormalTok{Female, }\AttributeTok{main =} \StringTok{"Histogram of the movie votes for female"}\NormalTok{, }\AttributeTok{xlab=}\StringTok{"Movie rating"}\NormalTok{, }\AttributeTok{col=}\StringTok{"\#8DA0CB"}\NormalTok{, }\AttributeTok{breaks =} \DecValTok{15}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/movie_vote_vs_gender_plot-3.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# plot qqplot for female}
+\FunctionTok{qqnorm}\NormalTok{(vote}\SpecialCharTok{$}\NormalTok{Female, }\AttributeTok{main =} \StringTok{"Q{-}Q plot for movie votes for females"}\NormalTok{)}
+\FunctionTok{qqline}\NormalTok{(vote}\SpecialCharTok{$}\NormalTok{Female)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/movie_vote_vs_gender_plot-4.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# bar plot: movie votes vs. genders}
+\FunctionTok{barplot}\NormalTok{(}\FunctionTok{colSums}\NormalTok{(vote[,}\DecValTok{2}\SpecialCharTok{:}\DecValTok{3}\NormalTok{]), }\AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"\#FC8D62"}\NormalTok{, }\StringTok{"\#8DA0CB"}\NormalTok{), }\AttributeTok{main=}\StringTok{"The total votes for females and males"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/movie_vote_vs_gender_plot-5.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# melt data frame into long}
+\FunctionTok{colnames}\NormalTok{(vote) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"genre"}\NormalTok{,}\StringTok{"male"}\NormalTok{, }\StringTok{"female"}\NormalTok{)}
+\NormalTok{vote }\OtherTok{\textless{}{-}} \FunctionTok{melt}\NormalTok{(vote)}
+
+\CommentTok{\# boxplot: genders vs. movie votes}
+\FunctionTok{boxplot}\NormalTok{(value}\SpecialCharTok{\textasciitilde{}}\NormalTok{variable, }\AttributeTok{data=}\NormalTok{vote, }\AttributeTok{main=}\StringTok{"Movie votes vs. genders"}\NormalTok{, }\AttributeTok{xlab=}\StringTok{"Gender"}\NormalTok{,}\AttributeTok{ylab=}\StringTok{"Movie rating"}\NormalTok{,}\AttributeTok{col=}\FunctionTok{c}\NormalTok{(}\StringTok{"\#FC8D62"}\NormalTok{, }\StringTok{"\#8DA0CB"}\NormalTok{), }\AttributeTok{border=}\FunctionTok{c}\NormalTok{(}\StringTok{"\#FC8D62"}\NormalTok{, }\StringTok{"\#8DA0CB"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/movie_vote_vs_gender_plot-6.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{age\_df }\OtherTok{\textless{}{-}}\NormalTok{ movie\_ratings[,}\FunctionTok{c}\NormalTok{(}\StringTok{"allgenders\_18age\_avg\_vote"}\NormalTok{, }\StringTok{"allgenders\_30age\_avg\_vote"}\NormalTok{, }\StringTok{"allgenders\_45age\_avg\_vote"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)]}
+\FunctionTok{names}\NormalTok{(age\_df)[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{3}\NormalTok{] }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"avg\_vote\_18"}\NormalTok{, }\StringTok{"avg\_vote\_30"}\NormalTok{, }\StringTok{"avg\_vote\_45"}\NormalTok{)}
+
+\CommentTok{\# remove outliers}
+\NormalTok{outliers\_18 }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{boxplot}\NormalTok{(age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_18, }\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out)}
+\NormalTok{age\_df }\OtherTok{\textless{}{-}}\NormalTok{ age\_df[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_18 }\SpecialCharTok{\%in\%}\NormalTok{ outliers\_18),]}
+
+\NormalTok{outliers\_30 }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{boxplot}\NormalTok{(age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_30, }\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out)}
+\NormalTok{age\_df }\OtherTok{\textless{}{-}}\NormalTok{ age\_df[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_30 }\SpecialCharTok{\%in\%}\NormalTok{ outliers\_30),]}
+
+\NormalTok{outliers\_45 }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{boxplot}\NormalTok{(age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_45, }\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out)}
+\NormalTok{age\_df }\OtherTok{\textless{}{-}}\NormalTok{ age\_df[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_45 }\SpecialCharTok{\%in\%}\NormalTok{ outliers\_45),]}
+
+\NormalTok{gender\_df }\OtherTok{\textless{}{-}}\NormalTok{ movie\_ratings[,}\FunctionTok{c}\NormalTok{(}\StringTok{"males\_allages\_avg\_vote"}\NormalTok{, }\StringTok{"females\_allages\_avg\_vote"}\NormalTok{, }\StringTok{"avg\_vote"}\NormalTok{)]}
+\FunctionTok{names}\NormalTok{(gender\_df)[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{2}\NormalTok{] }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"avg\_vote\_male"}\NormalTok{, }\StringTok{"avg\_vote\_female"}\NormalTok{)}
+
+\CommentTok{\# remove outliers}
+\NormalTok{outliers\_male }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{boxplot}\NormalTok{(gender\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_male, }\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out)}
+\NormalTok{gender\_df }\OtherTok{\textless{}{-}}\NormalTok{ gender\_df[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(gender\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_male }\SpecialCharTok{\%in\%}\NormalTok{ outliers\_male),]}
+
+\NormalTok{outliers\_female }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(}\FunctionTok{boxplot}\NormalTok{(gender\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_female, }\AttributeTok{plot=}\ConstantTok{FALSE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{out)}
+\NormalTok{gender\_df }\OtherTok{\textless{}{-}}\NormalTok{ gender\_df[}\SpecialCharTok{{-}}\FunctionTok{which}\NormalTok{(gender\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_female }\SpecialCharTok{\%in\%}\NormalTok{ outliers\_female),]}
+\end{Highlighting}
+\end{Shaded}
+\end{block}
+
+\begin{block}{Data Visualization}
+\protect\hypertarget{data-visualization-3}{}
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{age\_df\_cor }\OtherTok{\textless{}{-}} \FunctionTok{cor}\NormalTok{(age\_df)}
+\NormalTok{age\_df\_melt }\OtherTok{\textless{}{-}} \FunctionTok{melt}\NormalTok{(age\_df\_cor)}
+
+\FunctionTok{ggplot}\NormalTok{(age\_df\_melt, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Var1, }\AttributeTok{y=}\NormalTok{Var2, }\AttributeTok{fill=}\NormalTok{value)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_tile}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{label =}\NormalTok{ value)) }\SpecialCharTok{+}
+    \FunctionTok{geom\_text}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{label =} \FunctionTok{round}\NormalTok{(value,}\DecValTok{2}\NormalTok{))) }\SpecialCharTok{+}
+      \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.title.x=}\FunctionTok{element\_blank}\NormalTok{(), }\AttributeTok{axis.title.y=}\FunctionTok{element\_blank}\NormalTok{()) }\SpecialCharTok{+}
+        \FunctionTok{scale\_fill\_gradient}\NormalTok{(}\AttributeTok{low=}\StringTok{"darkblue"}\NormalTok{, }\AttributeTok{high =} \StringTok{"lightblue"}\NormalTok{) }\SpecialCharTok{+}
+          \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Heat Map"}\NormalTok{,}
+              \AttributeTok{subtitle=}\StringTok{"Age Correlation Matrix"}\NormalTok{,}
+              \AttributeTok{caption=}\StringTok{"age: avg\_vote"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q6_visualization-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{gender\_df\_cor }\OtherTok{\textless{}{-}} \FunctionTok{cor}\NormalTok{(gender\_df)}
+\NormalTok{gender\_df\_melt }\OtherTok{\textless{}{-}} \FunctionTok{melt}\NormalTok{(gender\_df\_cor)}
+
+\FunctionTok{ggplot}\NormalTok{(gender\_df\_melt, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{Var1, }\AttributeTok{y=}\NormalTok{Var2, }\AttributeTok{fill=}\NormalTok{value)) }\SpecialCharTok{+} 
+  \FunctionTok{geom\_tile}\NormalTok{() }\SpecialCharTok{+}
+    \FunctionTok{geom\_text}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{label =} \FunctionTok{round}\NormalTok{(value,}\DecValTok{2}\NormalTok{))) }\SpecialCharTok{+}
+      \FunctionTok{theme}\NormalTok{(}\AttributeTok{axis.title.x=}\FunctionTok{element\_blank}\NormalTok{(), }\AttributeTok{axis.title.y=}\FunctionTok{element\_blank}\NormalTok{()) }\SpecialCharTok{+}
+        \FunctionTok{scale\_fill\_fermenter}\NormalTok{(}\AttributeTok{palette =} \StringTok{"Blues"}\NormalTok{) }\SpecialCharTok{+}
+          \FunctionTok{labs}\NormalTok{(}\AttributeTok{title=}\StringTok{"Heat Map"}\NormalTok{,}
+              \AttributeTok{subtitle=}\StringTok{"Gender Correlation Matrix"}\NormalTok{,}
+              \AttributeTok{caption=}\StringTok{"gender: avg\_vote"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Midterm_final_word_files/figure-beamer/Q6_visualization-2.pdf}
+
+The age correlation matrix shows us that there is a weaker correlation
+between age 45+ people and the rest of the viewers which could make them
+a group of interest while building regression models. The gender
+correlation matrix shows similar results with respect to female viewers.
+\end{block}
+
+\begin{block}{Hypothesis Testing}
+\protect\hypertarget{hypothesis-testing-1}{}
+Finally, we did a t-test to check for differences in the average vote of
+three ranges of the audience age. The results show significant
+differences in the average rating of the movie across different viewer
+age ranges.
+
+Ho -\textgreater{} The mean movie ratings given by different ages is
+same
+
+Ha -\textgreater{} The mean movie ratings given by different ages is not
+same
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ttest\_age\_18\_30 }\OtherTok{\textless{}{-}} \FunctionTok{t.test}\NormalTok{(age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_18, age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_30, }\AttributeTok{conf.level =} \FloatTok{0.99}\NormalTok{)}
+\NormalTok{ttest\_age\_18\_30}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Welch Two Sample t-test
+## 
+## data:  age_df$avg_vote_18 and age_df$avg_vote_30
+## t = 24, df = 1e+05, p-value <2e-16
+## alternative hypothesis: true difference in means is not equal to 0
+## 99 percent confidence interval:
+##  0.125 0.156
+## sample estimates:
+## mean of x mean of y 
+##      6.19      6.05
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ttest\_age\_30\_45 }\OtherTok{\textless{}{-}} \FunctionTok{t.test}\NormalTok{(age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_30, age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_45, }\AttributeTok{conf.level =} \FloatTok{0.99}\NormalTok{)}
+\NormalTok{ttest\_age\_30\_45}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Welch Two Sample t-test
+## 
+## data:  age_df$avg_vote_30 and age_df$avg_vote_45
+## t = 27, df = 1e+05, p-value <2e-16
+## alternative hypothesis: true difference in means is not equal to 0
+## 99 percent confidence interval:
+##  0.136 0.164
+## sample estimates:
+## mean of x mean of y 
+##      6.05      5.90
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ttest\_age\_45\_18 }\OtherTok{\textless{}{-}} \FunctionTok{t.test}\NormalTok{(age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_45, age\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_18, }\AttributeTok{conf.level =} \FloatTok{0.99}\NormalTok{)}
+\NormalTok{ttest\_age\_45\_18}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Welch Two Sample t-test
+## 
+## data:  age_df$avg_vote_45 and age_df$avg_vote_18
+## t = -50, df = 1e+05, p-value <2e-16
+## alternative hypothesis: true difference in means is not equal to 0
+## 99 percent confidence interval:
+##  -0.305 -0.276
+## sample estimates:
+## mean of x mean of y 
+##      5.90      6.19
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ttest\_gender }\OtherTok{\textless{}{-}} \FunctionTok{t.test}\NormalTok{(gender\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_male, gender\_df}\SpecialCharTok{$}\NormalTok{avg\_vote\_female, }\AttributeTok{conf.level =} \FloatTok{0.99}\NormalTok{)}
+\NormalTok{ttest\_gender}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Welch Two Sample t-test
+## 
+## data:  gender_df$avg_vote_male and gender_df$avg_vote_female
+## t = -39, df = 1e+05, p-value <2e-16
+## alternative hypothesis: true difference in means is not equal to 0
+## 99 percent confidence interval:
+##  -0.239 -0.210
+## sample estimates:
+## mean of x mean of y 
+##      6.01      6.23
+\end{verbatim}
+
+From the first three tests, we see that the difference in average votes
+is significant between ages 18, 30, and 45.
+
+from the last test, we see that the difference in average votes is
+significant between male and female genders.
+\end{block}
+\end{block}
+\end{frame}
+
+\begin{frame}{Conclusion}
+\protect\hypertarget{conclusion}{}
+Based on the massive movie information, our aim was to understand what
+are the important factors that make a movie more successful than others.
+So we analysed what kind of movies are more successful , in other words
+get higher IMDB scores. We also showed the results of this analysis in
+an intuitive way by visualizing the outcome using ggplot2 in R. Our
+analysis states that all the factors that we considered in our smart
+questions i.e, Genre, director, movie duration, movie language and voter
+demographics have some amount of effect on the IMDB vote or score on a
+movie.
+\end{frame}
+
+\begin{frame}{References}
+\protect\hypertarget{references}{}
+Bonferroni correction. from Wolfram MathWorld. (n.d.). Retrieved
+November 9, 2021, from
+\url{https://mathworld.wolfram.com/BonferroniCorrection.html}.
+
+Brownlee, J. (2020, December 20). How to prepare movie review data for
+sentiment analysis (text classification). Machine Learning Mastery.
+Retrieved November 9, 2021, from
+\url{https://machinelearningmastery.com/prepare-movie-review-data-sentiment-analysis/}.
+
+Correlation (Pearson, Kendall, Spearman). Statistics Solutions. (2021,
+August 10). Retrieved November 9, 2021, from
+\url{https://www.statisticssolutions.com/free-resources/directory-of-statistical-analyses/correlation-pearson-kendall-spearman/}.
+
+Hayes, A. (2021, October 25). T-test definition. Investopedia. Retrieved
+November 9, 2021, from
+\url{https://www.investopedia.com/terms/t/t-test.asp}.
+
+Kenton, W. (2021, October 6). How analysis of variance (ANOVA) works.
+Investopedia. Retrieved November 9, 2021, from
+\url{https://www.investopedia.com/terms/a/anova.asp}.
+
+Khan, A., Gul, M. A., Uddin, M. I., Ali Shah, S. A., Ahmad, S., Al
+Firdausi, M. D., \& Zaindin, M. (2020, August 1). Summarizing online
+movie reviews: A machine learning approach to big data analytics.
+Scientific Programming. Retrieved November 9, 2021, from
+\url{https://www.hindawi.com/journals/sp/2020/5812715/}.
+
+Nickolas, S. (2021, October 22). What do correlation coefficients
+positive, negative, and zero mean? Investopedia. Retrieved November 9,
+2021, from
+\url{https://www.investopedia.com/ask/answers/032515/what-does-it-mean-if-correlation-coefficient-positive-negative-or-zero.asp}.
+
+Unofficialmerve. (2019, October 21). IMDB exploratory data analysis.
+Kaggle. Retrieved November 9, 2021, from
+\url{https://www.kaggle.com/unofficialmerve/imdb-exploratory-data-analysis/notebook}.
+\end{frame}
+
+\end{document}
