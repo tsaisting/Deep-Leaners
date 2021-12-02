@@ -1,0 +1,945 @@
+---
+title: "IMDB Feature Film Analysis"
+author: "T2 Deep Learners: Yue Li, Shuting Cai, Mrunalini Devineni, Siddharth Das"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: united
+    highlight: tango
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+# Introduction
+
+Movies are a great way to pass our leisure time. With the rapid development of the Internet, film review aggregators such as IMDb and Rotten Tomatoes have gradually become very popular. Hence, film reviews are of great importance for most movie audiences and film production companies. Generally, movies with a higher rating will obtain more attention and do better at the box office. It is not uncommon for movie reviewers to be hired by stakeholders, pretending to be ordinary netizens, giving high movie ratings, and posting favorable comments on the website for profit. In addition, some netizens give extreme movie ratings based on their preference for certain directors or actors instead of standing in neutrality. Such bogus movie ratings will mislead the public and may cause adverse effects. This issue has aroused considerable public attention, leading many researchers to start work on spurious comment detection. At present, most of the work focuses on judging whether a specific user or comment is reliable. In this project, the approach of our team is to construct a rating system that analyzes the average movie votes since it is the main factor for users to judge the quality of the movie. Gathering initial insights on the overall distribution of movie ratings might eliminate the influence of bogus reviews on the average movie score, leading to an authentic movie rating distribution. We also explore the factors and their interactions that affect movie ratings. Our end goal is to build a prediction model to help clients understand the trends in the film market to help them make the right decisions on movie production.
+
+
+Prior research on IMDB movie reviews includes movie review text classification using sentiment analysis on a data set comprising 1,000 positive and 1,000 negative reviews. (Brownlee, 2020)
+
+The bag-of-words feature extraction technique creates unigrams, bigrams, and trigrams as a feature set and represents it as a vector. The Naive Bayes algorithm is employed to categorize the movie reviews into negative and positive reviews. The word2vec model summarizes movie reviews by extracting features from classified movie review sentences, and the semantic clustering technique clusters semantically related review sentences. Different text features are employed to compute the salience score of all review sentences in the cluster. (Khan etc., 2020)
+
+
+```{r init, include=FALSE}
+knitr::opts_chunk$set(warning = F, message = F)
+options(scientific=T, digits = 3) 
+
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(ggthemes)
+library(ezids)
+
+```
+
+# Description of the Data 
+
+The dataset is from the Kaggle, divided into three separate CSV files. It contains 22 variables of 85,855 movies spanning from 1894 to 2020 from multiple countries. There are also 297,705 instances of cast information. The "in development" titles are not included in the files and contain missing categories of data like the short plot on the main page, awards, external reviews, parent's guide, synopsis, faqs, news, etc. Additional features such as the production company, title groups, adult titles, instant watch options like Amazon Prime or Netflix could make the analysis much broader and ideal.
+
+```{r data_join}
+movies <- read.csv('movies.csv', header=TRUE)
+#drop <- c('original_title','date_published','worlwide_gross_income','metascore','reviews_from_critics','production_company','description','writer')
+#movies <- movies[,!names(movies) %in% drop]
+movies <- movies[,c('imdb_title_id','title','year','genre','duration','country','language','director','avg_vote','votes','budget','worlwide_gross_income','reviews_from_users')]
+
+movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$language == "None") & !(movies$budget == "")& !(movies$worlwide_gross_income == "")& !(movies$reviews_from_users == ""),]
+
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+
+movie_ratings <- movie_ratings[which(movie_ratings$votes > 9999),]
+movie_ratings <- movie_ratings[!(movie_ratings$year == '2020'),]
+movie_ratings
+```
+
+```{r data}
+
+movie_ratings <- movie_ratings[which(startsWith(movie_ratings$budget, "$") =='TRUE'),]
+movie_ratings$budget <- as.numeric(gsub('[$,]', '', movie_ratings$budget))
+movie_ratings <- movie_ratings[which(startsWith(movie_ratings$worlwide_gross_income, "$") =='TRUE'),]
+movie_ratings$worlwide_gross_income <- as.numeric(gsub('[$,]', '', movie_ratings$worlwide_gross_income))
+
+
+movie_ratings$avg_vote[movie_ratings$avg_vote < median(movie_ratings$avg_vote)] = 0
+movie_ratings$avg_vote[movie_ratings$avg_vote >= median(movie_ratings$avg_vote)] = 1
+
+movie_ratings$year <- as.numeric(movie_ratings$year)
+movie_ratings$year[movie_ratings$year <= 1950] = 0
+movie_ratings$year[movie_ratings$year > 1950 & movie_ratings$year < 2000] = 1
+movie_ratings$year[movie_ratings$year >= 2000] = 2
+
+str(movie_ratings)
+
+#movie_ratings$genre <- as.factor(movie_ratings$genre)
+#movie_ratings$country <- as.factor(movie_ratings$country)
+#movie_ratings$language <- as.factor(movie_ratings$language)
+#movie_ratings$director <- as.factor(movie_ratings$director)
+
+
+#movie_ratings<-as.matrix(movie_ratings)
+```
+
+
+
+# Independent Variables EDA
+
+## Movie Rating Distribution
+
+```{r movie_rating_&_qq_plot}
+movie_genre_1 <- movie_ratings[,c("genre", "avg_vote")]
+
+data_mg <- aggregate(movie_genre_1$avg_vote, list(movie_genre_1$genre), FUN=mean, sort = FALSE)
+names(data_mg)[names(data_mg) == "Group.1"] <- "genre"
+#count_mg <- movie_genre_1%>%count(genre)
+names(data_mg)[names(data_mg) == "x"] <- "rating"
+names(data_mg)[names(data_mg) =="n"] <- "count"
+data_mg$genre <- as.factor(data_mg$genre)
+
+# summary of dataset
+summary(data_mg$rating)
+
+# plot histogram plot
+hist(data_mg$rating, main = "Histogram of the movie rating", xlab="Movie rating", col="#66C2A5", breaks = 15)
+
+# plot qqplot
+qqnorm(data_mg$rating, main = "Q-Q plot for movie rating")
+qqline(data_mg$rating)
+
+
+#remove outliers
+outliers <- unique(boxplot(data_mg$rating, plot=FALSE)$out)
+data_mg <- data_mg[-which(data_mg$rating %in% outliers),]
+
+
+```
+A brief overview of the dataset for movie rating: the minimum is 1.5, and the maximum is 8.7 out of 10; the mean of the movie rating is 5.916. From the histogram, we can see that the movie rating is left-skewed. Looking at the Q-Q plot, there is more data to the left of the Gaussian distribution. 
+
+## Movie Votes Distribution 
+
+```{r movie votes & qq plot}
+movie_genre_v <- movie_ratings[,c("genre", "votes")]
+data_v <- aggregate(movie_genre_v$votes, list(movie_genre_v$genre), FUN=sum, sort = FALSE)
+names(data_v)[names(data_v) == "Group.1"] <- "genre"
+names(data_v)[names(data_v) == "x"] <- "movie_votes"
+names(data_v)[names(data_v) =="n"] <- "count"
+data_v$genre <- as.factor(data_v$genre)
+
+# summary of dataset
+summary(data_v$movie_votes)
+
+# plot histogram plot
+hist(data_v$movie_votes, main = "Histogram of the movie votes", xlab="Movie votes", col="#FC8D62", breaks = 15)
+
+# plot qq plot
+qqnorm(data_v$movie_votes, main = "Q-Q plot for movie votes")
+qqline(data_v$movie_votes)
+
+#remove outliers
+outliers <- unique(boxplot(data_v$movie_votes, plot=FALSE)$out)
+data_v <- data_v[-which(data_v$movie_votes %in% outliers),]
+
+```
+
+## Movie Genres Distribution 
+
+```{r Genre distribution}
+# plot ggplot for rating
+
+data_mg <- subset(data_mg, rating>7.5)
+ggplot(data=data_mg, aes(x=reorder(genre, rating), y=rating)) + 
+  geom_bar(stat = "identity", position="dodge",alpha=.8, fill = "#66C2A5") + 
+    scale_fill_fermenter(palette = "Set2") + 
+      xlab("Movie genre") + 
+        ylab("Movie Rating")+ 
+          labs(title='The rating of various movie genres (rating >= 7.5)') + 
+            coord_flip() + 
+              theme(text = element_text(size=10), legend.position="right", plot.title = element_text(size=15))
+
+# ggplot for movie votes
+data_v <- subset(data_v, movie_votes > 200000)
+ggplot(data=data_v, aes(x=reorder(genre, movie_votes), y=movie_votes)) + 
+  geom_bar(stat = "identity", alpha=.7,fill = "#FC8D62") + 
+    scale_fill_fermenter(palette = "Set2") + 
+      xlab("Movie genre") + ylab("Movie Votes")+ 
+        labs(title='The sum of movie votes in movie genres (votes >= 200k)') + 
+          coord_flip()+
+            theme(axis.text = element_text(size=8), legend.position="right", plot.title = element_text(size=15))
+
+```
+
+## Year-Wise Movie Distribution
+
+```{r EDA_year_movie_count, warning=F, fig.height=4, fig.width=6}
+
+# average vote distribution
+movies<-movies[!movies$year=='TV Movie 2019' & !movies$year=='2020',]
+
+# A brief overview of the dataset: the minimum vote is 1.000,while the maximum vote is 9.900.
+# the mean of the vote is 5.902, the median is 6.100.
+
+
+# movies year-numbers distribution
+years_numbers <- movies[,c('imdb_title_id', 'year')]
+years_num <- years_numbers %>% count(year,sort = TRUE)
+colnames(years_num)<-c('Year','Movie_numbers')
+years_num$Year <- as.numeric(years_num$Year)
+df1 <-arrange(years_num, -Movie_numbers)
+head(df1)
+tail(df1)
+
+
+ggplot(years_num,aes(x=Year,y=Movie_numbers)) + 
+  geom_bar(stat="identity", fill='#66C2A5', alpha=.8, width=1) + 
+    labs(title=('Count of movies each year')) + 
+      scale_fill_fermenter(palette = "Set2") + 
+        ylab('Count') +
+          xlab('Year') +
+            coord_flip() +
+              scale_x_continuous(breaks=seq(1900, 2020, 10))
+
+```
+
+## Average Votes vs. Year
+
+```{r EDA_year_avg_votes, warning=F, fig.height=4, fig.width=6}
+
+# movies year-rating distribution
+years_rating <- aggregate(movies$avg_vote, by = list(movies$year),FUN=mean)
+colnames(years_rating) <- c('Year','Rating')
+years_rating$Year <- as.numeric(years_rating$Year)
+df2 <-arrange(years_rating, -Rating)
+head(df2)
+tail(df2)
+
+
+ggplot(data=years_rating,aes(x=Year,y=Rating)) +
+  geom_bar(stat="identity", fill='#FC8D62', alpha=.8, width=1) +
+    scale_fill_fermenter(palette = "Set2") + 
+      labs(title=('Average Rating every Year')) + 
+        ylab('Count') +
+          xlab('Year') +
+            coord_flip() +
+              scale_x_continuous(breaks=seq(1900, 2020, 10))
+
+```
+
+
+## Number of Votes vs. Year
+
+```{r EDA_year_votes, fig.height=4, fig.width=6}
+
+# movies vote distribution
+years_vote <- aggregate(movies$votes, by = list(director = movies$year),FUN=sum)
+colnames(years_vote) <- c('Year','Votes')
+years_vote$Year <- as.numeric(years_vote$Year)
+df3 <-arrange(years_vote, -Votes)
+head(df3)
+tail(df3)
+
+ggplot(data=years_vote, aes(x=Year, y=Votes)) +
+  geom_bar(stat="identity", fill='#66C2A5', alpha=.8, width=1) +
+    scale_fill_fermenter(palette = "Set2") + 
+      labs(title=('Total Votes every Year')) + 
+        ylab('Votes') +
+          xlab('Year') +
+            coord_flip() +
+              scale_x_continuous(breaks=seq(1900, 2020, 10))
+
+```
+
+## Duration of Movies vs. Year
+
+```{r EDA_year_duration, fig.height=4, fig.width=6}
+
+# movies duration-year distribution
+years_duration <- aggregate(movies$duration, by = list(director = movies$year),FUN=mean)
+colnames(years_duration) <- c('Year','Duration')
+years_duration$Year <- as.numeric(years_duration$Year)
+df4 <-arrange(years_duration, -Duration)
+head(df4)
+tail(df4)
+
+
+ggplot(data=years_duration, aes(x=Year, y=Duration)) +
+  geom_bar(stat="identity", fill='#FC8D62', alpha=.8, width=1) +
+    scale_fill_fermenter(palette = "Set2") + 
+      labs(title=('Years v/s Movie Duration')) + 
+        ylab('Duration') +
+          xlab('Year') +
+            coord_flip() +
+              scale_x_continuous(breaks=seq(1900, 2020, 10))
+
+```
+Basic EDA was done by selecting quantitative variables, plotting movie rating histogram and bar graphs. During the EDA, one quantitative variable, movie duration, seemed to be taken into account. The relationship between movie duration and ratings could be analyzed. Therefore, the previous fourth question about the mean age of actors was switched to this one.
+
+# Tests
+
+We have used the following tests to arrive at our conclusions for the various SMART questions:
+
+## Correlation Test
+
+Correlation coefficients are indicators of the strength of the linear relationship between two different variables: x and y. A linear correlation coefficient that is greater than zero indicates a positive relationship. A value that is less than zero signifies a negative relationship. Finally, a value of zero indicates no relationship between the two variables x and y. The possible range of values for the correlation coefficient is -1 to 1. A correlation of -1.0 indicates a perfect negative correlation, and a correlation of 1.0 indicates a perfect positive correlation. There are three major types of correlation:
+Pearson's Product Moment Co-efficient of Correlation
+Spearman's Rank Correlation Coefficient
+Kendall’s Rank Correlation Coefficient
+For the Pearson correlation, both variables should be normally distributed (normally distributed variables have a bell-shaped curve). Other assumptions include linearity and homoscedasticity. Linearity assumes a straight-line relationship between each of the two variables and homoscedasticity assumes that data is equally distributed about the regression line. The assumptions of the Spearman correlation are that data must be at least ordinal and the scores on one variable must be monotonically related to the other variable.
+
+## T – test
+
+A t-test is a type of inferential statistic used to determine if there is a significant difference between the means of two groups, which may be related in certain features. The t-test is one of many tests used for the purpose of hypothesis testing in statistics. Calculating a t-test requires three key data values. They include the difference between the mean values from each data set (called the mean difference), the standard deviation of each group, and the number of data values of each group. There are several different types of t-tests that can be performed depending on the data and type of analysis required. Mathematically, the t-test takes a sample from each of the two sets and establishes the problem statement by assuming a null hypothesis that the two means are equal. Based on the applicable formulas, certain values are calculated and compared against the standard values, and the assumed null hypothesis is accepted or rejected accordingly. 
+The pairwise t-test consists of calculating multiple t-test between all possible combinations of groups. The Bonferroni correction is a multiple-comparison correction used when several dependent or independent statistical tests are being performed simultaneously since while a given significance level (alpha value) may be appropriate for each individual comparison, it is not for the set of all comparisons. To avoid a lot of spurious positives, the alpha value needs to be lowered to account for the number of comparisons being performed.
+
+## Analysis of Variance (ANOVA)
+
+Analysis of variance, or ANOVA, is a statistical method that separates observed variance data into different components to use for additional tests. A one-way ANOVA is used for three or more groups of data, to gain information about the relationship between the dependent and independent variables. The result of the ANOVA formula, the F statistic (also called the F-ratio), allows for the analysis of multiple groups of data to determine the variability between samples and within samples. If no true variance exists between the groups, the ANOVA's F-ratio should equal close to 1. 
+There are two main types of ANOVA: one-way (or unidirectional) and two-way. There are also variations of ANOVA. For example, MANOVA (multivariate ANOVA) differs from ANOVA as the former tests for multiple dependent variables simultaneously while the latter assesses only one dependent variable at a time. One-way or two-way refers to the number of independent variables in your analysis of variance test. A one-way ANOVA evaluates the impact of a sole factor on a sole response variable. It determines whether all the samples are the same. The one-way ANOVA is used to determine whether there are any statistically significant differences between the means of three or more independent (unrelated) groups. ANOVA has many applications in finance, economics, science, medicine, and social science.
+
+## Tukey’s Honest Significant Difference test
+
+The Tukey Test (or Tukey procedure), also called Tukey’s Honest Significant Difference test, is a post-hoc test based on the studentized range distribution. An ANOVA test can tell you if your results are significant overall, but it won’t tell you exactly where those differences lie. After you have run an ANOVA and found significant results, then you can run Tukey’s HSD to find out which specific groups’ means (compared with each other) are different. The test compares all possible pairs of means. If we have unequal sample sizes, we must calculate the estimated standard deviation for each pairwise comparison. This is called the Tukey-Kramer Method.
+
+
+
+# SMART Questions
+
+There are 21 features in this dataset that include movie genre, director, released year, actors, duration, movie language, rating, vote numbers, vote demographics, etc. This project aims to explore the factors that affect movie ratings and the influence of different ages on the choice of movie genres. We consider six independent variables: movie genre, the choice of director, the mean age of actors, the movie language, the voting demographic (gender and age). These variables represent different aspects of the influence on movie ratings. Four of them (movie genre, director, actor age, and the movie language) focus on the characteristics of the movie. Other variables focus on the descriptions of voters, like their age and gender.
+
+We conducted exploratory data analysis by selecting quantitative variables like movie rating, plotting histograms, and bar graphs. During the EDA, one quantitative variable, movie duration, seemed to could be taken into account. We resolved to analyze the relationship between movie duration and ratings and rejected one question regarding the actor age because of increased complexity. 
+
+
+## Difference in Movie Ratings Across Genres
+
+We split up the movie genre column into its sub-genres and assigned the same rating to each sub-genre. Outliers in the avg_vote column were removed since we need the votes to follow a normal distribution for our upcoming hypothesis tests. Grouping the data to find the mean rating for every genre returned the following results:
+
+```{r Q1_dataset_creation, warning=F}
+
+genre_df1 <- movie_ratings[,c("genre", "avg_vote")]
+
+# remove outliers
+outliers <- unique(boxplot(genre_df1$avg_vote, plot=FALSE)$out)
+genre_df1 <- genre_df1[-which(genre_df1$avg_vote %in% outliers),]
+
+genre_df2 <- genre_df1 %>%
+  separate(genre, c("c1",'c2','c3'),sep =c(', '))
+
+df1 <- genre_df2[,c("c1", "avg_vote")] %>% drop_na()
+df2 <- genre_df2[,c("c2", "avg_vote")] %>% drop_na()
+df3 <- genre_df2[,c("c3", "avg_vote")] %>% drop_na()
+
+names(df1)[1] <- "genre"
+names(df2)[1] <- "genre"
+names(df3)[1] <- "genre"
+
+genre_df <- rbind(df1, df2, df3)
+
+```
+
+### Data Visualization
+
+```{r Q1_visualization, warning=F, fig.height=5, fig.width=7}
+
+theme_set(theme_bw())
+
+genre_grouped <- genre_df %>%
+  group_by(genre) %>%
+  filter(n() >= 30) %>%
+    summarize(
+      mean_vote = mean(avg_vote),
+      n=n()
+    )
+
+genre_grouped <- genre_grouped[order(genre_grouped$mean_vote), ]
+genre_grouped$genre <- factor(genre_grouped$genre, levels = genre_grouped$genre)
+
+ggplot(genre_grouped, aes(fill=mean_vote, y=mean_vote, x=genre)) +
+    geom_bar(stat="identity", alpha=.8, width=0.8) +
+      scale_fill_fermenter(palette = "Set2") +
+        coord_flip() +
+            labs(title="Ordered Scatter Plot",
+                subtitle="Mean avg_vote across film genres", 
+                caption="genre: avg_vote")
+
+```
+
+### Hypothesis Testing and P-value visualization
+
+We can see from the visualization that there is a difference among some genres based on the mean ratings they receive. We can run a pairwise t-test on the dataset to find out which pairs have a significant difference in mean ratings. We set up our experiment with an alpha-value of 0.01 as follows:
+
+Ho -> The mean rating for all movie genres is same
+
+Ha -> The mean rating for all movie genres is not same
+
+Due to there being 25 different groups of genres, we have also elected to use the Bonferroni correction to get adjusted p-values. The results of our test can be best portrayed with the help of a heatmap of p-values for difference in mean ratings between the various genres. 
+As we can see from the map, most of the values are very close to zero, which means that the genre of the movie has a significant effect on the ratings the movie is going to receive. 
+
+```{r Q1_hypo_test, warning=F}
+
+genre_df_filtered <- genre_df %>%
+  group_by(genre) %>%
+    filter(n() >= 30) %>%
+      ungroup()
+
+pw_ttest <- pairwise.t.test(
+  x=genre_df_filtered$avg_vote, 
+  g=genre_df_filtered$genre,
+  p.adjust.method="bonferroni"
+)
+
+pw_ttest_pvals <- data.frame(pw_ttest$p.value)
+pw_ttest_pvals$genre1 <- rownames(pw_ttest_pvals)
+pw_ttest_pvals <- melt(pw_ttest_pvals, id.vars="genre1", variable.name="genre2", value.name="p_value") %>% drop_na()
+
+ggplot(pw_ttest_pvals, aes(genre1, genre2, fill= p_value)) + 
+  geom_tile() +
+    scale_fill_gradient(low="darkblue", high = "lightblue") +
+      theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
+        labs(title="Heat Map",
+            subtitle="P-values for pairwise T-tests on movie genres", 
+            caption="genre2: genre1")
+
+```
+
+
+## Choice of Director affect movie ratings
+
+
+We group up the movie data on the director and find the mean rating that each director has received for their movies. We only consider directors who have created at least 50 movies for visualization purposes, and we get the following results: 
+
+```{r Q2, fig.height=5, fig.width=7}
+
+movie_director <- movie_ratings[,c("director", "avg_vote")]
+
+# remove outliers
+outliers <- unique(boxplot(movie_director$avg_vote, plot=FALSE)$out)
+movie_director <- movie_director[-which(movie_director$avg_vote %in% outliers),]
+
+director_group <- aggregate(movie_director$avg_vote, by = list(director = movie_director$director),FUN=mean)
+director_num <- movie_director %>% count(director,sort = TRUE)
+director_vote <- merge(director_group,director_num,by='director')
+director_vote <- director_vote[order(-director_vote$n),]
+colnames(director_vote) <- c('director','rating','movie_numbers') 
+
+director_vote_50 <- subset(director_vote,movie_numbers>49)
+director_vote_50$rating <- as.numeric(director_vote_50$rating)
+
+ggplot(director_vote_50, aes(fill=rating, y=rating, x=reorder(director,rating))) +
+    geom_bar(stat="identity", alpha=.8, width=0.8) +
+      scale_fill_fermenter(palette = "Set2") +
+        coord_flip() +
+            labs(title="Ordered Bar Chart",
+                subtitle="Mean avg_vote for various Directors",
+                caption="director: avg_vote")
+
+```
+
+### Hypothesis Testing and P-value visualization
+
+At first glance, we can see that there is a considerable difference in movie ratings for different directors. To back up our findings, we run an ANOVA test on the data with a significance level of 0.01 as follows:
+
+Ho -> The mean movie ratings for all directors is same
+
+Ha -> The mean movie ratings for all directors is not same
+
+The results of the ANOVA test are:
+
+```{r Q2_hypo_test, warning=F}
+
+movie_director_filtered <- movie_director %>%
+  group_by(director) %>%
+    filter(n() >= 30) %>%
+      ungroup()
+
+anovaRes = aov(avg_vote ~ director, data=movie_director_filtered)
+anovaRes 
+summary(anovaRes)
+
+```
+
+Running a post-hoc Tukey-Kramer test on the ANOVA results with a 99% confidence interval give us the director pairs which significantly differ in the mean of the ratings of their movies. A snippet of the output is as follows:
+
+```{r Q2_tukey_test, warning=F}
+tukeyDirectorAoV <- TukeyHSD(anovaRes)
+tukeyVar <- data.frame(tukeyDirectorAoV$director)
+tukeyVarSig <- subset(tukeyVar, p.adj <= 0.01)
+head(tukeyVarSig)
+
+```
+
+Our final director dataset has 92 directors who had more than or equal to 30 films to their name. This is done to ensure that groups with lesser number of samples do not distort the test findings. As a result of this, we could get a maximum of 4186 pairs of directors with significant differences in their movie ratings. The Tukey test return a table of 840 pairs of directors with significant movie rating differences. Hence, we can reasonably say that the choice of director is important in selecting a movie.
+
+
+## Movie genre viewing statistic differences with age
+
+To answer this SMART question, we firstly take the proportion of viewer votes for different age ranges. We have 4 age ranges in our dataset:
+0 – 18 age range
+18 – 30 age range
+30 – 45 age range
+45+ age range
+
+The 0-18 age range has many missing values, so we do not consider those votes. For the rest of the values, we name the columns as ages_18, ages_30, and ages_45 respectively. We also name their relative proportions as prop_18, prop_30, and prop_45 respectively. We see the following distributions of densities across different movie genres for the various age groups:
+
+
+
+```{r Q3_dataset_creation, warning=F}
+
+genre_age_df1 <- movie_ratings[,c("genre", "allgenders_18age_votes", "allgenders_30age_votes", "allgenders_45age_votes")]
+
+genre_age_df2 <- genre_age_df1 %>%
+    mutate(
+      prop_18 = allgenders_18age_votes / (allgenders_18age_votes + allgenders_30age_votes + allgenders_45age_votes),
+      prop_30 = allgenders_30age_votes / (allgenders_18age_votes + allgenders_30age_votes + allgenders_45age_votes),
+      prop_45 = allgenders_45age_votes / (allgenders_18age_votes + allgenders_30age_votes + allgenders_45age_votes)
+    )
+
+names(genre_age_df2)[2:4] <- c("votes_18", "votes_30", "votes_45")
+
+genre_age_df3 <- genre_age_df2 %>%
+  separate(genre, c("c1",'c2','c3'),sep =c(', '))
+
+df1 <- genre_age_df3[,c("c1", "votes_18", "votes_30", "votes_45", "prop_18", "prop_30", "prop_45")] %>% drop_na()
+df2 <- genre_age_df3[,c("c2", "votes_18", "votes_30", "votes_45", "prop_18", "prop_30", "prop_45")] %>% drop_na()
+df3 <- genre_age_df3[,c("c3", "votes_18", "votes_30", "votes_45", "prop_18", "prop_30", "prop_45")] %>% drop_na()
+
+names(df1)[1] <- "genre"
+names(df2)[1] <- "genre"
+names(df3)[1] <- "genre"
+
+genre_age_df <- rbind(df1, df2, df3)
+
+```
+
+
+### Data Visualization
+
+Visualizing the data in a bar chart format to better understand the proportions for various genres gives us the following graph:
+
+```{r Q3_visualization, warning=F}
+ggplot(genre_age_df, aes(x=prop_18, group=genre, fill=genre)) +
+  geom_density(adjust=1.5, alpha=.4) +
+      ggtitle("Distribution of Age 18 viewing proportions for various genres")
+
+ggplot(genre_age_df, aes(x=prop_30, group=genre, fill=genre)) +
+  geom_density(adjust=1.5, alpha=.4) +
+      ggtitle("Distribution of Age 30 viewing proportions for various genres")
+
+ggplot(genre_age_df, aes(x=prop_45, group=genre, fill=genre)) +
+  geom_density(adjust=1.5, alpha=.4) +
+      ggtitle("Distribution of Age 45 viewing proportions for various genres")
+
+genre_age_grouped <- genre_age_df %>%
+  group_by(genre) %>%
+    summarize(
+      ages_18 = mean(prop_18),
+      ages_30 = mean(prop_30),
+      ages_45 = mean(prop_45)
+    )
+
+genre_age_melt <- melt(genre_age_grouped, id.vars = "genre", variable.name = "proportions")
+
+ggplot(genre_age_melt, aes(fill=proportions, y=value, x=genre)) + 
+    geom_bar(position="stack", stat="identity") +
+        scale_fill_brewer(palette = "Set2") +
+            coord_flip() + 
+                ggtitle("Mean of proportions of viewer ages across film genres")
+
+
+
+```
+
+### Hypothesis Testing
+To see if there are significant differences in viewing statistics across genres for different ages, we run a MANOVA (Multivariate ANOVA) test. We set up our experiment with significance level 0.01 as follows:
+
+Ho -> The viewing statistic for different ages across multiple genres is same
+
+Ha -> The viewing statistic for different ages across multiple genres is not same
+
+The results of the MANOVA test are:
+
+```{r Q3_hypo_test, warning=F}
+
+genre_age_df_filtered <- genre_age_df %>%
+  group_by(genre) %>%
+    filter(n() >= 30) %>%
+      ungroup()
+
+res.man <- manova(cbind(votes_18, votes_30, votes_45) ~ genre, data = genre_age_df_filtered)
+summary(res.man)
+```
+
+
+A very low p-value tells us that genre differences are significant across various ages. We check which age ranges have significant differences between various genre movie views as follows:
+
+```{r Q3_anov_hypo_test, warning=F}
+
+summary.aov(res.man)
+
+```
+
+A low p-value for each age category tells us that all the ages have differing viewing statistics across different genres.
+
+## Affect of duration of movie on avg_vote
+
+### Outliers Analysis
+
+To see if the duration of the movie influences the movie rating, we must first remove outliers from the dataset. Here is a distribution of the duration values with and without outliers:
+Plotting the duration of the movie against the mean rating for the movie gives us the following results:
+
+```{r Q4_EDA}
+
+# movies duration-rating distribution
+duration <-outlierKD2(movies, movies$duration)
+outliers <- boxplot(movies$duration,plot=FALSE)$out
+movies1 <- movies[-which(movies$duration %in% outliers),]
+summary(movies1$duration)
+```
+
+Plotting the duration of the movie against the mean rating for the movie gives us the following results:
+
+```{r Q4_EDA_plot}
+duration_rating <- movies1[,c('duration','avg_vote')]
+colnames(duration_rating)<-c("duration","rating")
+df5 <-arrange(duration_rating, -rating)
+
+
+duration_grouped <- duration_rating %>%
+  group_by(duration) %>%
+    summarize(
+      mean_vote = mean(rating),
+      n=n()
+    )
+
+ggplot(duration_grouped, aes(fill=mean_vote, y=mean_vote, x=duration)) +
+    geom_bar(stat="identity", alpha=.8, width=0.8) +
+      scale_fill_fermenter(palette = "Set2") +
+        coord_flip() +
+            labs(title="Ordered Bar Chart",
+                subtitle="Mean rating for different film durations",
+                caption="duration: Rating")
+
+```
+
+### Correlation Analysis
+
+We can run a correlation analysis between the two continuous variables to see if there is a relation between the duration of the movie and its rating. The result of the Pearson’s correlation test is as follows:
+
+
+```{r Q4_corr_analysis}
+
+#correlation 
+cor.test(movies$avg_vote, as.numeric(movies$duration))
+```
+
+We see that there is a weak correlation between the two variables. Plotting a linear regression line through the data points gives us the following output:
+
+```{r Q4_corr_plot}
+
+ggplot(movies,aes(x=duration, y=avg_vote)) + 
+  scale_fill_fermenter(palette = "Set2") +
+    ylab('Rating') +
+      geom_point() +
+        geom_smooth(method='lm') +
+          ggtitle("Correlation plot between Duration and Average Rating")
+
+```
+We can further analyze the relationship between the two variables by introducing some transformations to the duration variable and see how it affects the correlation coefficient. 
+
+
+## Effect of movie language on Average Vote
+
+We have solved this SMART question in a very similar way to the first question. We split up the language column into its component languages and then run hypothesis tests on them. Initial data exploration included checking the mean movie ratings across different languages. We have considered only those languages having more than 200 movies for visualization purposes.     
+
+
+```{r Q5_dataset_creation, warning=F}
+
+language_df1 <- movie_ratings[,c("language", "avg_vote")]
+
+# remove outliers
+outliers <- unique(boxplot(language_df1$avg_vote, plot=FALSE)$out)
+language_df1 <- language_df1[-which(language_df1$avg_vote %in% outliers),]
+
+language_df2 <- language_df1 %>%
+  separate(language, c("c1",'c2','c3',"c4",'c5','c6'),sep =c(', '))
+
+df1 <- language_df2[,c("c1", "avg_vote")] %>% drop_na()
+df2 <- language_df2[,c("c2", "avg_vote")] %>% drop_na()
+df3 <- language_df2[,c("c3", "avg_vote")] %>% drop_na()
+df4 <- language_df2[,c("c4", "avg_vote")] %>% drop_na()
+df5 <- language_df2[,c("c5", "avg_vote")] %>% drop_na()
+df6 <- language_df2[,c("c6", "avg_vote")] %>% drop_na()
+
+names(df1)[1] <- "language"
+names(df2)[1] <- "language"
+names(df3)[1] <- "language"
+names(df4)[1] <- "language"
+names(df5)[1] <- "language"
+names(df6)[1] <- "language"
+
+language_df <- rbind(df1, df2, df3, df4, df5, df6)
+
+```
+
+### Data Visualization
+
+```{r Q5_visualization, warning=F, fig.height=5, fig.width=10}
+
+theme_set(theme_bw())
+
+language_grouped <- language_df %>%
+  group_by(language) %>%
+    filter(n() >= 200) %>%
+      summarize(
+        mean_vote = mean(avg_vote),
+        n=n()
+      )
+
+ggplot(language_grouped, aes(y=mean_vote, x=reorder(language,mean_vote))) +
+    geom_point(width=.8, stat="identity") +
+      scale_fill_fermenter(palette = "Set2") +
+          xlab("language") +
+          theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
+            labs(title="Ordered Bar Chart",
+                subtitle="Mean vote across film languages (>= 200 votes)", 
+                caption="language: mean_vote")
+
+```
+
+### Hypothesis Testing and P-value visualization
+
+We again run an ANOVA test followed by a post-hoc Tukey-Kramer test to find language pairs that have significantly different average movie ratings. The outputs for the tests are as follows:
+
+```{r Q5_hypo_test, warning=F}
+
+language_df_filtered <- language_df %>%
+  group_by(language) %>%
+    filter(n() >= 30) %>%
+      ungroup()
+
+anovaRes = aov(avg_vote ~ language, data=language_df_filtered)
+anovaRes 
+summary(anovaRes)
+names(anovaRes)
+
+tukeyLanguageAoV <- TukeyHSD(anovaRes)
+tukeyVar <- data.frame(tukeyLanguageAoV$language)
+tukeyVarSig <- subset(tukeyVar, p.adj <= 0.01)
+head(tukeyVarSig)
+
+```
+There are 76 languages in our dataset that have more than 30 movies in its sample. The total number of pairs possible for these languages is 2850. The Tukey test returned a table of 840 pairs with significant differences in their average movie ratings. Hence, we can say that the movie language has a considerable effect on the movie votes.
+
+## Voter demographics affecting average vote and votes
+
+We explored the relationship between the characteristics of the movie viewers and the average vote of movies. From the histogram and the box plot of the mean vote of movies across genders, we note that the average rating by the male audience is slightly lower than in the female audience. We used a t-test that showed a significant difference between the average vote of males and females. The mean movie rating for the male audience is 5.801412, while for the female audience is 6.133158. Running a hypothesis test at 0.05 significance level as follows:
+
+Ho -> The mean movie ratings given by different genders is same
+
+Ha -> The mean movie ratings given by different genders is not same
+
+### Average Vote vs. Gender
+
+```{r Q6_movie_rating_vs_gender, warning=F}
+
+# rating
+mean_all <- rowMeans(subset(movie_ratings[, c(28, 30, 32)]))
+mean_male <- rowMeans(subset(movie_ratings[, c(36, 38, 40)]))
+mean_female <- rowMeans(subset(movie_ratings[, c(44, 46, 48)]))
+
+movie_gender = data.frame(movie_ratings[,c("genre")], mean_all, mean_male, mean_female)
+movie_gender <- aggregate(list(movie_gender$mean_all, movie_gender$mean_male, movie_gender$mean_female), by = list(movie_gender$`movie_ratings...c..genre...`), mean)
+colnames(movie_gender) <- c("genre","all gender","male", "female")
+
+# t-test for movie rating
+t.test(movie_gender$male, movie_gender$female)
+
+
+# barplot for movie ratings for both genders
+colnames(movie_gender) <- c("Genre","All gender","Male", "Female")
+barplot(colMeans(movie_gender[,3:4]), col = c("#FC8D62", "#8DA0CB"), main="The average of movie rating in female and male")
+
+# melt data frame into long
+colnames(movie_gender) <- c("genre","all gender","male", "female")
+movie_gender <- melt(movie_gender)
+
+# boxplot: movie ratings vs. genders
+boxplot(value~variable, data=movie_gender, main="Movie rating vs. genders", xlab="Gender", ylab="Movie rating", col=c("#66C2A5", "#FC8D62", "#8DA0CB")) 
+
+```
+
+### Total Votes vs. Gender
+
+While analyzing the histogram on total movie votes by gender, the total votes in the male audience are much higher than in the female audience. Additionally, in the figure of the boxplot, it is shown that there are outliers in both genders. After applying the t-test, we find a significant difference between the movie votes in males and females.
+
+Ho -> The total movie votes given by different genders is same
+
+Ha -> The total movie votes given by different genders is not same
+
+```{r movie_vote_vs_gender}
+
+# vote dataset with genders
+vote_all <- subset(movie_ratings[, c(35,43)])
+vote = data.frame(movie_ratings$genre, vote_all$males_allages_votes, vote_all$females_allages_votes)
+
+vote <- aggregate(list(vote$vote_all.males_allages_votes, vote$vote_all.females_allages_votes), by = list(vote$movie_ratings.genre), sum)
+colnames(vote) <- c("Genre","Male", "Female")
+
+
+# t-test for movie votes
+t.test(vote$Male, vote$Female)
+```
+Difference in mean number of voters is significant between male and female genders.
+
+
+```{r movie_vote_vs_gender_plot}
+# plot histogram plot for male
+hist(vote$Male, main = "Histogram of the movie votes for male", xlab="Movie rating", col="#FC8D62", breaks = 15)
+
+# plot qqplot for male
+qqnorm(vote$Male, main = "Q-Q plot for movie votes for males")
+qqline(vote$Male)
+
+
+# plot histogram plot for female
+hist(vote$Female, main = "Histogram of the movie votes for female", xlab="Movie rating", col="#8DA0CB", breaks = 15)
+
+# plot qqplot for female
+qqnorm(vote$Female, main = "Q-Q plot for movie votes for females")
+qqline(vote$Female)
+
+# bar plot: movie votes vs. genders
+barplot(colSums(vote[,2:3]), col = c("#FC8D62", "#8DA0CB"), main="The total votes for females and males")
+
+# melt data frame into long
+colnames(vote) <- c("genre","male", "female")
+vote <- melt(vote)
+
+# boxplot: genders vs. movie votes
+boxplot(value~variable, data=vote, main="Movie votes vs. genders", xlab="Gender",ylab="Movie rating",col=c("#FC8D62", "#8DA0CB"), border=c("#FC8D62", "#8DA0CB")) 
+
+```
+
+
+```{r Q6_dataset_creation, warning=F}
+
+age_df <- movie_ratings[,c("allgenders_18age_avg_vote", "allgenders_30age_avg_vote", "allgenders_45age_avg_vote", "avg_vote")]
+names(age_df)[1:3] <- c("avg_vote_18", "avg_vote_30", "avg_vote_45")
+
+# remove outliers
+outliers_18 <- unique(boxplot(age_df$avg_vote_18, plot=FALSE)$out)
+age_df <- age_df[-which(age_df$avg_vote_18 %in% outliers_18),]
+
+outliers_30 <- unique(boxplot(age_df$avg_vote_30, plot=FALSE)$out)
+age_df <- age_df[-which(age_df$avg_vote_30 %in% outliers_30),]
+
+outliers_45 <- unique(boxplot(age_df$avg_vote_45, plot=FALSE)$out)
+age_df <- age_df[-which(age_df$avg_vote_45 %in% outliers_45),]
+
+gender_df <- movie_ratings[,c("males_allages_avg_vote", "females_allages_avg_vote", "avg_vote")]
+names(gender_df)[1:2] <- c("avg_vote_male", "avg_vote_female")
+
+# remove outliers
+outliers_male <- unique(boxplot(gender_df$avg_vote_male, plot=FALSE)$out)
+gender_df <- gender_df[-which(gender_df$avg_vote_male %in% outliers_male),]
+
+outliers_female <- unique(boxplot(gender_df$avg_vote_female, plot=FALSE)$out)
+gender_df <- gender_df[-which(gender_df$avg_vote_female %in% outliers_female),]
+
+```
+
+
+### Data Visualization
+
+```{r Q6_visualization, warning=F, fig.width=6, fig.height=4}
+
+age_df_cor <- cor(age_df)
+age_df_melt <- melt(age_df_cor)
+
+ggplot(age_df_melt, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile(aes(label = value)) +
+    geom_text(aes(label = round(value,2))) +
+      theme(axis.title.x=element_blank(), axis.title.y=element_blank()) +
+        scale_fill_gradient(low="darkblue", high = "lightblue") +
+          labs(title="Heat Map",
+              subtitle="Age Correlation Matrix",
+              caption="age: avg_vote")
+
+gender_df_cor <- cor(gender_df)
+gender_df_melt <- melt(gender_df_cor)
+
+ggplot(gender_df_melt, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile() +
+    geom_text(aes(label = round(value,2))) +
+      theme(axis.title.x=element_blank(), axis.title.y=element_blank()) +
+        scale_fill_fermenter(palette = "Blues") +
+          labs(title="Heat Map",
+              subtitle="Gender Correlation Matrix",
+              caption="gender: avg_vote")
+
+```
+
+The age correlation matrix shows us that there is a weaker correlation between age 45+ people and the rest of the viewers which could make them a group of interest while building regression models. The gender correlation matrix shows similar results with respect to female viewers.
+
+### Hypothesis Testing 
+
+Finally, we did a t-test to check for differences in the average vote of three ranges of the audience age. The results show significant differences in the average rating of the movie across different viewer age ranges.
+
+Ho -> The mean movie ratings given by different ages is same
+
+Ha -> The mean movie ratings given by different ages is not same
+
+```{r Q6_hypo_test, warning=F}
+
+ttest_age_18_30 <- t.test(age_df$avg_vote_18, age_df$avg_vote_30, conf.level = 0.99)
+ttest_age_18_30
+
+ttest_age_30_45 <- t.test(age_df$avg_vote_30, age_df$avg_vote_45, conf.level = 0.99)
+ttest_age_30_45
+
+ttest_age_45_18 <- t.test(age_df$avg_vote_45, age_df$avg_vote_18, conf.level = 0.99)
+ttest_age_45_18
+
+ttest_gender <- t.test(gender_df$avg_vote_male, gender_df$avg_vote_female, conf.level = 0.99)
+ttest_gender
+
+```
+
+From the first three tests, we see that the difference in average votes is significant between ages 18, 30, and 45. 
+
+From the last test, we see that the difference in average votes is significant between male and female genders.
+
+# Conclusion
+
+Based on the massive movie information, our aim was to understand what are the important factors that make a movie more successful than others. So we analysed what kind of movies are more successful , in other words get higher IMDB scores. We also showed the results of this analysis in an intuitive way by visualizing the outcome using ggplot2 in R. Our analysis states that all the factors that we considered in our smart questions i.e, Genre, director, movie duration, movie language and voter demographics have some amount of effect on the IMDB vote or score on a movie.
+
+# References
+
+Bonferroni correction. from Wolfram MathWorld. (n.d.). Retrieved November 9, 2021, from https://mathworld.wolfram.com/BonferroniCorrection.html.
+
+Brownlee, J. (2020, December 20). How to prepare movie review data for sentiment analysis (text classification). Machine Learning Mastery. Retrieved November 9, 2021, from https://machinelearningmastery.com/prepare-movie-review-data-sentiment-analysis/.
+
+Correlation (Pearson, Kendall, Spearman). Statistics Solutions. (2021, August 10). Retrieved November 9, 2021, from https://www.statisticssolutions.com/free-resources/directory-of-statistical-analyses/correlation-pearson-kendall-spearman/.
+
+Hayes, A. (2021, October 25). T-test definition. Investopedia. Retrieved November 9, 2021, from https://www.investopedia.com/terms/t/t-test.asp.
+
+Kenton, W. (2021, October 6). How analysis of variance (ANOVA) works. Investopedia. Retrieved November 9, 2021, from https://www.investopedia.com/terms/a/anova.asp.
+
+Khan, A., Gul, M. A., Uddin, M. I., Ali Shah, S. A., Ahmad, S., Al Firdausi, M. D., & Zaindin, M. (2020, August 1). Summarizing online movie reviews: A machine learning approach to big data analytics. Scientific Programming. Retrieved November 9, 2021, from https://www.hindawi.com/journals/sp/2020/5812715/.
+
+Nickolas, S. (2021, October 22). What do correlation coefficients positive, negative, and zero mean? Investopedia. Retrieved November 9, 2021, from https://www.investopedia.com/ask/answers/032515/what-does-it-mean-if-correlation-coefficient-positive-negative-or-zero.asp.
+
+Unofficialmerve. (2019, October 21). IMDB exploratory data analysis. Kaggle. Retrieved November 9, 2021, from https://www.kaggle.com/unofficialmerve/imdb-exploratory-data-analysis/notebook.
+
+
+
