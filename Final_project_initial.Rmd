@@ -1,0 +1,218 @@
+---
+title: "IMDB Feature Film Analysis"
+author: "T2 Deep Learners: Yue Li, Shuting Cai, Mrunalini Devineni, Siddharth Das"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: united
+    highlight: tango
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+knitr::opts_chunk$set(warning = F)
+options(scientific=T, digits = 3) 
+
+library(dplyr)
+library(ggplot2)
+library(ezids)
+library(faraway)
+library(leaps)
+
+```
+
+# Description of the Data 
+
+```{r data_join}
+movies <- read.csv('movies.csv', header=TRUE)
+drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
+          'reviews_from_critics','production_company','description','writer')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
+
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+movie_ratings$year[movie_ratings$year =="TV Movie 2019"] <- "2019"
+
+final_columns <- c("imdb_title_id", "year", "date_published", "genre", "duration", "language", "director", "actors", "avg_vote", "total_votes", "allgenders_18age_votes", "allgenders_30age_votes", "allgenders_45age_votes", "males_allages_votes", "males_18age_votes", "males_30age_votes", "males_45age_votes", "females_allages_votes", "females_18age_votes", "females_30age_votes", "females_45age_votes", "top1000_voters_votes")
+
+vote_columns <- c("avg_vote", "total_votes", "allgenders_18age_votes", "allgenders_30age_votes", "allgenders_45age_votes", "males_allages_votes", "males_18age_votes", "males_30age_votes", "males_45age_votes", "females_allages_votes", "females_18age_votes", "females_30age_votes", "females_45age_votes", "top1000_voters_votes")
+
+movie_ratings_subset <- movie_ratings[,names(movie_ratings) %in% final_columns]
+movie_votes_subset <- movie_ratings[,names(movie_ratings) %in% vote_columns]
+str(movie_ratings_subset)
+```
+
+# Model building
+
+```{r genre_selection}
+movie_genre_subset <- movie_ratings_subset %>%
+  mutate(
+      Romance = grepl('Romance', genre),
+      Biography = grepl('Biography', genre),
+      Drama = grepl('Drama', genre),
+      Adventure = grepl('Adventure', genre),
+      History = grepl('History', genre),
+      Crime = grepl('Crime', genre),
+      Western = grepl('Western', genre),
+      Fantasy = grepl('Fantasy', genre),
+      Comedy = grepl('Comedy', genre),
+      Horror = grepl('Horror', genre),
+      Family = grepl('Family', genre),
+      Action = grepl('Action', genre),
+      Mystery = grepl('Mystery', genre),
+      Sci_Fi = grepl('Sci-Fi', genre),
+      Animation = grepl('Animation', genre),
+      Thriller = grepl('Thriller', genre),
+      Musical = grepl('Musical', genre),
+      Music = grepl('Music', genre),
+      War = grepl('War', genre),
+      Film_Noir = grepl('Film-Noir', genre),
+      Sport = grepl('Sport', genre),
+      Adult = grepl('Adult', genre),
+      Documentary = grepl('Documentary', genre),
+      Reality_TV = grepl('Reality-TV', genre),
+      News = grepl('News', genre)
+  )
+
+genre_columns <- c("avg_vote", "Romance", "Biography", "Drama", "Adventure", "History", "Crime", "Western", "Fantasy", "Comedy", "Horror", "Family", "Action", "Mystery", "Sci_Fi", "Animation", "Thriller", "Musical", "Music",  "War", "Film_Noir", "Sport", "Adult", "Documentary", "Reality_TV", "News")
+
+movie_genre_subset <- movie_genre_subset[,names(movie_genre_subset) %in% genre_columns]
+
+reg.best25 <- regsubsets(avg_vote~ ., data = movie_genre_subset, nvmax = 15, nbest = 1, method = "exhaustive")
+plot(reg.best25, scale = "adjr2", main = "Adjusted R^2")
+plot(reg.best25, scale = "r2", main = "R^2")
+plot(reg.best25, scale = "bic", main = "BIC")
+plot(reg.best25, scale = "Cp", main = "Cp")
+# summary(reg.best25)
+
+genre_model_selection = c("Romance", "Biography", "Drama", "History", "Crime", "Horror", "Action", "Mystery", "Sci_Fi", "Animation", "Thriller", "Musical",  "War", "Film_Noir")
+genre_formula <- as.formula(paste("avg_vote", paste(genre_model_selection, collapse=" + "), sep="~"))
+model.genre <- lm(genre_formula, data = movie_genre_subset)
+summary(model.genre)
+xkablevif(model.genre, wide=TRUE)
+
+```
+
+
+```{r votes, fig.height=7}
+vote_columns <- c("avg_vote", "total_votes", "allgenders_18age_votes", "allgenders_30age_votes", "allgenders_45age_votes", "males_allages_votes", "males_18age_votes", "males_30age_votes", "males_45age_votes", "females_allages_votes", "females_18age_votes", "females_30age_votes", "females_45age_votes", "top1000_voters_votes")
+
+movie_votes_subset <- movie_ratings_subset[,names(movie_ratings_subset) %in% vote_columns]
+
+cor_votes <- cor(movie_votes_subset, method='spearman')
+corrplot::corrplot(cor_votes)
+
+reg.best13 <- regsubsets(avg_vote~. , data = movie_votes_subset, nvmax = 13, nbest = 1, method = "forward")  
+
+plot(reg.best13, scale = "adjr2", main = "Adjusted R^2")
+plot(reg.best13, scale = "r2", main = "R^2")
+plot(reg.best13, scale = "bic", main = "BIC")
+plot(reg.best13, scale = "Cp", main = "Cp")
+# summary(reg.best13)
+
+
+```
+
+
+
+```{r movie_vote_props, warning=F}
+movie_prop_subset <- movie_ratings_subset %>% mutate(
+  prop_18 = allgenders_18age_votes / (allgenders_18age_votes+allgenders_30age_votes+allgenders_45age_votes),
+  prop_30 = allgenders_30age_votes / (allgenders_18age_votes+allgenders_30age_votes+allgenders_45age_votes),
+  prop_45 = allgenders_45age_votes / (allgenders_18age_votes+allgenders_30age_votes+allgenders_45age_votes),
+  prop_male = males_allages_votes / (males_allages_votes+females_allages_votes),
+  prop_female = females_allages_votes / (males_allages_votes+females_allages_votes)
+)
+
+prop_columns <- c("avg_vote", "total_votes", "prop_18", "prop_30", "prop_45", "prop_male", "prop_female")
+movie_prop_subset <- movie_prop_subset[,names(movie_prop_subset) %in% prop_columns]
+
+outliers <- boxplot(movie_prop_subset$avg_vote,plot=FALSE)$out
+movie_prop_subset <- movie_prop_subset[-which(movie_prop_subset$avg_vote %in% outliers),]
+
+cor_props <- cor(movie_prop_subset, method='pearson')
+corrplot::corrplot(cor_props)
+
+reg.best6 <- regsubsets(avg_vote~. , data = movie_prop_subset, nvmax = 6, nbest = 2, method = "exhaustive")  
+plot(reg.best6, scale = "adjr2", main = "Adjusted R^2")
+plot(reg.best6, scale = "r2", main = "R^2")
+plot(reg.best6, scale = "bic", main = "BIC")
+plot(reg.best6, scale = "Cp", main = "Cp")
+# summary(reg.best6)
+
+prop_model_selection = c("total_votes", "prop_18", "prop_30", "prop_female")
+prop_formula <- as.formula(paste("avg_vote", paste(prop_model_selection, collapse=" + "), sep="~"))
+model.prop <- lm(prop_formula, data = movie_prop_subset)
+summary(model.prop)
+xkablevif(model.prop)
+
+```
+
+
+```{r director_exp, waring=F}
+director_subset <- movie_ratings_subset[,c("imdb_title_id", "year", "date_published", "director", "avg_vote")]
+
+director_new <- director_subset %>%
+  group_by(director) %>%
+  arrange(date_published) %>%
+  mutate(
+    director_exp = 0:(n()-1),
+    director_avg_vote_mean = (cumsum(avg_vote) - avg_vote)/director_exp
+  ) %>%
+  ungroup() %>%
+  mutate(
+    release_decade_ = 
+      ifelse(year>="1890" & year<"1900", "eighteen-nineties",
+      ifelse(year>="1900" & year<"1910", "nineteen-hundreds",
+      ifelse(year>="1910" & year<"1920", "nineteen-tens",
+      ifelse(year>="1920" & year<"1930", "nineteen-twenties",
+      ifelse(year>="1930" & year<"1940", "nineteen-thirties",
+      ifelse(year>="1940" & year<"1950", "nineteen-forties",
+      ifelse(year>="1950" & year<"1960", "nineteen-fifties",
+      ifelse(year>="1960" & year<"1970", "nineteen-sixties",
+      ifelse(year>="1970" & year<"1980", "nineteen-seventies",
+      ifelse(year>="1980" & year<"1990", "nineteen-eighties",
+      ifelse(year>="1990" & year<"2000", "nineteen-nineties",
+      ifelse(year>="2000" & year<"2010", "two-thousands", "twenty-tens"))))))))))))
+  )
+
+# director_new$director_avg_vote_mean[is.nan(director_new$director_avg_vote_mean)] <- median(director_new$avg_vote)
+director_new <- na.omit(director_new)
+
+# subset(director_new, director=="Alfred Hitchcock")
+# outliers <- boxplot(director_new$avg_vote,plot=FALSE)$out
+# director_new <- director_new[-which(director_new$avg_vote %in% outliers),]
+
+
+cor_props <- cor(director_new[,5:7], method='pearson')
+corrplot::corrplot(cor_props)
+
+director_year_model_selection = c("release_decade_", "director_avg_vote_mean", "director_exp")
+director_year_formula <- as.formula(paste("avg_vote", paste(director_year_model_selection, collapse=" + "), sep="~"))
+
+reg.best15 <- regsubsets(director_year_formula, data = director_new, nvmax = 15, nbest = 1, method = "forward")
+plot(reg.best15, scale = "adjr2", main = "Adjusted R^2")
+plot(reg.best15, scale = "r2", main = "R^2")
+plot(reg.best15, scale = "bic", main = "BIC")
+plot(reg.best15, scale = "Cp", main = "Cp")
+# summary(reg.best15)
+
+model.director <- lm(director_year_formula, data = director_new)
+summary(model.director)
+xkablevif(model.director)
+```
+
