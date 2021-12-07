@@ -32,8 +32,7 @@ library(leaps)
 
 ```{r data_join}
 movies <- read.csv('movies.csv', header=TRUE)
-drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','reviews_from_users',
-          'reviews_from_critics','production_company','description','writer')
+drop <- c('budget','usa_gross_income','worlwide_gross_income','metascore','production_company','description','writer')
 movies <- movies[,!names(movies) %in% drop]
 movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$actors == ""),]
 
@@ -47,7 +46,7 @@ ratings <- na.omit(ratings)
 movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
 movie_ratings$year[movie_ratings$year =="TV Movie 2019"] <- "2019"
 
-final_columns <- c("imdb_title_id", "year", "date_published", "genre", "duration", "language", "director", "actors", "avg_vote", "total_votes", "allgenders_18age_votes", "allgenders_30age_votes", "allgenders_45age_votes", "males_allages_votes", "males_18age_votes", "males_30age_votes", "males_45age_votes", "females_allages_votes", "females_18age_votes", "females_30age_votes", "females_45age_votes", "top1000_voters_votes")
+final_columns <- c("imdb_title_id", "year", "date_published", "genre", "duration", "language", "director", "actors", "avg_vote", "total_votes", "allgenders_18age_votes", "allgenders_30age_votes", "allgenders_45age_votes", "males_allages_votes", "males_18age_votes", "males_30age_votes", "males_45age_votes", "females_allages_votes", "females_18age_votes", "females_30age_votes", "females_45age_votes", "top1000_voters_votes","reviews_from_users", "reviews_from_critics")
 
 vote_columns <- c("avg_vote", "total_votes", "allgenders_18age_votes", "allgenders_30age_votes", "allgenders_45age_votes", "males_allages_votes", "males_18age_votes", "males_30age_votes", "males_45age_votes", "females_allages_votes", "females_18age_votes", "females_30age_votes", "females_45age_votes", "top1000_voters_votes")
 
@@ -214,5 +213,47 @@ plot(reg.best15, scale = "Cp", main = "Cp")
 model.director <- lm(director_year_formula, data = director_new)
 summary(model.director)
 xkablevif(model.director)
+```
+
+```{r}
+review_subset <- movie_ratings_subset[,c("imdb_title_id", "reviews_from_users", "reviews_from_critics", "avg_vote")]
+model.reviews <- lm(avg_vote ~ reviews_from_users + reviews_from_critics, data = review_subset)
+summary(model.reviews)
+xkablevif(model.reviews)
+```
+
+```{r}
+title <- read.csv('title_principals.csv', header=TRUE)
+title <- title[!(title$imdb_title_id == "") & !(title$imdb_name_id == "") & !(title$category=="director"),]
+drop <- c('category','job','characters')
+title <- title[,!names(title) %in% drop]
+movie_ratings_title <- merge(movie_ratings_subset[,c("imdb_title_id", "date_published", "avg_vote")], title, by="imdb_title_id")
+
+actor_new <- movie_ratings_title %>%
+  group_by(imdb_name_id) %>%
+  arrange(date_published) %>%
+  mutate(
+    actor_exp = 0:(n()-1),
+    actor_avg_vote_mean = (cumsum(avg_vote) - avg_vote)/actor_exp
+  ) %>%
+  ungroup()
+
+actor_new$actor_avg_vote_mean[is.nan(actor_new$actor_avg_vote_mean)] <- 0
+
+actor_df <- actor_new %>%
+  group_by(imdb_title_id) %>%
+  summarise(
+    cast_weighted_avg_rating = sum(actor_exp * actor_avg_vote_mean) / sum(actor_exp)
+  )
+
+actor_df <- na.omit(actor_df)
+
+```
+
+```{r}
+actor_lm <- merge(movie_ratings_subset[,c("imdb_title_id", "avg_vote")], actor_df, by="imdb_title_id")
+model.cast <- lm(avg_vote ~ cast_weighted_avg_rating, data = actor_lm)
+summary(model.cast)
+# xkablevif(model.cast)
 ```
 
