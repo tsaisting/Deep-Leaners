@@ -1,0 +1,237 @@
+---
+title: "IMDB Feature Film Analysis"
+author: "T2 Deep Learners: Yue Li, Shuting Cai, Mrunalini Devineni, Siddharth Das"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: united
+    highlight: tango
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+knitr::opts_chunk$set(warning = F)
+options(scientific=T, digits = 3) 
+
+library(dplyr)
+library(ggplot2)
+library(ezids)
+library(faraway)
+library(leaps)
+library(tidyr)
+
+```
+
+# Data Creation and Joining
+
+```{r data_join}
+movies <- read.csv('movies.csv', header=TRUE)
+drop <- c('usa_gross_income','worlwide_gross_income','metascore','production_company','description','writer', 'language', 'country')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$director == "") & !(movies$actors == ""),]
+movies$year[movies$year =="TV Movie 2019"] <- "2019"
+movies$year <- as.numeric(movies$year)
+
+ratings <- read.csv('ratings.csv', header=TRUE)
+drop <- c('allgenders_0age_avg_vote', 'allgenders_0age_votes', 'males_0age_avg_vote', 'males_0age_votes',
+          'females_0age_avg_vote', 'females_0age_votes', 'us_voters_rating', 'us_voters_votes', 
+          'non_us_voters_rating', 'non_us_voters_votes')
+ratings <- ratings[,!names(ratings) %in% drop]
+ratings <- na.omit(ratings)
+
+# movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+movie_ratings <- movies
+
+str(movie_ratings)
+
+title <- read.csv('title_principals.csv', header=TRUE)
+title <- title[!(title$category=="director"),]
+drop <- c('category','job','characters')
+title <- title[,!names(title) %in% drop]
+movie_ratings_title <- merge(movie_ratings[,c("imdb_title_id", "date_published", "avg_vote")], title, by="imdb_title_id")
+```
+
+# Feature Creation
+
+## Movie Genre
+
+```{r genre_selection}
+movie_ratings <- movie_ratings %>%
+  mutate(
+      Romance = grepl('Romance', genre),
+      Biography = grepl('Biography', genre),
+      Drama = grepl('Drama', genre),
+      Adventure = grepl('Adventure', genre),
+      History = grepl('History', genre),
+      Crime = grepl('Crime', genre),
+      Western = grepl('Western', genre),
+      Fantasy = grepl('Fantasy', genre),
+      Comedy = grepl('Comedy', genre),
+      Horror = grepl('Horror', genre),
+      Family = grepl('Family', genre),
+      Action = grepl('Action', genre),
+      Mystery = grepl('Mystery', genre),
+      Sci_Fi = grepl('Sci-Fi', genre),
+      Animation = grepl('Animation', genre),
+      Thriller = grepl('Thriller', genre),
+      Musical = grepl('Musical', genre),
+      Music = grepl('Music', genre),
+      War = grepl('War', genre),
+      Film_Noir = grepl('Film-Noir', genre),
+      Sport = grepl('Sport', genre),
+      Adult = grepl('Adult', genre),
+      Documentary = grepl('Documentary', genre),
+      Reality_TV = grepl('Reality-TV', genre),
+      News = grepl('News', genre)
+  )
+
+genre_columns <- c("avg_vote", "Romance", "Biography", "Drama", "Adventure", "History", "Crime", "Western", "Fantasy", "Comedy", "Horror", "Family", "Action", "Mystery", "Sci_Fi", "Animation", "Thriller", "Musical", "Music",  "War", "Film_Noir", "Sport", "Adult", "Documentary", "Reality_TV", "News")
+
+movie_genre_subset <- movie_ratings[,names(movie_ratings) %in% genre_columns]
+
+reg.best25 <- regsubsets(avg_vote~ ., data = movie_genre_subset, nvmax = 15, nbest = 1, method = "exhaustive")
+plot(reg.best25, scale = "adjr2", main = "Adjusted R^2")
+plot(reg.best25, scale = "r2", main = "R^2")
+plot(reg.best25, scale = "bic", main = "BIC")
+plot(reg.best25, scale = "Cp", main = "Cp")
+# summary(reg.best25)
+
+genre_model_selection = c("Romance", "Biography", "Drama", "History", "Crime", "Horror", "Action", "Mystery", "Sci_Fi", "Animation", "Thriller", "Musical",  "War", "Film_Noir")
+genre_formula <- as.formula(paste("avg_vote", paste(genre_model_selection, collapse=" + "), sep="~"))
+model.genre <- lm(genre_formula, data = movie_genre_subset)
+summary(model.genre)
+xkablevif(model.genre, wide=TRUE)
+
+```
+
+## Cast Experience
+
+```{r actor_exp, warning=F}
+actor_new <- movie_ratings_title %>%
+  group_by(imdb_name_id) %>%
+  arrange(date_published) %>%
+  mutate(
+    actor_exp = 0:(n()-1),
+    actor_avg_vote_mean = (cumsum(avg_vote) - avg_vote)/actor_exp
+  ) %>%
+  ungroup()
+
+actor_new$actor_avg_vote_mean[is.nan(actor_new$actor_avg_vote_mean)] <- 0
+
+actor_df <- actor_new %>%
+  group_by(imdb_title_id) %>%
+  summarise(
+    cast_weighted_avg_rating = sum(actor_exp * actor_avg_vote_mean) / sum(actor_exp)
+  )
+actor_df <- na.omit(actor_df)
+movie_ratings_actorsubset <- merge(movie_ratings, actor_df, by="imdb_title_id")
+model.cast <- lm(avg_vote ~ cast_weighted_avg_rating, data = movie_ratings_actorsubset)
+summary(model.cast)
+
+```
+
+
+## Director Experience
+
+```{r director_exp, waring=F}
+
+movie_ratings_directorsubset <- movie_ratings %>%
+  group_by(director) %>%
+  arrange(date_published) %>%
+  mutate(
+    director_exp = 0:(n()-1),
+    director_avg_vote_mean = (cumsum(avg_vote) - avg_vote)/director_exp
+  ) %>%
+  ungroup()
+
+# movie_ratings_directorsubset$director_avg_vote_mean[is.nan(movie_ratings_directorsubset$director_avg_vote_mean)] <- mean(movie_ratings_directorsubset$avg_vote)
+movie_ratings_directorsubset <- na.omit(movie_ratings_directorsubset)
+
+# cor_props <- cor(movie_ratings_directorsubset[,5:7], method='pearson')
+# corrplot::corrplot(cor_props)
+
+director_model_selection = c("director_avg_vote_mean", "director_exp")
+director_year_formula <- as.formula(paste("avg_vote", paste(director_model_selection, collapse=" + "), sep="~"))
+
+model.director <- lm(director_year_formula, data = movie_ratings_directorsubset)
+summary(model.director)
+xkablevif(model.director)
+```
+
+## Numeric Columns
+
+```{r budget_cleaning}
+
+movie_ratings_budget_subset <- movie_ratings[!(movie_ratings$budget == ""),]
+movie_ratings_budget_subset <- separate(movie_ratings_budget_subset, budget, c("symbol", "budget_num"), sep=" ")
+movie_ratings_budget_subset$budget_num <- as.numeric(movie_ratings_budget_subset$budget_num)
+currency <- data.frame(symbol=c('$', 'ITL', 'ROL', 'SEK', 'FRF', 'NOK', 'GBP', 'DEM', 'PTE', 'FIM', 'CAD', 'INR', 'CHF', 'ESP', 'JPY', 'DKK', 'NLG', 'PLN', 'RUR', 'AUD', 'KRW', 'BEF', 'XAU', 'HKD', 'NZD', 'CNY', 'EUR', 'PYG', 'ISK', 'IEP', 'TRL', 'HRK', 'SIT', 'PHP', 'HUF', 'DOP', 'JMD', 'CZK', 'SGD', 'BRL', 'BDT', 'ATS', 'BND', 'EGP', 'THB', 'GRD', 'ZAR', 'NPR', 'IDR', 'PKR', 'MXN', 'BGL', 'EEK', 'YUM', 'MYR', 'IRR', 'CLP', 'SKK', 'LTL', 'TWD', 'MTL', 'LVL', 'COP', 'ARS', 'UAH', 'RON', 'ALL', 'NGN', 'ILS', 'VEB', 'VND', 'TTD', 'JOD', 'LKR', 'GEL', 'MNT', 'AZM', 'AMD', 'AED'), currency=c(1, 0.0005828, 0.23, 0.11, 0.171704, 0.11, 1.32, 0.57618851, 0.00562705, 0.189272, 0.79, 0.013, 1.08, 1.13, 0.0088, 0.15, 0.51043, 0.25, 0.014, 0.71, 0.00085, 0.0279869, 1786.67, 0.13, 0.68, 0.16, 1.13, 0.00015, 0.0077, 1.4307619, 0.074, 0.15, 0.00468946, 0.02, 0.0031, 0.018, 0.0065, 0.044, 0.73, 0.18, 0.012, 0.082081, 0.73, 0.064, 0.03, 0.00331346, 0.063, 0.0083, 0.00007, 0.0057, 0.048, 0.58, 0.071921, 0.0767545, 0.24, 0.000024, 0.0012, 0.037403675, 0.32635053, 0.036, 2.62886, 1.60544, 0.00025, 0.0099, 0.037, 0.23, 0.0093, 0.0024, 0.32, 0.00000000215874, 0.000043, 0.15, 1.41, 0.0049, 0.32, 0.00035, 0.59, 0.002, 0.27))
+
+movie_ratings_budget_subset <- merge(movie_ratings_budget_subset, currency, by='symbol')
+movie_ratings_budget_subset$budget_num <- movie_ratings_budget_subset$budget_num * movie_ratings_budget_subset$currency
+movie_ratings_budget_subset <- movie_ratings_budget_subset[!(movie_ratings_budget_subset$budget_num == 0),]
+
+# Normalization
+movie_ratings_budget_subset$budget_num <- log(movie_ratings_budget_subset$budget_num)
+movie_ratings_budget_subset$votes <- log(movie_ratings_budget_subset$votes)
+movie_ratings_budget_subset$reviews_from_users <- movie_ratings_budget_subset$reviews_from_users/100
+movie_ratings_budget_subset$reviews_from_critics <- movie_ratings_budget_subset$reviews_from_critics/100
+
+numeric_columns = c("budget_num", "year", "duration", "votes", "reviews_from_users", "reviews_from_critics")
+numeric_formula <- as.formula(paste("avg_vote", paste(numeric_columns, collapse=" + "), sep="~"))
+
+model.numeric <- lm(numeric_formula, data = movie_ratings_budget_subset)
+summary(model.numeric)
+xkablevif(model.numeric)
+
+```
+
+## Final dataset creation
+
+```{r final_dataset}
+genre_columns <- c("imdb_title_id", "avg_vote", "Romance", "Biography", "Drama", "Adventure", "History", "Crime", "Western", "Fantasy", "Comedy", "Horror", "Family", "Action", "Mystery", "Sci_Fi", "Animation", "Thriller", "Musical", "Music",  "War", "Film_Noir", "Sport", "Adult", "Documentary", "Reality_TV", "News")
+director_columns = c("director_avg_vote_mean", "director_exp", "imdb_title_id")
+numeric_columns = c("budget_num", "year", "duration", "votes", "reviews_from_users", "reviews_from_critics", "imdb_title_id")
+movie_ratings_final1 <- merge(movie_ratings[,genre_columns], movie_ratings_actorsubset[,c("cast_weighted_avg_rating", "imdb_title_id")], by="imdb_title_id")
+movie_ratings_final2 <- merge(movie_ratings_final1, movie_ratings_directorsubset[,director_columns], by="imdb_title_id")
+movie_ratings_final3 <- merge(movie_ratings_final2, movie_ratings_budget_subset[,numeric_columns], by="imdb_title_id")
+```
+
+# Model Creation
+```{r}
+genre_columns <- c("Romance", "Biography", "Drama", "History", "Crime", "Horror", "Action", "Mystery", "Sci_Fi", "Animation", "Thriller", "Musical",  "War", "Film_Noir")
+cast_columns = c("director_avg_vote_mean", "director_exp", "cast_weighted_avg_rating")
+numeric_columns = c("budget_num", "year", "duration", "votes", "reviews_from_users", "reviews_from_critics")
+total_columns = paste(paste(numeric_columns, collapse=" + ") , paste(cast_columns, collapse=" + "), paste(genre_columns, collapse=" + "), sep = " + ")
+complete_formula <- as.formula(paste("avg_vote", total_columns, sep=" ~ "))
+
+model.final <- lm(complete_formula, data = movie_ratings_final3)
+summary(model.final)
+xkablevif(model.final)
+```
+
+
+
+
+## Avg_vote split
+
+```{r}
+
+quantile(model_data$avg_vote, probs = c(.2, .4, .6, .8))
+
+model_data$avg_vote[which(model_data$avg_vote <=(quantile(model_data$avg_vote, probs = 0.2)))] = 0
+model_data$avg_vote[which(model_data$avg_vote >(quantile(model_data$avg_vote, probs = 0.2)) & model_data$avg_vote <=(quantile(model_data$avg_vote, probs = 0.4)) )] = 1
+model_data$avg_vote[which(model_data$avg_vote >(quantile(model_data$avg_vote, probs = 0.4)) & model_data$avg_vote <=(quantile(model_data$avg_vote, probs = 0.6)) )] = 2
+model_data$avg_vote[which(model_data$avg_vote >(quantile(model_data$avg_vote, probs = 0.6)) & model_data$avg_vote <=(quantile(model_data$avg_vote, probs = 0.8)) )] = 3
+model_data$avg_vote[which(model_data$avg_vote >(quantile(model_data$avg_vote, probs = 0.8)))] = 4
+model_data$avg_vote <- as.factor(model_data$avg_vote)
+
+```
+
