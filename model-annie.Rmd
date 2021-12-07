@@ -18,13 +18,6 @@ output:
 
 # Introduction
 
-Movies are a great way to pass our leisure time. With the rapid development of the Internet, film review aggregators such as IMDb and Rotten Tomatoes have gradually become very popular. Hence, film reviews are of great importance for most movie audiences and film production companies. Generally, movies with a higher rating will obtain more attention and do better at the box office. It is not uncommon for movie reviewers to be hired by stakeholders, pretending to be ordinary netizens, giving high movie ratings, and posting favorable comments on the website for profit. In addition, some netizens give extreme movie ratings based on their preference for certain directors or actors instead of standing in neutrality. Such bogus movie ratings will mislead the public and may cause adverse effects. This issue has aroused considerable public attention, leading many researchers to start work on spurious comment detection. At present, most of the work focuses on judging whether a specific user or comment is reliable. In this project, the approach of our team is to construct a rating system that analyzes the average movie votes since it is the main factor for users to judge the quality of the movie. Gathering initial insights on the overall distribution of movie ratings might eliminate the influence of bogus reviews on the average movie score, leading to an authentic movie rating distribution. We also explore the factors and their interactions that affect movie ratings. Our end goal is to build a prediction model to help clients understand the trends in the film market to help them make the right decisions on movie production.
-
-
-Prior research on IMDB movie reviews includes movie review text classification using sentiment analysis on a data set comprising 1,000 positive and 1,000 negative reviews. (Brownlee, 2020)
-
-The bag-of-words feature extraction technique creates unigrams, bigrams, and trigrams as a feature set and represents it as a vector. The Naive Bayes algorithm is employed to categorize the movie reviews into negative and positive reviews. The word2vec model summarizes movie reviews by extracting features from classified movie review sentences, and the semantic clustering technique clusters semantically related review sentences. Different text features are employed to compute the salience score of all review sentences in the cluster. (Khan etc., 2020)
-
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(warning = F, message = F)
@@ -44,12 +37,11 @@ library(ezids)
 The dataset is from the Kaggle, divided into three separate CSV files. It contains 22 variables of 85,855 movies spanning from 1894 to 2020 from multiple countries. There are also 297,705 instances of cast information. The "in development" titles are not included in the files and contain missing categories of data like the short plot on the main page, awards, external reviews, parent's guide, synopsis, faqs, news, etc. Additional features such as the production company, title groups, adult titles, instant watch options like Amazon Prime or Netflix could make the analysis much broader and ideal.
 
 ```{r data_join}
-movies <- read.csv('movies.csv', header=TRUE,na.strings='')
+movies <- read.csv('movies.csv', header=TRUE, na.strings='')
 
-movies <- movies[,c('imdb_title_id','title','year','genre','duration','country','language','director','avg_vote','votes','budget','worlwide_gross_income','reviews_from_users')]
+movies <- movies[,c('imdb_title_id','title','year','genre','duration','country','language','director','avg_vote','votes','budget','reviews_from_users','production_company')]
 movies <- na.omit(movies)
 
-# movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$language == "None") & !(movies$budget == "")& !(movies$worlwide_gross_income == "")& !(movies$reviews_from_users == ""),]
 
 ratings <- read.csv('ratings.csv', header=TRUE,na.strings='')
 ratings <- subset(ratings[, c(1,18:25,28:35,38:43)])
@@ -57,39 +49,132 @@ ratings <- na.omit(ratings)
 
 movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
 
-movie_ratings <- movie_ratings[which(movie_ratings$votes > 9999),]
-movie_ratings <- movie_ratings[!(movie_ratings$year == '2020'),]
+#movie_ratings <- movie_ratings[which(movie_ratings$votes > 9999),]
+#movie_ratings <- movie_ratings[!(movie_ratings$year == '2020'),]
 ```
 
 ```{r data preprocessing}
 
-# budget, income
+# budget
+movie_ratings$year <- as.numeric(movie_ratings$year)
 model_data <- movie_ratings
-model_data <- model_data[which(startsWith(model_data$budget, "$") =='TRUE'),]
-model_data$budget <- as.numeric(gsub('[$,]', '', model_data$budget))
-model_data <- model_data[which(startsWith(model_data$worlwide_gross_income, "$") =='TRUE'),]
-model_data$worlwide_gross_income <- as.numeric(gsub('[$,]', '', model_data$worlwide_gross_income))
+str(model_data)
+library(stringr)
+model_data <- separate(model_data,budget, c("symbol", "budget_num"), sep=" ")
+model_data$budget_num <- as.numeric(model_data$budget_num)
 
-# year 
-model_data$year <- as.numeric(model_data$year)
-model_data$year[model_data$year <= 1950] = 0
-model_data$year[model_data$year > 1950 & model_data$year < 2000] = 1
-model_data$year[model_data$year >= 2000] = 2
+currency <- data.frame(symbol=unique(model_data$symbol), currency=c(1, 0.000583036, 0.172084, 1.33, 0.577554, 0.00563052, 0.11, 0.189701,0.78, 0.013,1.08, 1.13, 0.0088, 0.512426, 0.15, 0.25, 0.23,0.013, 0.71, 0.00085, 0.0280111, 1781.26, 0.13 , 0.67, 0.16, 1.13, 0.0077, 1.43447, 0.11, 0.072, 0.15, 0.00470566, 0.0031, 0.018, 0.0064, 0.020,0.18, 0.012,  0.73, 0.044, 0.0820922, 0.73, 0.064, 0.030, 	0.00331394, 0.063 , 0.0083, 0.000069, 0.047, 0.58, 0.0000109, 0.24, 0.0723039, 0.036, 	2.62906, 1.60584, 0.00025, 0.0099, 0.036, 0.000024, 0.0093, 0.0024, 0.32, 0.00000000215874, 0.32702445, 0.0012 , 0.0057, 0.15, 1.41, 0.0049, 0.32, 0.000043, 0.23, 0.0020))
+
+model_data <- merge(model_data, currency, by='symbol')
+model_data$budget_num <- model_data$budget_num * model_data$currency
+
+## outliers
+#outliers <- unique(boxplot(model_data$budget_num, plot=TRUE)$out)
+#model_data <- model_data[-which(model_data$budget_num %in% outliers),]
+
+#outliers <- unique(boxplot(model_data$votes, plot=TRUE)$out)
+#model_data <- model_data[-which(model_data$votes %in% outliers),]
+
+#outliers <- unique(boxplot(model_data$duration, plot=TRUE)$out)
+#model_data <- model_data[-which(model_data$duration %in% outliers),]
+
+#outliers <- unique(boxplot(model_data$year, plot=TRUE)$out)
+#model_data <- model_data[-which(model_data$year %in% outliers),]
+
+model_data <- model_data[!(model_data$budget_num == 0),]
 
 
-# director, 0: below 4 movies; 1: above 4 movies.
-director_num <- model_data %>% count(model_data$director)
-colnames(director_num)<-c('director','directed_num')
-model_data <- merge(model_data, director_num, by="director" )
-model_data$director[model_data$directed_num < 4] = 0
-model_data$director[model_data$directed_num >= 4] = 1
 
-# genre, 0: genres below 3; 1: genres above 3 
+# Normalization
+model_data$budget_num <- log(model_data$budget_num)
+model_data$votes <- log(model_data$votes)
+model_data$reviews_from_users <- model_data$reviews_from_users/100
 
-model_data$genre_count <- lengths(strsplit(model_data$genre,split = ','))
-model_data$genre_count[model_data$genre_count < 3] = 0
-model_data$genre_count[model_data$genre_count >= 3] = 1
 
+# plot budget
+g <- model_data$budget_num
+m <- mean(g)
+std <- sqrt(var(g))
+hist(g, density=20, breaks=20, prob=TRUE, 
+     xlab="x-variable", ylim=c(0, 2), 
+     main="normal curve over histogram of budget")
+curve(dnorm(x, mean=m, sd=std), 
+      col="darkblue", lwd=2, add=TRUE, yaxt="n")
+
+
+# plot votes
+g <- model_data$votes
+m <- mean(g)
+std <- sqrt(var(g))
+hist(g, density=20, breaks=20, prob=TRUE, 
+     xlab="x-variable", ylim=c(0, 2), 
+     main="normal curve over histogram of votes")
+curve(dnorm(x, mean=m, sd=std), 
+      col="darkblue", lwd=2, add=TRUE, yaxt="n")
+
+# plot reviews_from_users
+g <- model_data$reviews_from_users
+m <- mean(g)
+std <- sqrt(var(g))
+hist(g, density=20, breaks=20, prob=TRUE, 
+     xlab="x-variable", ylim=c(0, 2), 
+     main="normal curve over histogram of votes")
+curve(dnorm(x, mean=m, sd=std), 
+      col="darkblue", lwd=2, add=TRUE, yaxt="n")
+
+
+```
+
+```{r, modeling}
+
+model_1 <- lm(avg_vote ~ budget_num+year+duration+votes+reviews_from_users, data = model_data)
+summary(model_1)
+```
+
+```{r, results='markup'}
+xkabledply(model_1, title = paste("Model (num):",  model_1$call$formula[2], model_1$call$formula[1], model_1$call$formula[3] ))
+
+xkablevif(model_1)
+```
+
+```{r, results='markup'}
+model_1$coefficients
+model_1$call
+model_1$model$final
+```
+
+```{r}
+str(model_1)
+str(summary(model_1))
+```
+
+```{r results='markup'}
+coef(model_1)
+# equivalent to
+# model.final$coefficients
+
+confint(model_1)
+```
+
+
+```{r}
+# Using backwards elimation and the step function to find the best model with AIC highest
+backward.model<- step(model_1, data=model_data, direction = "backward")
+```
+```{r }
+#Regression Diagnostics
+plot(model_1)
+#Constant varaibility of residuals
+plot(model_1$residuals~model_1$fitted)
+
+#normality of residuals
+qqnorm(model_1$residuals)
+
+hist(model_1$residuals)
+
+```
+
+```{ }
 #duration, 90min:0  90-12min:1 120min:2
 model_data$duration[model_data$duration < 90] = 0
 model_data$duration[model_data$duration >=90 & model_data$duration <=120 ] = 1
