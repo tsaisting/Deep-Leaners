@@ -1,0 +1,203 @@
+---
+title: "IMDB Feature Film Analysis"
+author: "T2 Deep Learners: Yue Li, Shuting Cai, Mrunalini Devineni, Siddharth Das"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: united
+    highlight: tango
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+# Introduction
+Movies are a great way to pass our leisure time. With the rapid development of the Internet, film review aggregators such as IMDb and Rotten Tomatoes have gradually become very popular. Hence, film reviews are of great importance for most movie audiences and film production companies. Generally, movies with a higher rating will obtain more attention and do better at the box office. It is not uncommon for movie reviewers to be hired by stakeholders, pretending to be ordinary netizens, giving high movie ratings, and posting favorable comments on the website for profit. In addition, some netizens give extreme movie ratings based on their preference for certain directors or actors instead of standing in neutrality. Such bogus movie ratings will mislead the public and may cause adverse effects. This issue has aroused considerable public attention, leading many researchers to start work on spurious comment detection. At present, most of the work focuses on judging whether a specific user or comment is reliable. In this project, the approach of our team is to construct a rating system that analyzes the average movie votes since it is the main factor for users to judge the quality of the movie. Gathering initial insights on the overall distribution of movie ratings might eliminate the influence of bogus reviews on the average movie score, leading to an authentic movie rating distribution. We also explore the factors and their interactions that affect movie ratings. Our end goal is to build a prediction model to help clients understand the trends in the film market to help them make the right decisions on movie production.
+Prior research on IMDB movie reviews includes movie review text classification using sentiment analysis on a data set comprising 1,000 positive and 1,000 negative reviews. (Brownlee, 2020)
+The bag-of-words feature extraction technique creates unigrams, bigrams, and trigrams as a feature set and represents it as a vector. The Naive Bayes algorithm is employed to categorize the movie reviews into negative and positive reviews. The word2vec model summarizes movie reviews by extracting features from classified movie review sentences, and the semantic clustering technique clusters semantically related review sentences. Different text features are employed to compute the salience score of all review sentences in the cluster. (Khan etc., 2020)
+```{r init, include=FALSE}
+knitr::opts_chunk$set(warning = F, message = F)
+options(scientific=T, digits = 3) 
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(ggthemes)
+library(ezids)
+```
+# Description of the Data 
+The dataset is from the Kaggle, divided into three separate CSV files. It contains 22 variables of 85,855 movies spanning from 1894 to 2020 from multiple countries. There are also 297,705 instances of cast information. The "in development" titles are not included in the files and contain missing categories of data like the short plot on the main page, awards, external reviews, parent's guide, synopsis, faqs, news, etc. Additional features such as the production company, title groups, adult titles, instant watch options like Amazon Prime or Netflix could make the analysis much broader and ideal.
+```{r data_join}
+movies <- read.csv('movies.csv', header=TRUE,na.strings='')
+movies <- movies[,c('imdb_title_id','title','year','genre','duration','country','language','director','avg_vote','votes','budget','reviews_from_users')]
+movies <- na.omit(movies)
+
+# movies <- movies[!(movies$country == "") & !(movies$language == "") & !(movies$director == "") & !(movies$language == "None") & !(movies$budget == "")& !(movies$worlwide_gross_income == "")& !(movies$reviews_from_users == ""),]
+
+ratings <- read.csv('ratings.csv', header=TRUE,na.strings='')
+ratings <- subset(ratings[, c(1,18:25,28:35,38:43)])
+ratings <- na.omit(ratings)
+movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+movie_ratings <- movie_ratings[which(movie_ratings$votes > 9999),]
+movie_ratings <- movie_ratings[!(movie_ratings$year == '2020'),]
+```
+```{r data preprocessing}
+# budget, income
+model_data <- movie_ratings
+model_data <- model_data[which(startsWith(model_data$budget, "$") =='TRUE'),]
+model_data$budget <- as.numeric(gsub('[$,]', '', model_data$budget))
+
+# year 
+model_data$year <- as.numeric(model_data$year)
+model_data$year[model_data$year <= 1950] = 0
+model_data$year[model_data$year > 1950 & model_data$year < 2000] = 1
+model_data$year[model_data$year >= 2000] = 2
+# director, 0: below 4 movies; 1: above 4 movies.
+director_num <- model_data %>% count(model_data$director)
+colnames(director_num)<-c('director','directed_num')
+model_data <- merge(model_data, director_num, by="director" )
+model_data$director[model_data$directed_num < 4] = 0
+model_data$director[model_data$directed_num >= 4] = 1
+# language
+### users characterizes
+# genders,0:either; 1:female; 2:male; 3:both.
+model_data$females_allages_avg_vote[model_data$females_allages_avg_vote < median(model_data$females_allages_avg_vote)] = 0
+model_data$females_allages_avg_vote[model_data$females_allages_avg_vote >= median(model_data$females_allages_avg_vote)] = 1
+model_data$males_allages_avg_vote[model_data$males_allages_avg_vote < median(model_data$males_allages_avg_vote)] = 0
+model_data$males_allages_avg_vote[model_data$males_allages_avg_vote >= median(model_data$males_allages_avg_vote)] = 2
+model_data$gender = model_data$females_allages_avg_vote+ model_data$males_allages_avg_vote
+# ages, 0: neither; 1:18; 2:30,3:18+30; 4:45; 5: 18+45; 6:30+45; 7:all.
+model_data$allgenders_18age_avg_vote[model_data$allgenders_18age_avg_vote < median(model_data$allgenders_18age_avg_vote)] = 0
+model_data$allgenders_18age_avg_vote[model_data$allgenders_18age_avg_vote >= median(model_data$allgenders_18age_avg_vote)] = 1
+model_data$allgenders_30age_avg_vote[model_data$allgenders_30age_avg_vote < median(model_data$allgenders_30age_avg_vote)] = 0
+model_data$allgenders_30age_avg_vote[model_data$allgenders_30age_avg_vote >= median(model_data$allgenders_30age_avg_vote)] = 2
+model_data$allgenders_45age_avg_vote[model_data$allgenders_45age_avg_vote < median(model_data$allgenders_45age_avg_vote)] = 0
+model_data$allgenders_45age_avg_vote[model_data$allgenders_45age_avg_vote >= median(model_data$allgenders_45age_avg_vote)] = 4
+model_data$age = model_data$allgenders_18age_avg_vote+ model_data$allgenders_30age_avg_vote+model_data$allgenders_45age_avg_vote
+# voting 
+model_data$votes = model_data$votes/1000
+#duration 
+# 90min:0  90-12min:1 120min:2
+#model_data$duration[model_data$duration < 90] = 0
+#model_data$duration[model_data$duration >=90 & model_data$duration <=120 ] = 1
+#model_data$duration[model_data$duration > 120] = 2
+# budget
+#model_data$budget 
+# general target
+model_data$avg_vote[model_data$avg_vote < median(model_data$avg_vote)] = 0
+model_data$avg_vote[model_data$avg_vote >= median(model_data$avg_vote)] = 1
+```
+
+
+
+```{r}
+# factor
+model_data$year <- as.factor(model_data$year)
+model_data$director <- as.factor(model_data$director)
+model_data$avg_vote <- as.factor(model_data$avg_vote)
+model_data$gender <- as.factor(model_data$gender)
+model_data$age <- as.factor(model_data$age)
+#model_data$duration <- as.factor(model_data$duration)
+str(model_data)
+#str(model_data)
+model <- subset(model_data[, c(1:13,36:37)])
+str(model)
+```
+
+# Modeling 
+
+# test and train data set
+```{r}
+data_model1 <- model[,c('director','year','duration','votes','budget','reviews_from_users','gender','avg_vote')]  # select some features (no genre)
+library(caret)
+train <- createDataPartition(data_model1$avg_vote,p=0.7,list=FALSE)
+data_train <- data_model1[train,]
+data_test <- data_model1[-train,]
+```
+
+
+# build Logistic regression model
+```{r}
+lr_model <- glm(avg_vote~ director+year+duration+votes+budget+reviews_from_users+gender,data = data_train, family = "binomial")
+lr_model2 <- glm(avg_vote~ year+duration+budget+gender,data = data_train, family = "binomial") # after feature selection 
+```
+
+
+```{r data}
+xkabledply(lr_model)
+xkabledply(lr_model2)
+```
+
+# Model Evaluation
+
+#### Confusion matrix 
+```{r confusionMatrix, results='markup'}
+loadPkg("regclass")
+# confusion_matrix(admitLogit)
+xkabledply( confusion_matrix(lr_model), title = "Confusion matrix from Logit Model" )
+xkabledply( confusion_matrix(lr_model2), title = "Confusion matrix from Logit Model" )
+unloadPkg("regclass")
+```
+
+# ROC and AUC
+```{r roc_auc}
+loadPkg("pROC") 
+prob=predict(lr_model, type = "response" )
+data_train$prob=prob
+h <- roc(avg_vote~prob, data=data_train)
+auc(h) # area-under-curve prefer 0.8 or higher.
+plot(h)
+prob=predict(lr_model2, type = "response" )
+data_train$prob2=prob
+h <- roc(avg_vote~prob2, data=data_train)
+auc(h) # area-under-curve prefer 0.8 or higher.
+plot(h)
+# unloadPkg("pROC")
+```
+
+#### McFadden  
+
+McFadden is another evaluation tool we can use on logit regressions. This is part of what is called pseudo-R-squared values for evaluation tests. We can calculate the value directly from its definition if we so choose to.
+
+```{r McFadden}
+loadPkg("pscl") 
+admitLogitpr2 = pR2(lr_model)
+admitLogitpr2
+admitLogitpr2_2 = pR2(lr_model2)
+admitLogitpr2_2
+unloadPkg("pscl") 
+```
+
+
+# Feature Selections on Logit Models 
+First try using the package "leaps" which we learned before (for regular linear regressions). 
+```{r bestglm}
+data_model1 <- model[,c('director','year','duration','votes','budget','reviews_from_users','gender','avg_vote')] 
+loadPkg("bestglm")
+res.bestglm <- bestglm(Xy = data_model1, family = binomial,
+            IC = "AIC",                
+            method = "exhaustive")
+summary(res.bestglm)
+res.bestglm$BestModels
+summary(res.bestglm$BestModels)
+unloadPkg("bestglm") 
+```
+
+
+# Anova test two models 
+```{r data}
+anova(lr_model,lr_model2)
+```
+
+
+
+
+# test data predict 
+```{r data}
+pred <- predict(lr_model2, newdata=data_test)
+pred
+#confusionMatrix(data=pred,data_test$avg_vote)
