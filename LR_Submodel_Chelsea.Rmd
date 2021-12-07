@@ -1,0 +1,20 @@
+---
+title: "LM-Chelsea"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data}
+# lr model with duration+votes+budget+worlwide_gross_income--Chelsea 
+```{r data}
+model_data$budget <- scale(model_data$budget)
+model_data$worlwide_gross_income <- scale(model_data$worlwide_gross_income)
+model_data$votes <- scale(model_data$votes)
+
+lr_model_1 <- glm(avg_vote~ duration+votes+budget+worlwide_gross_income,data = data_train, family = "binomial")
+
+xkabledply(lr_model_1)
+```
