@@ -84,7 +84,11 @@ model_data <- merge(model_data, director_num, by="director" )
 model_data$director[model_data$directed_num < 4] = 0
 model_data$director[model_data$directed_num >= 4] = 1
 
-# language
+# genre, 0: genres below 3; 1: genres above 3 
+
+model_data$genre_count <- lengths(strsplit(model_data$genre,split = ','))
+model_data$genre_count[model_data$genre_count < 3] = 0
+model_data$genre_count[model_data$genre_count >= 3] = 1
 
 ### users characterizes
 
