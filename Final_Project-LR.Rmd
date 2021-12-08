@@ -226,73 +226,12 @@ xkablevif(model.final)
 
 quantile(model_data$avg_vote, probs = c(.2, .4, .6, .8))
 
-<<<<<<< Updated upstream
 model_data$avg_vote[which(model_data$avg_vote <=(quantile(model_data$avg_vote, probs = 0.2)))] = 0
 model_data$avg_vote[which(model_data$avg_vote >(quantile(model_data$avg_vote, probs = 0.2)) & model_data$avg_vote <=(quantile(model_data$avg_vote, probs = 0.4)) )] = 1
 model_data$avg_vote[which(model_data$avg_vote >(quantile(model_data$avg_vote, probs = 0.4)) & model_data$avg_vote <=(quantile(model_data$avg_vote, probs = 0.6)) )] = 2
 model_data$avg_vote[which(model_data$avg_vote >(quantile(model_data$avg_vote, probs = 0.6)) & model_data$avg_vote <=(quantile(model_data$avg_vote, probs = 0.8)) )] = 3
 model_data$avg_vote[which(model_data$avg_vote >(quantile(model_data$avg_vote, probs = 0.8)))] = 4
 model_data$avg_vote <- as.factor(model_data$avg_vote)
-=======
-## Logistic Regression
->>>>>>> Stashed changes
 
 ```
 
-```{r}
-## Avg_vote split
-
-movie_ratings_final3$avg_vote[which(movie_ratings_final3$avg_vote <=(quantile(movie_ratings_final3$avg_vote, probs = 0.5)))] = 0
-movie_ratings_final3$avg_vote[which(movie_ratings_final3$avg_vote >(quantile(movie_ratings_final3$avg_vote, probs = 0.5)))] = 1
-
-## train and test split
-train <- createDataPartition(movie_ratings_final3$avg_vote,p=0.7,list=FALSE)
-data_train <- movie_ratings_final3[train,]
-data_test <- movie_ratings_final3[-train,]
-
-model_1 <- glm(complete_formula, data = data_train, family = "binomial" )
-summary(model_1)
-xkabledply(model_1, title = paste("Logistic Regression :") )
-# coeff
-coeff = coef(model_1)
-xkabledply( as.table(coeff), title = "Coefficients in Logit Reg" )
-
-## confusion_matri
-loadPkg("regclass")
-# confusion_matrix(model_1)
-xkabledply(confusion_matrix(model_1))
-unloadPkg("regclass")
-
-##  ROC
-loadPkg("pROC") 
-prob=predict(model_1, type = "response" )
-data_train$prob=prob
-h <- roc(avg_vote~prob, data=data_train)
-auc(h) # area-under-curve prefer 0.8 or higher.
-plot(h)
-
-## chi-sq test
-anova(model_1, test="Chisq", title = "Chi-square test")
-
-## auc
-library(ROCR)
-p <- predict(model_1, data_test, type="response")
-pr <- prediction(p, data_test$avg_vote)
-prf <- performance(pr, measure = "tpr", x.measure = "fpr")
-plot(prf)
-
-auc <- performance(pr, measure = "auc")
-auc <- auc@y.values[[1]]
-auc
-
-## train and test accuarcy
-fitted.results <- predict(model_1,data_train,type='response')
-fitted.results <- ifelse(fitted.results > 0.5,1,0)
-misClasificError <- mean(fitted.results != data_train$avg_vote)
-print(paste('Train Accuracy',1-misClasificError))
-
-
-fitted.results <- predict(model_1,data_test,type='response')
-fitted.results <- ifelse(fitted.results > 0.5,1,0)
-misClasificError <- mean(fitted.results != data_test$avg_vote)
-print(paste('Test Accuracy',1-misClasificError))
