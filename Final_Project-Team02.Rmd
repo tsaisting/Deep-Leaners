@@ -260,42 +260,100 @@ ggplot(aes(x=variables, y=importances), data=feature_importances) +
 
 ## Logistic Regression
 
+### Target Variable
+We built the logistic model with the target variable of the average vote, using 50% of quantile to split the movie average vote and encoding with 1 is a good movie (high average vote) while 0 is a not good movie (low average vote). 
 
-```{r logistic Regression, include=TRUE}
+```{r logistic Regression, include=TRUE, warning=FALSE}
 ## Avg_vote split
 
 movie_ratings_final3$avg_vote[which(movie_ratings_final3$avg_vote <=(quantile(movie_ratings_final3$avg_vote, probs = 0.5)))] = 0
 movie_ratings_final3$avg_vote[which(movie_ratings_final3$avg_vote >(quantile(movie_ratings_final3$avg_vote, probs = 0.5)))] = 1
+```
 
+### Train test splitting
+
+```{r train&test, warning=FALSE }
 ## train and test split
 train <- createDataPartition(movie_ratings_final3$avg_vote,p=0.7,list=FALSE)
 data_train <- movie_ratings_final3[train,]
 data_test <- movie_ratings_final3[-train,]
+```
 
+### Model fitting
+
+```{r logitmodel, warning=FALSE}
 model_1 <- glm(complete_formula, data = data_train, family = "binomial" )
+```
+We can see the summary of the logit model here:  
+```{r summary of log model, warning=FALSE }
 summary(model_1)
+```
+Model has AIC value of 8411 and very high residual deviance value of 8376.8.
+```{r , warning=FALSE}
 xkabledply(model_1, title = paste("Logistic Regression :") )
 # coeff
 coeff = coef(model_1)
 xkabledply( as.table(coeff), title = "Coefficients in Logit Reg" )
+```
 
+All the coefficients are found significant because of small p-values. Year, director_exp, and the genre of Romance, Horror, Action and Sci-Fi have negative effects on the level of movie rating (avg_vote= 1) while the rest of features have the positive effects on the level of movie rating (avg_vote= 1).
+
+### Confidence Intervals
+We can determine the confidence intervals of each coefficient:
+```{r ConfInt, results='markup', collapse=F, warning=FALSE}
+xkabledply(confint(model_1), title = "CIs using profiled log-likelihood" )
+```
+
+### Model evaluation
+
+#### Analysis of deviance
+```{r Chi-squared test, warning=FALSE}
+anova(model_1,test="Chisq")
+```
+
+#### Confusion matrix 
+
+A confusion matrix is a table that is often used to describe the performance of a classification model on a set of test data for which the true values are known.
+
+```{r confusion matrix, warning=FALSE}
 ## confusion_matri
 loadPkg("regclass")
 # confusion_matrix(model_1)
 xkabledply(confusion_matrix(model_1))
 unloadPkg("regclass")
+```
+We can obtain the value of f1 score, precision and recall score from confusion matrix. Confusion matrix, precision, recall, and F1 score provide better insights into the prediction as compared to accuracy performance metrics. From our confusion matrix, 0.7693 of F1 score is obtained, precision is 0.7715, recall is 0.7671. 
 
-##  ROC
+#### Hosmer and Lemeshow test  
+
+The Hosmer and Lemeshow Goodness of Fit test can be used to evaluate logistic regression fit. 
+
+```{r HosmerLemeshow, warning=FALSE}
+loadPkg("ResourceSelection") # function hoslem.test( ) for logit model evaluation
+ratingLogitHoslem = hoslem.test(data_train$avg_vote, fitted(model_1)) # Hosmer and Lemeshow test, a chi-squared test
+unloadPkg("ResourceSelection")
+ratingLogitHoslem
+```
+
+The Hosmer-Lemeshow test (HL test) is a goodness of fit test for logistic regression, especially for risk prediction models. A goodness of fit test tells you how well your data fits the model. Small p-values mean that the model is a poor fit. Like most goodness of fit tests, these small p-values (usually under 5%) mean that your model is not a good fit. But large p-values don’t necessarily mean that your model is a good fit, just that there isn’t enough evidence to say it’s a poor fit. The p-value of `r ratingLogitHoslem$p.value` is relatively small. This indicates the model is not really a good fit in train dataset.
+
+#### ROC-AUC
+
+Receiver-Operator-Characteristic (ROC) curve and Area-Under-Curve (AUC) measures the true positive rate (or sensitivity) against the false positive rate (or specificity). The area-under-curve is always between 0.5 and 1. Values higher than 0.8 is considered good model fit.  
+
+```{r roc_auc_ data train, warning=FALSE}
 loadPkg("pROC") 
 prob=predict(model_1, type = "response" )
 data_train$prob=prob
 h <- roc(avg_vote~prob, data=data_train)
 auc(h) # area-under-curve prefer 0.8 or higher.
 plot(h)
+unloadPkg("pROC")
+```
 
-## chi-sq test
-anova(model_1, test="Chisq", title = "Chi-square test")
+As a rule of thumb, a model with good predictive ability should have an AUC closer to 1, and our value of the area-under-curve is `r auc(h)`, which is more than 0.8. This test against with the Hosmer and Lemeshow test that the model is considered a good fit. 
 
+```{r roc_auc_ data test, warning=FALSE}
 ## auc
 library(ROCR)
 p <- predict(model_1, data_test, type="response")
@@ -306,16 +364,40 @@ plot(prf)
 auc <- performance(pr, measure = "auc")
 auc <- auc@y.values[[1]]
 auc
+```
 
+The area under an ROC curve (AUC) is a popular measure of the accuracy of a diagnostic test. In general, higher AUC values indicate better test performance. We have here the area-under-curve of `r auc(h)` in our test dataset, which is more than 0.8. Since this value is close to 1, this indicates that the model does a very good job of predicting whether the movie good or not. 
+
+#### McFadden  
+
+McFadden is another evaluation tool we can use on logit regressions. This is part of what is called pseudo-R-squared values for evaluation tests. We can calculate the value directly from its definition if we so choose to.
+
+```{r McFadden_direct, warning=FALSE}
+ratingNullLogit <- glm(avg_vote ~ 1, data = data_train, family = "binomial")
+mcFadden = 1 - logLik(model_1)/logLik(ratingNullLogit)
+mcFadden
+```
+
+With the McFadden value of `r mcFadden['McFadden']`, which is analogous to the coefficient of determination $R^2$, only about 33.6% of the variations in y is explained by the explanatory variables in the model. McFadden's pseudo R-squared value between 0.2 to 0.4 indicates an excellent fit.
+
+
+#### Train and Test Accuarcy
+```{r acc, warning=FALSE}
 ## train and test accuarcy
 fitted.results <- predict(model_1,data_train,type='response')
 fitted.results <- ifelse(fitted.results > 0.5,1,0)
 misClasificError <- mean(fitted.results != data_train$avg_vote)
-print(paste('Train Accuracy',1-misClasificError))
+train_acc = 1-misClasificError
+train_acc
+hist(fitted.results, main = "Train Data Predictions")
 
-
-fitted.results <- predict(model_1,data_test,type='response')
-fitted.results <- ifelse(fitted.results > 0.5,1,0)
-misClasificError <- mean(fitted.results != data_test$avg_vote)
-print(paste('Test Accuracy',1-misClasificError))
+test.results <- predict(model_1,data_test,type='response')
+test.results <- ifelse(test.results > 0.5,1,0)
+misClasificError_test <- mean(test.results != data_test$avg_vote)
+test_acc = 1-misClasificError_test
+test_acc
+hist(test.results, main = "Test Data Predictions")
 ```
+The accuracy of train data set is 0.7792 and the accuracy of test data set is 0.7804. 
+
+## Conclusions
