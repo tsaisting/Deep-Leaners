@@ -42,14 +42,14 @@ library(ResourceSelection)
 
 # Introduction
 
-The number of movies released each year is increasing from 2000 to 2020 in North America. 371 movies were released in 2000 and till 2018, 873 movies were released (José, 2021). Facing a large number of movies, viewers and critics have their criteria to review the quality of movies. There is a lot of hailing and criticism on social media platforms. These reviews can be shown by movie ratings. A high movie rating shows the success and popularity of a movie. The success of movies is important since billions of dollars are invested in the making of movies (Rijul, 2018). What makes a movie lucrative triggers researchers' interests. Many kinds of research have been done. Ensemble learning algorithms, like random forest and XGBoost, were used to predict movie rating with social media data and showed the popularity of directors, actors, and writers affected movie rating most (Zahabiya & A.Razia, 2020). Other research indicated duration, the budget was more important than the facebook popularity of directors and actors (Sun, 2016). The number of audiences played an important role in movie rating (Rijul, 2018). 
-However, previous researches have inconsistent results on the most important features of a successful movie. Some of them used collected from data social media platforms, like Facebook and Youtube, which are not professional for movie reviews. Some of them used small-scaled data covered in recent years. 
-This project aims to predict movie ratings based on movie features by using a reliable dataset. As data scientists, we have an interest in digging deeper into the data to explore what are the important features for a successful movie. This study used machine learning algorithms to predict movie ratings provides an investment reference for movie productions and a recommendation for audiences to choose high-quality movies. 
+The number of movies released each year is increasing from 2000 to 2020 in North America. 371 movies were released in 2000 and till 2018, 873 movies were released (José, 2021). Facing a large number of movies, viewers and critics have their criteria to review the quality of movies. There is a lot of hailing and criticism on social media platforms. These reviews can be shown by movie ratings. A high movie rating shows the success and popularity of a movie. The success of movies is important since billions of dollars are invested in the making of movies (Rijul, 2018). What makes a movie lucrative triggers researchers' interests. Many kinds of research have been done. Ensemble learning algorithms, like random forest and XGBoost, were used to predict movie rating with social media data and showed the popularity of directors, actors, and writers affected movie rating most (Zahabiya & A.Razia, 2020). Other research indicated duration, the budget was more important than the facebook popularity of directors and actors (Sun, 2016). The number of audiences played an important role in movie rating (Rijul, 2018).
+However, previous researches have inconsistent results on the most important features of a successful movie. Some of them used collected from data social media platforms, like Facebook and Youtube, which are not professional for movie reviews. Some of them used small-scaled data covered in recent years.
+This project aims to predict movie ratings based on movie features by using a reliable dataset. As data scientists, we have an interest in digging deeper into the data to explore what are the important features for a successful movie. This study used machine learning algorithms to predict movie ratings provides an investment reference for movie productions and a recommendation for audiences to choose high-quality movies.
 
 # Data Description
 
 This data set is an IMDb movie extensive data set from Kaggle.
-(https://www.kaggle.com/stefanoleone992/imdb-extensive-dataset). IMDb(Internet Movie Databases) is an online database of information related to movies, TV series including plots summaries, ratings, and reviews. There are almost 600,00 movies recorded on IMDb in September 2021. This data set contains four files, movies, names, ratings, and title principles. The movies file comprises 85,855 movie description instances from 1910 to 2020 and 22 attributes, like title name, released year, movie genre, duration, movie language, directors, etc. In the ratings file, it comprises features like weighted average rating, total votes, total mean vote, total median vote, and what age group and gender of these votes. “Names” contains the information of actors and “Title principals” contains the actors’ role in each movie. These four files are connected by a unique title ID on IMDb. In this project, the target variable is movie average rating. 7 features are selected. Four of them are numerical features, duration, budget, year released, and votes number. The other three are categorical features, movie genre, directors, and actors. 
+(https://www.kaggle.com/stefanoleone992/imdb-extensive-dataset). IMDb(Internet Movie Databases) is an online database of information related to movies, TV series including plots summaries, ratings, and reviews. There are almost 600,00 movies recorded on IMDb in September 2021. This data set contains four files, movies, names, ratings, and title principles. The movies file comprises 85,855 movie description instances from 1910 to 2020 and 22 attributes, like title name, released year, movie genre, duration, movie language, directors, etc. In the ratings file, it comprises features like weighted average rating, total votes, total mean vote, total median vote, and what age group and gender of these votes. “Names” contains the information of actors and “Title principals” contains the actors’ role in each movie. These four files are connected by a unique title ID on IMDb. In this project, the target variable is movie average rating. 7 features are selected. Four of them are numerical features, duration, budget, year released, and votes number. The other three are categorical features, movie genre, directors, and actors.
 
 # Data Creation and Joining
 
@@ -267,7 +267,7 @@ movie_ratings_final3 <- merge(movie_ratings_final2, movie_ratings_budget_subset[
 
 ## Linear Regression
 
-```{r Linear Regression, include=TRUE}
+```{r Linear Regression, warning=FALSE}
 genre_columns <- c("Romance", "Biography", "Drama", "Horror", "Action", "Sci_Fi", "Animation", "War", "Film_Noir")
 cast_columns = c("director_avg_vote_mean", "director_exp", "cast_weighted_avg_rating")
 # numeric_columns = c("budget_num", "year", "duration", "votes", "reviews_from_users", "reviews_from_critics")
@@ -319,7 +319,7 @@ ggplot(aes(x=variables, y=importances), data=feature_importances) +
 
 ### Target Variable
 
-We built the logistic model with the target variable of the average vote, using 50% of quantile to split the movie average vote and encoding with 1 is a good movie (high average vote) while 0 is a not good movie (low average vote). 
+We built the logistic model with the target variable of the average vote, using 0.5 of quantile to split the movie average vote and encoding them. We found the value where is 50th percentile is 6.3, so the target variable encoding of 1 is a good movie (high average vote) which means the average vote is higher than 6.3 while the target variable encoding of 0 is a not good movie (low average vote) which means the average vote is lower than 6.3.
 
 ```{r logistic Regression, include=TRUE, warning=FALSE}
 ## Avg_vote split
@@ -331,6 +331,8 @@ movie_ratings_final3$avg_vote[which(movie_ratings_final3$avg_vote >(quantile(mov
 
 ### Train test splitting
 
+Let us split the data into training and test set, so that we can estimate test errors. The split of train and test with 7:3 ratio will be used here.
+
 ```{r train&test, warning=FALSE }
 
 ## train and test split
@@ -341,6 +343,9 @@ data_test <- movie_ratings_final3[-train,]
 ```
 
 ### Model fitting
+
+We would build a logistic model to predict the goodness of a movie with the features of movie genres, movie director experience, movie casting, the movie released year, movie duration, movie votes from the audience, and movie budget.
+The logistic model is built with the categorical feature of genres, director, the actor, and numerical feature of the year, duration, budget, and votes. The categorical features have done with the selection of feature importance, the genre of Romance", "Biography", "Drama", "Horror", "Action", "Sci_Fi", "Animation", "War", "Film_Noir" has importance in the model, the model is built from train dataset, and then the test dataset would be used to fit the model and predict the movie goodness. We would check the accuracy of the model. 
 
 ```{r logitmodel, warning=FALSE}
 
@@ -356,7 +361,6 @@ summary(model_1)
 
 ```
 
-Model has AIC value of 8411 and very high residual deviance value of 8376.8.
 
 ```{r , warning=FALSE}
 
@@ -369,7 +373,7 @@ xkabledply( as.table(coeff), title = "Coefficients in Logit Reg" )
 
 ```
 
-All the coefficients are found significant because of small p-values. Year, director_exp, and the genre of Romance, Horror, Action and Sci-Fi have negative effects on the level of movie rating (avg_vote= 1) while the rest of features have the positive effects on the level of movie rating (avg_vote= 1).
+All the coefficients are found significant because of small p-values. The movie released year, director experience, and the movie genres of Romance, Horror, Action and Sci-Fi have negative effects on the goodness of movie with (avg_vote= 1) while the rest of features have the positive effects on the goodness of movie with (avg_vote= 1).
 
 ### Confidence Intervals
 
@@ -383,11 +387,19 @@ xkabledply(confint(model_1), title = "CIs using profiled log-likelihood" )
 
 ### Model evaluation
 
+After the model is built, we would do the model evaluation to decide whether the model performs better. It is critical to consider the model outcomes according to every possible evaluation method. We would apply different methods that can provide different perspectives to evaluate the model.
+
 #### Analysis of deviance
 
+We can quickly run a chi-squared test. The chi-square value is based on the ability to predict the target variable with and without the independent variables. 
+
 ```{r Chi-squared test, warning=FALSE}
+
 anova(model_1,test="Chisq")
+
 ```
+
+From the result, the difference between the null deviance and the residual deviance shows how our model is doing against the null model (a model with only the intercept). The wider this gap, the better. Analyzing the table, we can see the drop in deviance when adding each variable one at a time. Again, adding the numerical variables of budget, year, duration, votes reduces the residual deviance. The other variables seem to improve the model less even though the genre of Romance, biograph, drama, Horror and action have a low p-value. Because a large p-value here indicates that the model without the variable explains more or less the same amount of variation. 
 
 #### Confusion matrix 
 
@@ -399,7 +411,7 @@ xkabledply(confusion_matrix(model_1))
 
 ```
 
-We can obtain the value of f1 score, precision and recall score from confusion matrix. Confusion matrix, precision, recall, and F1 score provide better insights into the prediction as compared to accuracy performance metrics. From our confusion matrix, 0.7693 of F1 score is obtained, precision is 0.7715, recall is 0.7671. 
+We can obtain the value of f1 score, precision and recall score from confusion matrix. Confusion matrix, precision, recall, and F1 score provide better insights into the prediction as compared to accuracy performance metrics. From our confusion matrix, 0.7693 of F1 score is obtained, precision is around 0.7715, recall is around 0.7671. 
 
 #### Hosmer and Lemeshow test  
 
@@ -475,15 +487,15 @@ test_acc
 hist(test.results, main = "Test Data Predictions")
 ```
 
-The accuracy of train data set is 0.7792 and the accuracy of test data set is 0.7804. 
+The accuracy of the train data set is 0.7792 and the accuracy of the test data set is 0.7804. With the logistic model we built, we have 78.04% of accuracy to predict the goodness of the movies from the test dataset.  
 
-## Conclusions
+# Conclusions
+
+The logistic model can tell the goodness of a movie with an accuracy of 78%. Considering the movie genres, director experience, movie casting,  movie budget, movie released year, movie rating votes from the audience, and movie duration, the logistic model can roughly predict the goodness of a movie.
 
 
 
-
-
-## Reference 
+# Reference 
 José Gabriel Navarro. (2021, November 17). Movie releases in the U.S. & Canada 2000-2020. https://www.statista.com/statistics/187122/movie-releases-in-north-america-since-2001/
 
 Zahabiya M., A.Razia S.,& Sujala D. ( 2020, November 8). Movie Rating Prediction using Ensemble Algorithms. https://thesai.org/Downloads/Volume11No8/Paper_49-Movie_Rating_Prediction.pdf
