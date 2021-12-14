@@ -47,12 +47,26 @@ The number of movies released each year is increasing from 2000 to 2020 in North
 However, previous researches have inconsistent results on the most important features of a successful movie. Some of them used collected from data social media platforms, like Facebook and Youtube, which are not professional for movie reviews. Some of them used small-scaled data covered in recent years.
 This project aims to predict movie ratings based on movie features by using a reliable dataset. As data scientists, we have an interest in digging deeper into the data to explore what are the important features for a successful movie. This study used machine learning algorithms to predict movie ratings provides an investment reference for movie productions and a recommendation for audiences to choose high-quality movies.
 
-# Data Description
+# Data preparation
+
+## Data description
 
 This data set is an IMDb movie extensive data set from Kaggle.
 (https://www.kaggle.com/stefanoleone992/imdb-extensive-dataset). IMDb(Internet Movie Databases) is an online database of information related to movies, TV series including plots summaries, ratings, and reviews. There are almost 600,00 movies recorded on IMDb in September 2021. This data set contains four files, movies, names, ratings, and title principles. The movies file comprises 85,855 movie description instances from 1910 to 2020 and 22 attributes, like title name, released year, movie genre, duration, movie language, directors, etc. In the ratings file, it comprises features like weighted average rating, total votes, total mean vote, total median vote, and what age group and gender of these votes. “Names” contains the information of actors and “Title principals” contains the actors’ role in each movie. These four files are connected by a unique title ID on IMDb. In this project, the target variable is movie average rating. 7 features are selected. Four of them are numerical features, duration, budget, year released, and votes number. The other three are categorical features, movie genre, directors, and actors.
 
-# Data Creation and Joining
+## Predictors included
+
+Seven predictors were selected. Four of them are numerical features, duration, budget, year released, and votes number. The other three are categorical features, movie genre, directors, and actors. For numeric features, we did no change on movie duration and published year. data transformation and normalization were done for budget and votes.
+
+Budget: In the data set, aside from US dollars, more than 60 other monetary features from other countries existed. We transformed these monetary features into US dollars and logarithmized them.
+
+Votes: The number of votes contained a large scale and influences the steadiness of the model a lot. We logarithmized votes.
+
+Three categorical variables needed more work compared with numeric ones. It not only needed reasonable logic but also corresponding programming skills.
+Genre:
+Director and Cast:
+
+## Data Creation and Joining
 
 ```{r data_join}
 movies <- read.csv('movies.csv', header=TRUE)
@@ -265,6 +279,7 @@ movie_ratings_final3 <- merge(movie_ratings_final2, movie_ratings_budget_subset[
 
 # Model Creation
 
+For this project, our smart questions were to predict movie ratings with linear model and recommend good movies with logistic model. Therefore, we chose the linear regression model for the first question and the logistic regression model for the second question. After finishing the linear regression model, we gained feature importance by building a decision regression tree model.
 
 ## Linear Regression
 
