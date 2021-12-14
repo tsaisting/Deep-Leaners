@@ -1,0 +1,508 @@
+---
+title: "IMDB Feature Film Analysis"
+author: "T2 Deep Learners: Yue Li, Shuting Cai, Mrunalini Devineni, Siddharth Das"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: united
+    highlight: tango
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+
+---
+```{r, echo=FALSE}
+knitr::opts_chunk$set(error = TRUE)
+```
+
+```{r init, include=FALSE}
+knitr::opts_chunk$set(warning = F)
+options(scientific=T, digits = 3) 
+
+library(dplyr)
+library(ggplot2)
+library(ezids)
+library(faraway)
+library(leaps)
+library(tidyr)
+library(caret)
+library(tree)
+library(rpart)
+library(regclass)
+library(pROC)
+library(ROCR)
+library(ResourceSelection)
+
+```
+
+# Introduction
+
+The number of movies released each year is increasing from 2000 to 2020 in North America. 371 movies were released in 2000 and till 2018, 873 movies were released (José, 2021). Facing a large number of movies, viewers and critics have their criteria to review the quality of movies. There is a lot of hailing and criticism on social media platforms. These reviews can be shown by movie ratings. A high movie rating shows the success and popularity of a movie. The success of movies is important since billions of dollars are invested in the making of movies (Rijul, 2018). What makes a movie lucrative triggers researchers' interests. Many kinds of research have been done. Ensemble learning algorithms, like random forest and XGBoost, were used to predict movie rating with social media data and showed the popularity of directors, actors, and writers affected movie rating most (Zahabiya & A.Razia, 2020). Other research indicated duration, the budget was more important than the facebook popularity of directors and actors (Sun, 2016). The number of audiences played an important role in movie rating (Rijul, 2018). 
+However, previous researches have inconsistent results on the most important features of a successful movie. Some of them used collected from data social media platforms, like Facebook and Youtube, which are not professional for movie reviews. Some of them used small-scaled data covered in recent years. 
+This project aims to predict movie ratings based on movie features by using a reliable dataset. As data scientists, we have an interest in digging deeper into the data to explore what are the important features for a successful movie. This study used machine learning algorithms to predict movie ratings provides an investment reference for movie productions and a recommendation for audiences to choose high-quality movies. 
+
+# Data preparation
+## Data description
+This data set is an IMDb movie extensive data set from Kaggle.
+(https://www.kaggle.com/stefanoleone992/imdb-extensive-dataset). IMDb(Internet Movie Databases) is an online database of information related to movies, TV series including plots summaries, ratings, and reviews. There are almost 600,00 movies recorded on IMDb in September 2021. This data set contains four files, movies, names, ratings, and title principles. The movies file comprises 85,855 movie description instances from 1910 to 2020 and 22 attributes, like title name, released year, movie genre, duration, movie language, directors, etc. In the ratings file, it comprises features like weighted average rating, total votes, total mean vote, total median vote, and what age group and gender of these votes. “Names” contains the information of actors and “Title principals” contains the actors’ role in each movie. These four files are connected by a unique title ID on IMDb. In this project, the target variable is movie average rating. 7 features are selected. Four of them are numerical features, duration, budget, year released, and votes number. The other three are categorical features, movie genre, directors, and actors. 
+
+## Predictors included 
+Seven predictors were selected. Four of them are numerical features, duration, budget, year released, and votes number. The other three are categorical features, movie genre, directors, and actors. For numeric features, we did no change on movie duration and published year. data transformation and normalization were done for budget and votes. 
+Budget: In the data set, aside from US dollars, more than 60 other monetary features from other countries existed. We transformed these monetary features into US dollars and logarithmized them. 
+Votes: The number of votes contained a large scale and influences the steadiness of the model a lot. We logarithmized votes. 
+
+Three categorical variables needed more work compared with numeric ones. It not only needed reasonable logic but also corresponding programming skills. 
+Genre:
+Director and Cast:
+
+
+
+## Data Creation and Joining
+
+```{r data_join}
+movies <- read.csv('movies.csv', header=TRUE)
+drop <- c('usa_gross_income','worlwide_gross_income','metascore','production_company','description','writer', 'language', 'country')
+movies <- movies[,!names(movies) %in% drop]
+movies <- movies[!(movies$director == "") & !(movies$actors == ""),]
+movies$year[movies$year =="TV Movie 2019"] <- "2019"
+movies$year <- as.numeric(movies$year)
+
+
+# movie_ratings <- merge(movies, ratings, by="imdb_title_id" )
+movie_ratings <- movies
+
+str(movie_ratings)
+
+title <- read.csv('title_principals.csv', header=TRUE)
+title <- title[!(title$category=="director"),]
+drop <- c('category','job','characters')
+title <- title[,!names(title) %in% drop]
+movie_ratings_title <- merge(movie_ratings[,c("imdb_title_id", "date_published", "avg_vote")], title, by="imdb_title_id")
+```
+
+# Feature Creation
+
+Feature engineering is when we construct new features from existing data to train a machine learning model. This step is more important than the actual model used since a machine learning algorithm only learns from the data we give it. Hence, creating features relevant to the task is crucial.
+
+Constructing features is very time-consuming because each new feature usually requires several steps, especially when using information from multiple tables. We can group the operations of feature creation into two categories: transformations and aggregations. 
+
+A Transformation acts on a single table by creating new features from existing columns. Aggregations are performed across multiple data frames and use a one-to-many relationship to group observations and then calculate statistics. This process involves grouping the main table, calculating the aggregations, and merging the resulting data into the main table. 
+
+Now we will talk about the different transformations and aggregations we carried out on our data to obtain meaningful features. 
+
+## Movie Genre
+
+Genre is a category of artistic composition characterized by a particular style, form, or content. In other words, genre categorizes movies. Genre consists of four elements: character, story, plot, and setting. Often movies have genres that overlap, such as adventure in a spy film or crime in a science fiction movie, but one genre is predominant. Film noir, thrillers, and action movies are not genres but a director’s style, but we have included them in our analysis to understand their relevance. Having a movie labeled in a genre assists people in finding a particular movie that they may be interested in watching. Many people like a specific genre or two and will only watch movies in those genres. We have considered the following two methodologies for creating genre features:
+
+```{r genre_selection}
+movie_ratings <- movie_ratings %>%
+  mutate(
+      Romance = grepl('Romance', genre),
+      Biography = grepl('Biography', genre),
+      Drama = grepl('Drama', genre),
+      Adventure = grepl('Adventure', genre),
+      History = grepl('History', genre),
+      Crime = grepl('Crime', genre),
+      Western = grepl('Western', genre),
+      Fantasy = grepl('Fantasy', genre),
+      Comedy = grepl('Comedy', genre),
+      Horror = grepl('Horror', genre),
+      Family = grepl('Family', genre),
+      Action = grepl('Action', genre),
+      Mystery = grepl('Mystery', genre),
+      Sci_Fi = grepl('Sci-Fi', genre),
+      Animation = grepl('Animation', genre),
+      Thriller = grepl('Thriller', genre),
+      Musical = grepl('Musical', genre),
+      Music = grepl('Music', genre),
+      War = grepl('War', genre),
+      Film_Noir = grepl('Film-Noir', genre),
+      Sport = grepl('Sport', genre),
+      Adult = grepl('Adult', genre),
+      Documentary = grepl('Documentary', genre),
+      Reality_TV = grepl('Reality-TV', genre),
+      News = grepl('News', genre)
+  )
+
+genre_columns <- c("avg_vote", "Romance", "Biography", "Drama", "Adventure", "History", "Crime", "Western", "Fantasy", "Comedy", "Horror", "Family", "Action", "Mystery", "Sci_Fi", "Animation", "Thriller", "Musical", "Music",  "War", "Film_Noir", "Sport", "Adult", "Documentary", "Reality_TV", "News")
+
+movie_genre_subset <- movie_ratings[,names(movie_ratings) %in% genre_columns]
+
+reg.best25 <- regsubsets(avg_vote~ ., data = movie_genre_subset, nvmax = 15, nbest = 1, method = "exhaustive")
+plot(reg.best25, scale = "adjr2", main = "Adjusted R^2")
+plot(reg.best25, scale = "r2", main = "R^2")
+plot(reg.best25, scale = "bic", main = "BIC")
+plot(reg.best25, scale = "Cp", main = "Cp")
+# summary(reg.best25)
+
+genre_model_selection = c("Romance", "Biography", "Drama", "History", "Crime", "Horror", "Action", "Mystery", "Sci_Fi", "Animation", "Thriller", "Musical",  "War", "Film_Noir")
+genre_formula <- as.formula(paste("avg_vote", paste(genre_model_selection, collapse=" + "), sep="~"))
+model.genre <- lm(genre_formula, data = movie_genre_subset)
+summary(model.genre)
+xkablevif(model.genre, wide=TRUE)
+
+```
+
+Do one-hot encoding for each genre for a movie that belongs to more than one genre. We search for the individual genre pattern in the complete genre string and set a True value for each genre contained in it and a False value for everything else. 
+
+```{r genre2, warning=F}
+genre_df1 <- movie_ratings[,c("genre", "avg_vote")]
+genre_df2 <- genre_df1 %>%
+  separate(genre, c("genre1_",'genre2_','genre3_'),sep =c(', '))
+
+genre_df2$genre1_[is.na(genre_df2$genre1_)] <- "N/A"
+genre_df2$genre2_[is.na(genre_df2$genre2_)] <- "N/A"
+genre_df2$genre3_[is.na(genre_df2$genre3_)] <- "N/A"
+head(genre_df2)
+
+genre_model_selection2 = c("genre1_", "genre2_", "genre3_")
+genre_formula <- as.formula(paste("avg_vote", paste(genre_model_selection2, collapse=" + "), sep="~"))
+model.genre2 <- lm(genre_formula, data = genre_df2)
+summary(model.genre2)
+xkablevif(model.genre2, wide=TRUE)
+
+```
+
+We split the genre into three separate sub-genre columns, which will hold each subdivision. We can do this because we know from the data that the genre column will have a maximum of three sub-genres. The movies that do not contain three different genres will coalesce to NA for the later sub-genres. 
+
+We can see from the second methodology that it introduces negligible gains in the R-squared value when compared with the first method. We witness this probably because it also stores the relative importance information of different subgenres. Additionally, it results in high VIF value terms that are ultimately detrimental to model building.  Hence, we choose to build on the first methodology for the sake of controlling the complexity of our final model. 
+
+## Cast Experience
+
+```{r actor_exp, warning=F}
+actor_new <- movie_ratings_title %>%
+  group_by(imdb_name_id) %>%
+  arrange(date_published) %>%
+  mutate(
+    actor_exp = 0:(n()-1),
+    actor_avg_vote_mean = (cumsum(avg_vote) - avg_vote)/actor_exp
+  ) %>%
+  ungroup()
+
+actor_new$actor_avg_vote_mean[is.nan(actor_new$actor_avg_vote_mean)] <- 0
+
+actor_df <- actor_new %>%
+  group_by(imdb_title_id) %>%
+  summarise(
+    cast_weighted_avg_rating = sum(actor_exp * actor_avg_vote_mean) / sum(actor_exp)
+  )
+actor_df <- na.omit(actor_df)
+movie_ratings_actorsubset <- merge(movie_ratings, actor_df, by="imdb_title_id")
+model.cast <- lm(avg_vote ~ cast_weighted_avg_rating, data = movie_ratings_actorsubset)
+summary(model.cast)
+
+```
+
+
+## Director Experience
+
+Film and TV Directors are some of the most respected individuals in the industry. They are heavily involved in all stages of movie-making: from the very start of the project to the final cut. A director should have a working knowledge of each primary part of making a movie and competently converse with the individuals in charge of those departments. They often get into the field as film editors, actors, or assistants to an established director. We can imagine then how much skills and experience are necessary to create a successful movie. So, we have considered director experience as one of our model input features. However, it cannot be the sole judging factor to decide the movie quality. We should also include the average movie ratings for the films they have directed up to that moment. This approach gives us a complete idea of the importance of the director for movie success.
+
+```{r director_exp, waring=F}
+
+movie_ratings_directorsubset <- movie_ratings %>%
+  group_by(director) %>%
+  arrange(date_published) %>%
+  mutate(
+    director_exp = 0:(n()-1),
+    director_avg_vote_mean = (cumsum(avg_vote) - avg_vote)/director_exp
+  ) %>%
+  ungroup()
+
+# movie_ratings_directorsubset$director_avg_vote_mean[is.nan(movie_ratings_directorsubset$director_avg_vote_mean)] <- mean(movie_ratings_directorsubset$avg_vote)
+movie_ratings_directorsubset <- na.omit(movie_ratings_directorsubset)
+
+# cor_props <- cor(movie_ratings_directorsubset[,5:7], method='pearson')
+# corrplot::corrplot(cor_props)
+
+director_model_selection = c("director_avg_vote_mean", "director_exp")
+director_year_formula <- as.formula(paste("avg_vote", paste(director_model_selection, collapse=" + "), sep="~"))
+
+model.director <- lm(director_year_formula, data = movie_ratings_directorsubset)
+summary(model.director)
+xkablevif(model.director)
+```
+
+The methodology we use is as follows:
+  1) We group the movies by director and arrange them in increasing order of the published year.
+  2) We set the director experience in incremental order starting from zero for their first project.
+  3) We take a cumulative sum of the movie ratings for the past movies and divide it by the director experience.
+  4) We omit the records where the director does not have prior experience as we do not want to introduce bias into our model by         imputation. 
+
+## Numeric Columns
+
+```{r budget_cleaning, include=TRUE, warning=F}
+
+movie_ratings_budget_subset <- movie_ratings[!(movie_ratings$budget == ""),]
+movie_ratings_budget_subset <- separate(movie_ratings_budget_subset, budget, c("symbol", "budget_num"), sep=" ")
+movie_ratings_budget_subset$budget_num <- as.numeric(movie_ratings_budget_subset$budget_num)
+currency <- data.frame(symbol=c('$', 'ITL', 'ROL', 'SEK', 'FRF', 'NOK', 'GBP', 'DEM', 'PTE', 'FIM', 'CAD', 'INR', 'CHF', 'ESP', 'JPY', 'DKK', 'NLG', 'PLN', 'RUR', 'AUD', 'KRW', 'BEF', 'XAU', 'HKD', 'NZD', 'CNY', 'EUR', 'PYG', 'ISK', 'IEP', 'TRL', 'HRK', 'SIT', 'PHP', 'HUF', 'DOP', 'JMD', 'CZK', 'SGD', 'BRL', 'BDT', 'ATS', 'BND', 'EGP', 'THB', 'GRD', 'ZAR', 'NPR', 'IDR', 'PKR', 'MXN', 'BGL', 'EEK', 'YUM', 'MYR', 'IRR', 'CLP', 'SKK', 'LTL', 'TWD', 'MTL', 'LVL', 'COP', 'ARS', 'UAH', 'RON', 'ALL', 'NGN', 'ILS', 'VEB', 'VND', 'TTD', 'JOD', 'LKR', 'GEL', 'MNT', 'AZM', 'AMD', 'AED'), currency=c(1, 0.0005828, 0.23, 0.11, 0.171704, 0.11, 1.32, 0.57618851, 0.00562705, 0.189272, 0.79, 0.013, 1.08, 1.13, 0.0088, 0.15, 0.51043, 0.25, 0.014, 0.71, 0.00085, 0.0279869, 1786.67, 0.13, 0.68, 0.16, 1.13, 0.00015, 0.0077, 1.4307619, 0.074, 0.15, 0.00468946, 0.02, 0.0031, 0.018, 0.0065, 0.044, 0.73, 0.18, 0.012, 0.082081, 0.73, 0.064, 0.03, 0.00331346, 0.063, 0.0083, 0.00007, 0.0057, 0.048, 0.58, 0.071921, 0.0767545, 0.24, 0.000024, 0.0012, 0.037403675, 0.32635053, 0.036, 2.62886, 1.60544, 0.00025, 0.0099, 0.037, 0.23, 0.0093, 0.0024, 0.32, 0.00000000215874, 0.000043, 0.15, 1.41, 0.0049, 0.32, 0.00035, 0.59, 0.002, 0.27))
+
+movie_ratings_budget_subset <- merge(movie_ratings_budget_subset, currency, by='symbol')
+movie_ratings_budget_subset$budget_num <- movie_ratings_budget_subset$budget_num * movie_ratings_budget_subset$currency
+movie_ratings_budget_subset <- movie_ratings_budget_subset[!(movie_ratings_budget_subset$budget_num == 0),]
+
+# Normalization
+movie_ratings_budget_subset$budget_num <- log(movie_ratings_budget_subset$budget_num)
+movie_ratings_budget_subset$votes <- log(movie_ratings_budget_subset$votes)
+movie_ratings_budget_subset$reviews_from_users <- movie_ratings_budget_subset$reviews_from_users/100
+movie_ratings_budget_subset$reviews_from_critics <- movie_ratings_budget_subset$reviews_from_critics/100
+
+numeric_columns = c("budget_num", "year", "duration", "votes", "reviews_from_users", "reviews_from_critics")
+numeric_formula <- as.formula(paste("avg_vote", paste(numeric_columns, collapse=" + "), sep="~"))
+
+model.numeric <- lm(numeric_formula, data = movie_ratings_budget_subset)
+summary(model.numeric)
+xkablevif(model.numeric)
+
+```
+
+## Final dataset creation
+
+```{r final_dataset, include=TRUE}
+genre_columns <- c("imdb_title_id", "avg_vote", "Romance", "Biography", "Drama", "Adventure", "History", "Crime", "Western", "Fantasy", "Comedy", "Horror", "Family", "Action", "Mystery", "Sci_Fi", "Animation", "Thriller", "Musical", "Music",  "War", "Film_Noir", "Sport", "Adult", "Documentary", "Reality_TV", "News")
+director_columns = c("director_avg_vote_mean", "director_exp", "imdb_title_id")
+numeric_columns = c("budget_num", "year", "duration", "votes", "reviews_from_users", "reviews_from_critics", "imdb_title_id")
+movie_ratings_final1 <- merge(movie_ratings[,genre_columns], movie_ratings_actorsubset[,c("cast_weighted_avg_rating", "imdb_title_id")], by="imdb_title_id")
+movie_ratings_final2 <- merge(movie_ratings_final1, movie_ratings_directorsubset[,director_columns], by="imdb_title_id")
+movie_ratings_final3 <- merge(movie_ratings_final2, movie_ratings_budget_subset[,numeric_columns], by="imdb_title_id")
+```
+
+# Model Creation
+For this project, our smart questions were to recommend good movies and predict movie ratings. Therefore, we chose the logistic regression model for the first question and the linear regression model for the second question. After finishing the linear regression model, we gained feature importance by building a decision regression tree model.  
+
+## Linear Regression
+
+```{r Linear Regression, include=TRUE}
+genre_columns <- c("Romance", "Biography", "Drama", "Horror", "Action", "Sci_Fi", "Animation", "War", "Film_Noir")
+cast_columns = c("director_avg_vote_mean", "director_exp", "cast_weighted_avg_rating")
+# numeric_columns = c("budget_num", "year", "duration", "votes", "reviews_from_users", "reviews_from_critics")
+numeric_columns = c("budget_num", "year", "duration", "votes")
+total_columns = paste(paste(numeric_columns, collapse=" + ") , paste(cast_columns, collapse=" + "), paste(genre_columns, collapse=" + "), sep = " + ")
+complete_formula <- as.formula(paste("avg_vote", total_columns, sep=" ~ "))
+
+train_idx <- createDataPartition(movie_ratings_final3$avg_vote, p=0.7, list=FALSE)
+data_train <- movie_ratings_final3[train,]
+data_test <- movie_ratings_final3[-train,]
+
+model.final <- lm(complete_formula, data = data_train)
+summary(model.final)
+xkablevif(model.final)
+
+predict_test <- predict(model.final, data_test, type='response')
+
+test.pred <- predict(model.final, data_test)
+test.y    <- data_test$avg_vote
+
+SS.total      <- sum((test.y - mean(test.y))^2)
+SS.residual   <- sum((test.y - test.pred)^2)
+SS.regression <- sum((test.pred - mean(test.y))^2)
+test.rsq <- 1 - SS.residual/SS.total  
+paste("Test R-squared value is ", test.rsq)
+```
+
+## Decision Tree
+
+```{r Decision Tree, include=TRUE}
+
+model.tree <- rpart(complete_formula, data = movie_ratings_final3, control = list(maxdepth = 7, cp=0.005))
+summary(model.tree)
+plot(model.tree)
+text(model.tree, cex=0.7)
+fancyRpartPlot(model.tree)
+feature_importances <- data.frame(model.tree$variable.importance)
+feature_importances$variables <- row.names(feature_importances)
+names(feature_importances) <- c("importances", "variables")
+feature_importances <- feature_importances[order(feature_importances$importances),]
+
+ggplot(aes(x=variables, y=importances), data=feature_importances) + 
+  geom_bar(stat='identity') + 
+    coord_flip()  
+
+```
+
+## Logistic Regression
+
+### Target Variable
+
+We built the logistic model with the target variable of the average vote, using 50% of quantile to split the movie average vote and encoding with 1 is a good movie (high average vote) while 0 is a not good movie (low average vote). 
+
+```{r logistic Regression, include=TRUE, warning=FALSE}
+## Avg_vote split
+
+movie_ratings_final3$avg_vote[which(movie_ratings_final3$avg_vote <=(quantile(movie_ratings_final3$avg_vote, probs = 0.5)))] = 0
+movie_ratings_final3$avg_vote[which(movie_ratings_final3$avg_vote >(quantile(movie_ratings_final3$avg_vote, probs = 0.5)))] = 1
+
+```
+
+### Train test splitting
+
+```{r train&test, warning=FALSE }
+
+## train and test split
+train <- createDataPartition(movie_ratings_final3$avg_vote,p=0.7,list=FALSE)
+data_train <- movie_ratings_final3[train,]
+data_test <- movie_ratings_final3[-train,]
+
+```
+
+### Model fitting
+
+```{r logitmodel, warning=FALSE}
+
+model_1 <- glm(complete_formula, data = data_train, family = "binomial" )
+
+```
+
+We can see the summary of the logit model here: 
+
+```{r summary of log model, warning=FALSE }
+
+summary(model_1)
+
+```
+
+Model has AIC value of 8411 and very high residual deviance value of 8376.8.
+
+```{r , warning=FALSE}
+
+xkabledply(model_1, title = paste("Logistic Regression :") )
+
+# coeff
+
+coeff = coef(model_1)
+xkabledply( as.table(coeff), title = "Coefficients in Logit Reg" )
+
+```
+
+All the coefficients are found significant because of small p-values. Year, director_exp, and the genre of Romance, Horror, Action and Sci-Fi have negative effects on the level of movie rating (avg_vote= 1) while the rest of features have the positive effects on the level of movie rating (avg_vote= 1).
+
+### Confidence Intervals
+
+We can determine the confidence intervals of each coefficient:
+
+```{r ConfInt, results='markup', collapse=F, warning=FALSE}
+
+xkabledply(confint(model_1), title = "CIs using profiled log-likelihood" )
+
+```
+
+### Model evaluation
+
+#### Analysis of deviance
+
+```{r Chi-squared test, warning=FALSE}
+anova(model_1,test="Chisq")
+```
+
+#### Confusion matrix 
+
+A confusion matrix is a table that is often used to describe the performance of a classification model on a set of test data for which the true values are known.
+
+```{r confusion matrix, warning=FALSE}
+
+xkabledply(confusion_matrix(model_1))
+
+```
+
+We can obtain the value of f1 score, precision and recall score from confusion matrix. Confusion matrix, precision, recall, and F1 score provide better insights into the prediction as compared to accuracy performance metrics. From our confusion matrix, 0.7693 of F1 score is obtained, precision is 0.7715, recall is 0.7671. 
+
+#### Hosmer and Lemeshow test  
+
+The Hosmer and Lemeshow Goodness of Fit test can be used to evaluate logistic regression fit. 
+
+```{r HosmerLemeshow, warning=FALSE}
+
+ratingLogitHoslem = hoslem.test(data_train$avg_vote, fitted(model_1)) 
+ratingLogitHoslem
+```
+
+The Hosmer-Lemeshow test (HL test) is a goodness of fit test for logistic regression, especially for risk prediction models. A goodness of fit test tells you how well your data fits the model. Small p-values mean that the model is a poor fit. Like most goodness of fit tests, these small p-values (usually under 5%) mean that your model is not a good fit. But large p-values don’t necessarily mean that your model is a good fit, just that there isn’t enough evidence to say it’s a poor fit. The p-value of `r ratingLogitHoslem$p.value` is relatively small. This indicates the model is not really a good fit in train dataset.
+
+#### ROC-AUC
+
+Receiver-Operator-Characteristic (ROC) curve and Area-Under-Curve (AUC) measures the true positive rate (or sensitivity) against the false positive rate (or specificity). The area-under-curve is always between 0.5 and 1. Values higher than 0.8 is considered good model fit.  
+
+```{r roc_auc_ data train, warning=FALSE}
+
+prob=predict(model_1, type = "response" )
+data_train$prob=prob
+h <- roc(avg_vote~prob, data=data_train)
+auc(h) # area-under-curve prefer 0.8 or higher.
+plot(h)
+
+```
+
+As a rule of thumb, a model with good predictive ability should have an AUC closer to 1, and our value of the area-under-curve is `r auc(h)`, which is more than 0.8. This test against with the Hosmer and Lemeshow test that the model is considered a good fit. 
+
+```{r roc_auc_ data test, warning=FALSE}
+
+p <- predict(model_1, data_test, type="response")
+pr <- prediction(p, data_test$avg_vote)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+
+```
+
+The area under an ROC curve (AUC) is a popular measure of the accuracy of a diagnostic test. In general, higher AUC values indicate better test performance. We have here the area-under-curve of `r auc(h)` in our test dataset, which is more than 0.8. Since this value is close to 1, this indicates that the model does a very good job of predicting whether the movie good or not. 
+
+#### McFadden  
+
+McFadden is another evaluation tool we can use on logit regressions. This is part of what is called pseudo-R-squared values for evaluation tests. We can calculate the value directly from its definition if we so choose to.
+
+```{r McFadden_direct, warning=FALSE}
+ratingNullLogit <- glm(avg_vote ~ 1, data = data_train, family = "binomial")
+mcFadden = 1 - logLik(model_1)/logLik(ratingNullLogit)
+mcFadden
+```
+
+With the McFadden value of `r mcFadden['McFadden']`, which is analogous to the coefficient of determination $R^2$, only about 33.6% of the variations in y is explained by the explanatory variables in the model. McFadden's pseudo R-squared value between 0.2 to 0.4 indicates an excellent fit.
+
+
+#### Train and Test Accuarcy
+```{r acc, warning=FALSE}
+## train and test accuarcy
+fitted.results <- predict(model_1,data_train,type='response')
+fitted.results <- ifelse(fitted.results > 0.5,1,0)
+misClasificError <- mean(fitted.results != data_train$avg_vote)
+train_acc = 1-misClasificError
+train_acc
+hist(fitted.results, main = "Train Data Predictions")
+
+test.results <- predict(model_1,data_test,type='response')
+test.results <- ifelse(test.results > 0.5,1,0)
+misClasificError_test <- mean(test.results != data_test$avg_vote)
+test_acc = 1-misClasificError_test
+test_acc
+hist(test.results, main = "Test Data Predictions")
+```
+
+The accuracy of train data set is 0.7792 and the accuracy of test data set is 0.7804. 
+
+## Conclusions
+
+
+
+
+
+## Reference 
+José Gabriel Navarro. (2021, November 17). Movie releases in the U.S. & Canada 2000-2020. https://www.statista.com/statistics/187122/movie-releases-in-north-america-since-2001/
+
+Zahabiya M., A.Razia S.,& Sujala D. ( 2020, November 8). Movie Rating Prediction using Ensemble Algorithms. https://thesai.org/Downloads/Volume11No8/Paper_49-Movie_Rating_Prediction.pdf
+
+Chuan Sun. (2016, August, 22). Predict Movie Rating. https://nycdatascience.com/blog/student-works/web-scraping/movie-rating-prediction/
+
+https://towardsdatascience.com/automated-feature-engineering-in-python-99baf11cc219
+
+https://milnepublishing.geneseo.edu/exploring-movie-construction-and-production/chapter/2-what-is-genre-and-how-is-it-determined/
+
+https://academicearth.org/careers/film-director/
