@@ -36,6 +36,7 @@ library(rpart)
 library(regclass)
 library(pROC)
 library(ROCR)
+library(rattle)
 library(ResourceSelection)
 
 ```
@@ -276,8 +277,8 @@ total_columns = paste(paste(numeric_columns, collapse=" + ") , paste(cast_column
 complete_formula <- as.formula(paste("avg_vote", total_columns, sep=" ~ "))
 
 train_idx <- createDataPartition(movie_ratings_final3$avg_vote, p=0.7, list=FALSE)
-data_train <- movie_ratings_final3[train,]
-data_test <- movie_ratings_final3[-train,]
+data_train <- movie_ratings_final3[train_idx,]
+data_test <- movie_ratings_final3[-train_idx,]
 
 model.final <- lm(complete_formula, data = data_train)
 summary(model.final)
