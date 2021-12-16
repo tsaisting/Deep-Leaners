@@ -200,10 +200,15 @@ summary(model.cast)
 ```
 
 The methodology we use is as follows:
+  
   1) We create a new table at the granularity of one record for each cast member for each movie. 
+  
   2) We group by the cast member and repeat the steps as we did for the director to obtain the cast experience and cast mean average vote.
+  
   3) We set the cast members without prior experience (NaN values)  with a placeholder value because they will cancel out anyway. 
+  
   4) We group the resultant table by the movie Title ID to get back the desired granularity level. 
+  
   5) We take the experience of the cast member as a weight to calculate the final mean average vote. More experienced members would contribute more        to the final vote score. 
 
 ## Director Experience
@@ -236,9 +241,13 @@ xkablevif(model.director)
 ```
 
 The methodology we use is as follows:
+  
   1) We group the movies by director and arrange them in increasing order of the published year.
+  
   2) We set the director experience in incremental order starting from zero for their first project.
+  
   3) We take a cumulative sum of the movie ratings for the past movies and divide it by the director experience.
+  
   4) We omit the records where the director does not have prior experience as we do not want to introduce bias into our model by imputation. 
 
 ## Numeric Columns
@@ -333,13 +342,21 @@ paste("Test R-squared value is ", test.rsq)
 ```
 
 In our project, we build a linear model using specific features that are:
+  
   1) Genre column subset
+  
   2) Director average vote mean
+  
   3) Director experience
+  
   4) Cast weighted average rating
+  
   5) Budget number
+  
   6) Year
+  
   7) Duration
+  
   8) Total Votes
 
 We split the records into 70% training and 30% testing data, ran the model on train data, predicted the outcomes for the test data, and finally compared the R-squared values in both cases. 
@@ -573,18 +590,18 @@ Zahabiya M., A.Razia S.,& Sujala D. (2020, November 8). Movie Rating Prediction 
 Chuan Sun. (2016, August, 22).
 *Predict Movie Rating*. https://nycdatascience.com/blog/student-works/web-scraping/movie-rating-prediction/
 
-Will Koehrsen (2018, June 2).
+Will Koehrsen. (2018, June 2).
 *Automated Feature Engineering in Python*. https://towardsdatascience.com/automated-feature-engineering-in-python-99baf11cc219
 
-John Reich (2017, July 11).
+John Reich. (2017, July 11).
 *What Is Genre and How Is It Determined?*. https://milnepublishing.geneseo.edu/exploring-movie-construction-and-production/chapter/2-what-is-genre-and-how-is-it-determined/
 In *Exploring Movie Construction and Production*. (Part 1: Construction, Chapter 2). Open SUNY Textbooks.
 
-Film Director. (n.d.) 
-*Academic Earth* Retrieved December 15, 2021 from https://academicearth.org/careers/film-director/
+Film Director. (n.d.). 
+*Academic Earth*. Retrieved December 15, 2021 from https://academicearth.org/careers/film-director/
 
 Niklas Donges. (2021, July 22).
-*A Complete Guide to the Random Forest Algorithm* https://builtin.com/data-science/random-forest-algorithm
+*A Complete Guide to the Random Forest Algorithm*. https://builtin.com/data-science/random-forest-algorithm
 
-Selva Prabhakaran (2016, n.d.)
-*Logistic Regression* http://r-statistics.co/Logistic-Regression-With-R.html
+Selva Prabhakaran. (2016, n.d.).
+*Logistic Regression*. http://r-statistics.co/Logistic-Regression-With-R.html
