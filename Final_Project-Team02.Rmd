@@ -43,28 +43,23 @@ library(ResourceSelection)
 
 # Introduction
 
-The number of movies released each year is increasing from 2000 to 2020 in North America. 371 movies were released in 2000 and till 2018, 873 movies were released (José, 2021). Facing a large number of movies, viewers and critics have their criteria to review the quality of movies. There is a lot of hailing and criticism on social media platforms. These reviews can be shown by movie ratings. A high movie rating shows the success and popularity of a movie. The success of movies is important since billions of dollars are invested in the making of movies (Rijul, 2018). What makes a movie lucrative triggers researchers' interests. Many kinds of research have been done. Ensemble learning algorithms, like random forest and XGBoost, were used to predict movie rating with social media data and showed the popularity of directors, actors, and writers affected movie rating most (Zahabiya & A.Razia, 2020). Other research indicated duration, the budget was more important than the facebook popularity of directors and actors (Sun, 2016). The number of audiences played an important role in movie rating (Rijul, 2018).
-However, previous researches have inconsistent results on the most important features of a successful movie. Some of them used collected from data social media platforms, like Facebook and Youtube, which are not professional for movie reviews. Some of them used small-scaled data covered in recent years.
-This project aims to predict movie ratings based on movie features by using a reliable dataset. As data scientists, we have an interest in digging deeper into the data to explore what are the important features for a successful movie. This study used machine learning algorithms to predict movie ratings provides an investment reference for movie productions and a recommendation for audiences to choose high-quality movies.
+The number of movies released each year has steadily increased from 2000 onward in North America. Being faced with an ever-increasing selection, viewers and critics have developed a range of criteria to review the quality of movies. Social media platforms are rife with fan followings and hate clubs for different movies. We see the effect of these opinions in the movie ratings the film receives. A high movie rating shows how successful and popular the movie is. Movie success is crucial since billions of dollars are invested in making them (Rijul, 2018).
+
+What makes a movie lucrative triggers the interests of researchers worldwide, and there is a lot of research in this regard. Ensemble learning algorithms, like random forest and XGBoost, were used to predict movie rating with social media data and showed the popularity of directors, actors, and writers affected movie rating most (Zahabiya & A.Razia, 2020). Other research indicated duration and budget were deemed more important than the facebook popularity of directors and actors (Sun, 2016). The number of audiences played a vital role in movie rating (Rijul, 2018).
+
+However, previous research has generated inconsistent results on the features that determine a successful movie. Some use data from social media platforms (Facebook, YouTube) that are not reliable for movie reviews. Some of them use small-scaled data covered in recent years.
+We aim to predict movie ratings based on movie features using a reliable data set in this project. We are interested in digging deeper into the data to explore which attributes are the most important for a successful movie. This project uses machine learning algorithms to predict movie ratings and provides an investment guide for movie productions and a recommendation platform for audiences to choose high-quality films.
 
 # Data preparation
 
 ## Data description
 
 This data set is an IMDb movie extensive data set from Kaggle.
-(https://www.kaggle.com/stefanoleone992/imdb-extensive-dataset). IMDb(Internet Movie Databases) is an online database of information related to movies, TV series including plots summaries, ratings, and reviews. There are almost 600,00 movies recorded on IMDb in September 2021. This data set contains four files, movies, names, ratings, and title principles. The movies file comprises 85,855 movie description instances from 1910 to 2020 and 22 attributes, like title name, released year, movie genre, duration, movie language, directors, etc. In the ratings file, it comprises features like weighted average rating, total votes, total mean vote, total median vote, and what age group and gender of these votes. “Names” contains the information of actors and “Title principals” contains the actors’ role in each movie. These four files are connected by a unique title ID on IMDb. In this project, the target variable is movie average rating. 7 features are selected. Four of them are numerical features, duration, budget, year released, and votes number. The other three are categorical features, movie genre, directors, and actors.
+(https://www.kaggle.com/stefanoleone992/imdb-extensive-dataset). IMDb (Internet Movie Databases) is an online database of information related to movies and TV series that include plot summaries, ratings, and reviews. 
 
-## Predictors included
+There are almost 600,00 movies recorded on IMDb in September 2021. This data set contains four files, movies, names, ratings, and title principles. The movies file comprises 85,855 movie description instances from 1910 to 2020 and 22 attributes, like title name, released year, movie genre, duration, movie language, directors, etc. The rating file contains the weighted average rating, total votes, mean vote, median vote, age group, and gender voting patterns. The names file contains the information of actors, and the title principals file has information about the actor’s role in each movie. The four files have a unique movie title ID and a unique name Id for each person. 
 
-Seven predictors were selected. Four of them are numerical features, duration, budget, year released, and votes number. The other three are categorical features, movie genre, directors, and actors. For numeric features, we did no change on movie duration and published year. data transformation and normalization were done for budget and votes.
-
-Budget: In the data set, aside from US dollars, more than 60 other monetary features from other countries existed. We transformed these monetary features into US dollars and logarithmized them.
-
-Votes: The number of votes contained a large scale and influences the steadiness of the model a lot. We logarithmized votes.
-
-Three categorical variables needed more work compared with numeric ones. It not only needed reasonable logic but also corresponding programming skills.
-Genre:
-Director and Cast:
+The target variable we are concerned with for this project is the average movie rating. We make use of seven features in our model. Six out of the seven are numeric features: duration, budget, year released, total votes, the average rating of director,  and the weighted average rating of the cast. The movie genre is the only discrete categorical feature. 
 
 ## Data Creation and Joining
 
@@ -93,15 +88,15 @@ movie_ratings_title <- merge(movie_ratings[,c("imdb_title_id", "date_published",
 
 Feature engineering is when we construct new features from existing data to train a machine learning model. This step is more important than the actual model used since a machine learning algorithm only learns from the data we give it. Hence, creating features relevant to the task is crucial.
 
-Constructing features is very time-consuming because each new feature usually requires several steps, especially when using information from multiple tables. We can group the operations of feature creation into two categories: transformations and aggregations. 
+Constructing features is very time-consuming because each new feature usually requires several steps, especially when using information from multiple tables. We can group the operations of feature creation into two categories: transformations and aggregations. (Koehrsen, 2018)
 
-A Transformation acts on a single table by creating new features from existing columns. Aggregations are performed across multiple data frames and use a one-to-many relationship to group observations and then calculate statistics. This process involves grouping the main table, calculating the aggregations, and merging the resulting data into the main table. 
+A Transformation acts on a single table by creating new features from existing columns. Aggregations are performed across multiple data frames and use a one-to-many relationship to group observations and then calculate statistics. This process involves grouping the main table, calculating the aggregations, and merging the resulting data into the main table. (Koehrsen, 2018)
 
 Now we will talk about the different transformations and aggregations we carried out on our data to obtain meaningful features. 
 
 ## Movie Genre
 
-Genre is a category of artistic composition characterized by a particular style, form, or content. In other words, genre categorizes movies. Genre consists of four elements: character, story, plot, and setting. Often movies have genres that overlap, such as adventure in a spy film or crime in a science fiction movie, but one genre is predominant. Film noir, thrillers, and action movies are not genres but a director’s style, but we have included them in our analysis to understand their relevance. Having a movie labeled in a genre assists people in finding a particular movie that they may be interested in watching. Many people like a specific genre or two and will only watch movies in those genres. We have considered the following two methodologies for creating genre features:
+Genre is a category of artistic composition characterized by a particular style, form, or content. In other words, genre categorizes movies. Genre consists of four elements: character, story, plot, and setting. Often movies have genres that overlap, such as adventure in a spy film or crime in a science fiction movie, but one genre is predominant. Film noir, thrillers, and action movies are not genres but a director’s style, but we have included them in our analysis to understand their relevance. Having a movie labeled in a genre assists people in finding a particular movie that they may be interested in watching. Many people like a specific genre or two and will only watch movies in those genres. (Reich, 2017) We have considered the following two methodologies for creating genre features:
 
 ```{r genre_selection}
 movie_ratings <- movie_ratings %>%
@@ -178,6 +173,8 @@ We can see from the second methodology that it introduces negligible gains in th
 
 ## Cast Experience
 
+Similarly, cast experience is equally, if not more, vital to the success of a film. When we think of a movie we liked, our minds foremostly go to the artists who acted in these movies. However, gauging the combined experience of the entire cast for every movie seems like a complicated ordeal. Another issue of actors with no prior experience arises, which could mess up the scores. To obtain these values, we utilize two datasets: movies and title principals. 
+
 ```{r actor_exp, warning=F}
 actor_new <- movie_ratings_title %>%
   group_by(imdb_name_id) %>%
@@ -202,10 +199,16 @@ summary(model.cast)
 
 ```
 
+The methodology we use is as follows:
+  1) We create a new table at the granularity of one record for each cast member for each movie. 
+  2) We group by the cast member and repeat the steps as we did for the director to obtain the cast experience and cast mean average vote.
+  3) We set the cast members without prior experience (NaN values)  with a placeholder value because they will cancel out anyway. 
+  4) We group the resultant table by the movie Title ID to get back the desired granularity level. 
+  5) We take the experience of the cast member as a weight to calculate the final mean average vote. More experienced members would contribute more        to the final vote score. 
 
 ## Director Experience
 
-Film and TV Directors are some of the most respected individuals in the industry. They are heavily involved in all stages of movie-making: from the very start of the project to the final cut. A director should have a working knowledge of each primary part of making a movie and competently converse with the individuals in charge of those departments. They often get into the field as film editors, actors, or assistants to an established director. We can imagine then how much skills and experience are necessary to create a successful movie. So, we have considered director experience as one of our model input features. However, it cannot be the sole judging factor to decide the movie quality. We should also include the average movie ratings for the films they have directed up to that moment. This approach gives us a complete idea of the importance of the director for movie success.
+Film and TV Directors are some of the most respected individuals in the industry. They are heavily involved in all stages of movie-making: from the very start of the project to the final cut. A director should have a working knowledge of each primary part of making a movie and competently converse with the individuals in charge of those departments. They often get into the field as film editors, actors, or assistants to an established director. We can imagine then how much skills and experience are necessary to create a successful movie. So, we have considered director experience as one of our model input features. However, it cannot be the sole judging factor to decide the movie quality. We should also include the average movie ratings for the films they have directed up to that moment. This approach gives us a complete idea of the importance of the director for movie success. (Film Director, n.d.)
 
 ```{r director_exp, waring=F}
 
@@ -236,7 +239,7 @@ The methodology we use is as follows:
   1) We group the movies by director and arrange them in increasing order of the published year.
   2) We set the director experience in incremental order starting from zero for their first project.
   3) We take a cumulative sum of the movie ratings for the past movies and divide it by the director experience.
-  4) We omit the records where the director does not have prior experience as we do not want to introduce bias into our model by         imputation. 
+  4) We omit the records where the director does not have prior experience as we do not want to introduce bias into our model by imputation. 
 
 ## Numeric Columns
 
@@ -266,6 +269,19 @@ xkablevif(model.numeric)
 
 ```
 
+Our data set consists of several numeric columns, although we did not use most of them. We have altered the essential numeric columns in the below-mentioned ways. 
+
+1) We recast the year of release as a numeric column. We tried splitting the column into relevant decades since the 1960s, the 1970s, and the 1980s   have their unique flavor, but they did not give us significant gains for our R-squared scores, so we resolved to keep our model simplistic          instead.
+
+2) The movie budget can be a good indicator of how well it would do at the box office. Since our IMDB data set houses movie information from around the globe, the budget information is available in different currencies. In the data set, aside from US dollars, more than 60 monetary features from other countries existed. We transformed these features into US dollars. We had a choice to consider only those movies made in US dollars, or we could try modifying the data to bring them all to the same scale using conversion rates. Another problem we faced was the issue of inflation and variations in currency exchange rates. For the sake of simplicity, we chose to ignore the effect of inflation on our budget numbers and only considered converting the values according to the exchange rates at the time of building the project. Hence, we hard coded the values to estimate the scale between movie budgets across different countries.
+
+3) We applied the log transformations for the movie budget and votes columns because they generally store massive values. Inputting these values to the model would skew our results, so we decided to control their values. Additionally, we only needed the order of the values (hundred-thousands, millions, billions, etc.) to understand the scale of the movie or movie votes.
+
+4) Reviews from users and critics were individual values against each movie out of a hundred, so we scaled them to be between 0 and 1. 
+
+Three categorical variables needed more work compared with numeric ones. It not only required reasonable logic but also corresponding programming skills.
+
+
 ## Final dataset creation
 
 ```{r final_dataset, include=TRUE}
@@ -277,11 +293,16 @@ movie_ratings_final2 <- merge(movie_ratings_final1, movie_ratings_directorsubset
 movie_ratings_final3 <- merge(movie_ratings_final2, movie_ratings_budget_subset[,numeric_columns], by="imdb_title_id")
 ```
 
+We use an inner join on all the feature columns created so that all the records that did not get dropped in any pre-processing steps result in a final intersection that is ready for modeling. 
+
 # Model Creation
 
-For this project, our smart questions were to predict movie ratings with linear model and recommend good movies with logistic model. Therefore, we chose the linear regression model for the first question and the logistic regression model for the second question. After finishing the linear regression model, we gained feature importance by building a decision regression tree model.
+For this project, our SMART questions were to predict movie ratings with a regression model and recommend good movies with a classification model. Therefore, we chose the linear regression model for the first question and the logistic regression model for the second question. After finishing the linear regression model, we gained feature importance by building a decision tree model.
 
 ## Linear Regression
+
+Linear regression attempts to model the relationship between two variables by fitting a linear equation to observed data. One variable is an explanatory variable, and the other is a dependent variable. 
+Before attempting to fit a linear model to observed data, a modeler should first determine whether there is a relationship between the variables of interest. Doing this does not necessarily imply that one variable causes the variance in the other variable, but there is some significant association between the two variables. A linear regression line has an equation form of Y = a + bX, where X is the explanatory variable and Y is the dependent variable. The line slope is b, and a is the intercept (the value of y when x = 0). (Prabhakaran, 2016)
 
 ```{r Linear Regression, warning=FALSE}
 genre_columns <- c("Romance", "Biography", "Drama", "Horror", "Action", "Sci_Fi", "Animation", "War", "Film_Noir")
@@ -311,14 +332,33 @@ test.rsq <- 1 - SS.residual/SS.total
 paste("Test R-squared value is ", test.rsq)
 ```
 
+In our project, we build a linear model using specific features that are:
+  1) Genre column subset
+  2) Director average vote mean
+  3) Director experience
+  4) Cast weighted average rating
+  5) Budget number
+  6) Year
+  7) Duration
+  8) Total Votes
+
+We split the records into 70% training and 30% testing data, ran the model on train data, predicted the outcomes for the test data, and finally compared the R-squared values in both cases. 
+
+We obtained a training R-squared value of `r summary(model.final)$r.squared` and a testing r-squared value of `r test.rsq`.
+Though the accuracy is low, this model has a lesser residual error. Using this technique, we proposed a way to recommend higher-rated movies.
+
 ## Decision Tree
 
-```{r Decision Tree, include=TRUE}
+Decision Trees are versatile machine learning algorithms that can perform classification and regression tasks. They are helpful techniques capable of fitting complex data sets. Besides, decision trees are fundamental components of random forests, which are among the most effective Machine Learning algorithms available today. 
+
+Feature importance refers to techniques that assign a score to input features based on their usefulness in predicting a target variable. There are many types and sources of feature importance scores, the one we used to be decision tree. Decision tree algorithms offer importance scores based on criterion reduction to select split points, like Gini or entropy. We can use the RPART library to train the tree model and obtain the variable importance in its summary. (Donges, 2021) We used a decision tree regressor to find the best features for prediction, and the results are as follows:
+
+```{r Decision Tree, include=TRUE, fig.height=10, fig.width=10}
 
 model.tree <- rpart(complete_formula, data = movie_ratings_final3, control = list(maxdepth = 7, cp=0.005))
-summary(model.tree)
+# summary(model.tree)
 plot(model.tree)
-text(model.tree, cex=0.7)
+text(model.tree, cex=0.8)
 fancyRpartPlot(model.tree)
 feature_importances <- data.frame(model.tree$variable.importance)
 feature_importances$variables <- row.names(feature_importances)
@@ -331,11 +371,13 @@ ggplot(aes(x=variables, y=importances), data=feature_importances) +
 
 ```
 
+We have constructed graphs here using two methods: one from the base R plot function and the other using fancyRPartPlot. We see how the root node is split based on cast_weighted_avg_rating and then on director_avg_vote_mean. It shows us that these two variables are the most important, further confirmed by the feature importance bar graph. We tried to get the output in decreasing order of importance but were strangely unable to do so using GGPlot. We find the other essential features to be total votes, budget, genre, year, etc. 
+
 ## Logistic Regression
 
 ### Target Variable
 
-We built the logistic model with the target variable of the average vote, using 0.5 of quantile to split the movie average vote and encoding them. We found the value where is 50th percentile is 6.3, so the target variable encoding of 1 is a good movie (high average vote) which means the average vote is higher than 6.3 while the target variable encoding of 0 is a not good movie (low average vote) which means the average vote is lower than 6.3.
+We built the logistic model with the target variable of the average vote, using 0.5 of quantile to split the average movie vote and encoding them. We found the 50th percentile of the movie rating to be 6.3. We encode the target variable with one if it is greater than that value (good) and encode it with zero if it is lesser than that value (not good).
 
 ```{r logistic Regression, include=TRUE, warning=FALSE}
 ## Avg_vote split
@@ -360,8 +402,8 @@ data_test <- movie_ratings_final3[-train,]
 
 ### Model fitting
 
-We would build a logistic model to predict the goodness of a movie with the features of movie genres, movie director experience, movie casting, the movie released year, movie duration, movie votes from the audience, and movie budget.
-The logistic model is built with the categorical feature of genres, director, the actor, and numerical feature of the year, duration, budget, and votes. The categorical features have done with the selection of feature importance, the genre of Romance", "Biography", "Drama", "Horror", "Action", "Sci_Fi", "Animation", "War", "Film_Noir" has importance in the model, the model is built from train dataset, and then the test dataset would be used to fit the model and predict the movie goodness. We would check the accuracy of the model. 
+We have built a logistic model to predict the goodness of a movie with the features of movie genres, movie director experience, movie casting, the movie release year, movie duration, movie votes from the audience, and movie budget.
+We train the logistic model with the categorical features of the genre, director, the actor, and numerical ones of the year, duration, budget, and votes. We have used (regsubsets) to select the subset of genres effective in predicting the average rating. They are Romance, Biography, Drama, Horror, Action, Sci_Fi, Animation, War, and Film Noir. We use the training data set for building the model and then predict how good the film is on the test data set model. Finally, we check the accuracy of the model. 
 
 ```{r logitmodel, warning=FALSE}
 
@@ -403,7 +445,7 @@ xkabledply(confint(model_1), title = "CIs using profiled log-likelihood" )
 
 ### Model evaluation
 
-After the model is built, we would do the model evaluation to decide whether the model performs better. It is critical to consider the model outcomes according to every possible evaluation method. We would apply different methods that can provide different perspectives to evaluate the model.
+After building the model, we do the model evaluation to decide whether the model performs better. It is critical to consider the model outcomes according to every possible evaluation method. We apply different techniques that can provide different perspectives to evaluate the model.
 
 #### Analysis of deviance
 
@@ -415,19 +457,22 @@ anova(model_1,test="Chisq")
 
 ```
 
-From the result, the difference between the null deviance and the residual deviance shows how our model is doing against the null model (a model with only the intercept). The wider this gap, the better. Analyzing the table, we can see the drop in deviance when adding each variable one at a time. Again, adding the numerical variables of budget, year, duration, votes reduces the residual deviance. The other variables seem to improve the model less even though the genre of Romance, biograph, drama, Horror and action have a low p-value. Because a large p-value here indicates that the model without the variable explains more or less the same amount of variation. 
+The difference between the null and the residual deviances shows us how well our model is doing compared to the null model (model with only the intercept). We want this gap to be as big as possible. Analyzing the table, we can see the drop in deviance when adding each variable one at a time. Again, adding the numerical variables of budget, year, duration, votes reduces the residual deviance. The other variables seem to improve the model less even though the genre of Romance, Biography, Drama, Horror, and Action have a low p-value. A high p-value here indicates that the model without the variable explains more or less the same amount of variation. 
 
 #### Confusion matrix 
 
-A confusion matrix is a table that is often used to describe the performance of a classification model on a set of test data for which the true values are known.
+We use a confusion matrix to describe the performance of a classification model on a set of test data for which the actual values are known.
 
 ```{r confusion matrix, warning=FALSE}
 
 xkabledply(confusion_matrix(model_1))
+precision = confusion_matrix(model_1)[5] / (confusion_matrix(model_1)[5] + confusion_matrix(model_1)[4])
+recall = confusion_matrix(model_1)[5] / (confusion_matrix(model_1)[5] + confusion_matrix(model_1)[2])
+f1_score = (2*recall*precision) / (recall + precision)
 
 ```
 
-We can obtain the value of f1 score, precision and recall score from confusion matrix. Confusion matrix, precision, recall, and F1 score provide better insights into the prediction as compared to accuracy performance metrics. From our confusion matrix, 0.7693 of F1 score is obtained, precision is around 0.7715, recall is around 0.7671. 
+We can obtain the value of the F1 score, precision, and recall score from the confusion matrix. These provide better insights into the prediction as compared to accuracy performance metrics. We obtain an F1 score of `r f1_score`. We also get a precision value of `r precision` and a recall value of `r recall`. 
 
 #### Hosmer and Lemeshow test  
 
@@ -439,11 +484,11 @@ ratingLogitHoslem = hoslem.test(data_train$avg_vote, fitted(model_1))
 ratingLogitHoslem
 ```
 
-The Hosmer-Lemeshow test (HL test) is a goodness of fit test for logistic regression, especially for risk prediction models. A goodness of fit test tells you how well your data fits the model. Small p-values mean that the model is a poor fit. Like most goodness of fit tests, these small p-values (usually under 5%) mean that your model is not a good fit. But large p-values don’t necessarily mean that your model is a good fit, just that there isn’t enough evidence to say it’s a poor fit. The p-value of `r ratingLogitHoslem$p.value` is relatively small. This indicates the model is not really a good fit in train dataset.
+The Hosmer-Lemeshow test is a goodness-of-fit test for logistic regression, especially risk prediction models. A goodness of fit test tells you how well your data fits the model. Small p-values mean that the model is a poor fit. Like most goodness of fit tests, these small p-values (usually under 5%) mean that your model is not a good fit. But large p-values don’t necessarily mean that your model is a good fit, just that there isn’t enough evidence to say it’s a poor fit. The p-value of `r ratingLogitHoslem$p.value` is relatively small. It indicates the model is not a good fit in the training data set.
 
 #### ROC-AUC
 
-Receiver-Operator-Characteristic (ROC) curve and Area-Under-Curve (AUC) measures the true positive rate (or sensitivity) against the false positive rate (or specificity). The area-under-curve is always between 0.5 and 1. Values higher than 0.8 is considered good model fit.  
+Receiver-Operator-Characteristic (ROC) curve and Area-Under-Curve (AUC) measure the True positive rate (or sensitivity) against the False positive rate (or specificity). The area-under-curve is always between 0.5 and 1. Values higher than 0.8 are considered a good model fit.  
 
 ```{r roc_auc_ data train, warning=FALSE}
 
@@ -455,7 +500,7 @@ plot(h)
 
 ```
 
-As a rule of thumb, a model with good predictive ability should have an AUC closer to 1, and our value of the area-under-curve is `r auc(h)`, which is more than 0.8. This test against with the Hosmer and Lemeshow test that the model is considered a good fit. 
+As a rule of thumb, a model with good predictive ability should have an AUC closer to 1, and our value of the area-under-curve is `r auc(h)` is more than 0.8. This test against the Hosmer and Lemeshow test shows that the model is considered a good fit. 
 
 ```{r roc_auc_ data test, warning=FALSE}
 
@@ -470,11 +515,11 @@ auc
 
 ```
 
-The area under an ROC curve (AUC) is a popular measure of the accuracy of a diagnostic test. In general, higher AUC values indicate better test performance. We have here the area-under-curve of `r auc(h)` in our test dataset, which is more than 0.8. Since this value is close to 1, this indicates that the model does a very good job of predicting whether the movie good or not. 
+The area under the ROC curve (AUC) is a popular measure of the accuracy of a diagnostic test. In general, higher AUC values indicate better test performance. We have an AUC of `r auc(h)` for our testing data set. Since this value is close to 1, we can safely say that the model is performing well. 
 
 #### McFadden  
 
-McFadden is another evaluation tool we can use on logit regressions. This is part of what is called pseudo-R-squared values for evaluation tests. We can calculate the value directly from its definition if we so choose to.
+McFadden is another evaluation tool we can use on logit regressions. It is part of what is called pseudo-R-squared values for evaluation tests. We can calculate the value directly from its definition.
 
 ```{r McFadden_direct, warning=FALSE}
 ratingNullLogit <- glm(avg_vote ~ 1, data = data_train, family = "binomial")
@@ -482,7 +527,7 @@ mcFadden = 1 - logLik(model_1)/logLik(ratingNullLogit)
 mcFadden
 ```
 
-With the McFadden value of `r mcFadden['McFadden']`, which is analogous to the coefficient of determination $R^2$, only about 33.6% of the variations in y is explained by the explanatory variables in the model. McFadden's pseudo R-squared value between 0.2 to 0.4 indicates an excellent fit.
+Analogous to the coefficient of determination R-squared, the McFadden value of `r mcFadden[1]` means that the model explains only `r mcFadden[1] * 100`% of the variations in y by the predictor variables in the model. The pseudo-R-squared value between 0.2 to 0.4 indicates an excellent fit.
 
 
 #### Train and Test Accuarcy
@@ -492,34 +537,54 @@ fitted.results <- predict(model_1,data_train,type='response')
 fitted.results <- ifelse(fitted.results > 0.5,1,0)
 misClasificError <- mean(fitted.results != data_train$avg_vote)
 train_acc = 1-misClasificError
-train_acc
-hist(fitted.results, main = "Train Data Predictions")
 
 test.results <- predict(model_1,data_test,type='response')
 test.results <- ifelse(test.results > 0.5,1,0)
 misClasificError_test <- mean(test.results != data_test$avg_vote)
 test_acc = 1-misClasificError_test
-test_acc
-hist(test.results, main = "Test Data Predictions")
+
 ```
 
-The accuracy of the train data set is 0.7792 and the accuracy of the test data set is 0.7804. With the logistic model we built, we have 78.04% of accuracy to predict the goodness of the movies from the test dataset.  
+The accuracy of the train data set is `r train_acc`, and the accuracy of the test data set is `r test_acc`. With the logistic model we built, we have `r test_acc*100`% accuracy while predicting the goodness of the movies from the test data set.  
 
 # Conclusions
 
-The logistic model can tell the goodness of a movie with an accuracy of 78%. Considering the movie genres, director experience, movie casting,  movie budget, movie released year, movie rating votes from the audience, and movie duration, the logistic model can roughly predict the goodness of a movie.
+Based on the massive movie information, it was interesting to analyze and discover the factors that make a movie more successful than others. We learned what kind of movies are more successful, in other words, get higher IMDB ratings. We also show the results of this analysis intuitively by visualizing some of the outcomes in R.
+Further, we considered the IMDB rating a response variable and focused on making predictions by analyzing the rest of the variables in the IMDB movie data set. We understand the relative importance of different variables in predicting the success of a movie. The results help film companies to understand the secret of generating a commercially successful film.
 
+Accuracy table for the different models:
 
++-------------------+------------------------+------------------------------------------+
+|Dataset            | Logistic Regression    | Linear Regression                        |
++-------------------+------------------------+------------------------------------------+
+|Training           | `r train_acc*100`%	               | `r summary(model.final)$r.squared*100`%  |
++-------------------+------------------------+------------------------------------------+
+|Testing	          | `r test_acc*100`%	               | `r test.rsq*100`%                        |
++-------------------+------------------------+------------------------------------------+
 
-# Reference 
-José Gabriel Navarro. (2021, November 17). Movie releases in the U.S. & Canada 2000-2020. https://www.statista.com/statistics/187122/movie-releases-in-north-america-since-2001/
+# References
 
-Zahabiya M., A.Razia S.,& Sujala D. ( 2020, November 8). Movie Rating Prediction using Ensemble Algorithms. https://thesai.org/Downloads/Volume11No8/Paper_49-Movie_Rating_Prediction.pdf
+José Gabriel Navarro. (2021, November 17). 
+*Number of movies released in the United States and Canada from 2000 to 2020*. https://www.statista.com/statistics/187122/movie-releases-in-north-america-since-2001/
 
-Chuan Sun. (2016, August, 22). Predict Movie Rating. https://nycdatascience.com/blog/student-works/web-scraping/movie-rating-prediction/
+Zahabiya M., A.Razia S.,& Sujala D. (2020, November 8). Movie Rating Prediction using Ensemble Algorithms.
+*International Journal of Advanced Computer Science and Applications, Vol. 11, No. 8*. https://thesai.org/Downloads/Volume11No8/Paper_49-Movie_Rating_Prediction.pdf
 
-https://towardsdatascience.com/automated-feature-engineering-in-python-99baf11cc219
+Chuan Sun. (2016, August, 22).
+*Predict Movie Rating*. https://nycdatascience.com/blog/student-works/web-scraping/movie-rating-prediction/
 
-https://milnepublishing.geneseo.edu/exploring-movie-construction-and-production/chapter/2-what-is-genre-and-how-is-it-determined/
+Will Koehrsen (2018, June 2).
+*Automated Feature Engineering in Python*. https://towardsdatascience.com/automated-feature-engineering-in-python-99baf11cc219
 
-https://academicearth.org/careers/film-director/
+John Reich (2017, July 11).
+*What Is Genre and How Is It Determined?*. https://milnepublishing.geneseo.edu/exploring-movie-construction-and-production/chapter/2-what-is-genre-and-how-is-it-determined/
+In *Exploring Movie Construction and Production*. (Part 1: Construction, Chapter 2). Open SUNY Textbooks.
+
+Film Director. (n.d.) 
+*Academic Earth* Retrieved December 15, 2021 from https://academicearth.org/careers/film-director/
+
+Niklas Donges. (2021, July 22).
+*A Complete Guide to the Random Forest Algorithm* https://builtin.com/data-science/random-forest-algorithm
+
+Selva Prabhakaran (2016, n.d.)
+*Logistic Regression* http://r-statistics.co/Logistic-Regression-With-R.html
