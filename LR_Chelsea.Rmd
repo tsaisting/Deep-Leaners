@@ -1,0 +1,82 @@
+---
+title: "LM-Chelsea"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data cleaning
+```{r data}
+movies <- read.csv('movies.csv', header=TRUE, na.strings = '')
+movies_df <- movies[,c('genre','director','year','duration','votes','budget','worlwide_gross_income','reviews_from_users','avg_vote')]
+movies_df
+
+movies_df <- na.omit(movies_df)
+sum(is.na(movies_df_new))
+
+movies_df_new <- movies_df[which(movies_df$votes > 9999),]
+movies_df_new <- movies_df_new[!(movies_df_new$year == '2020'),]
+movies_df_new
+
+```
+
+```{r data}
+movies_df_new_test <- movies_df_new
+year_factor <- as.factor(movies_df_new_test$year)
+summary(year_factor)
+year_1950 <- c( '1944', '1945', '1946')
+movies_df_new_test$year[which(movies_df_new_test$year == '1920')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1921')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1925')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1927')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1928')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1931')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1932')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1933')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1935')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1936')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1937')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1938')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1939')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1940')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1941')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1942')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1943')] = '0'
+movies_df_new_test$year[which(movies_df_new_test$year == '1944')] = '0'
+for (i in year_1950){
+  if (movies_df_new_test$year == i){
+     movies_df_new_test$year[movies_df_new_test$year == i] = '0'}
+}
+#'1920','1921','1925', '1927', '1928', '1931', '1932', '1933', '1935', '1936', '1937', #'1938', '1939', '1940', '1941', '1942'，'1943',
+#'1947', '1948', '1949', '1950', '1951', '1952', '1953', '1954', '1955', '1956', #'1957', '1958'
+
+
+
+
+movies_df_new_test
+
+```
+
+
+```{r data}
+summary(movies_df_new_test$avg_vote)
+hist(movies_df_new_test$avg_vote)
+
+movies_df_new_test$avg_vote[movies_df_new_test$avg_vote < 6.6] = 0
+movies_df_new_test$avg_vote[movies_df_new_test$avg_vote >= 6.6] = 1
+hist(movies_df_new_test$avg_vote)
+
+```
+
+
+
+```{r data}
+movies_df_new_test$budget 
+
+```
+
+```{r data}
+
+```
